@@ -30,7 +30,7 @@ ARQUETIPO_POR_INSTITUICAO = {
 # (disciplina, nota_min) adicionados manualmente por curso, por chave
 REQUISITOS_EXTRA = {
     "imel_comunicacao": [("Educação Moral e Cívica", 14)],
-    "cearte_musica": [("Educação Moral e Cívica", 13)],
+    "cearte_musica": [("Educação Moral e Cívica", 14)],
 }
 
 CURSOS_DISPONIVEIS = {
