@@ -51,9 +51,9 @@ CURSOS_DISPONIVEIS = {
     "ims_radiologia": {"nome": "Técnico de Radiologia (IMS)", "vetor_ideal": [15, 16, 17, 15, 18, 12, 12, 14, 14, 14, 12, 14], "requisitos": {"matematica": 14, "fisica": 14, "biologia": 14}},
     "ims_fisioterapia": {"nome": "Técnico de Fisioterapia (IMS)", "vetor_ideal": [15, 15, 16, 14, 19, 12, 12, 14, 14, 15, 12, 14], "requisitos": {"biologia": 14, "fisica": 14, "educacao_fisica": 14}},
     "ims_saude_ambiental": {"nome": "Técnico de Saúde Ambiental (IMS)", "vetor_ideal": [15, 15, 14, 17, 18, 13, 13, 14, 14, 14, 12, 14], "requisitos": {"biologia": 14, "quimica": 14}},
-    "cearte_artes": {"nome": "Técnico de Artes Visuais e Plásticas (CEARTE)", "vetor_ideal": [15, 13, 12, 12, 12, 14, 13, 14, 14, 14, 19, 15], "requisitos": {"ed_visual": 13, "lingua_portuguesa": 13}},
-    "cearte_musica": {"nome": "Técnico de Música (CEARTE)", "vetor_ideal": [15, 13, 12, 12, 12, 14, 13, 15, 14, 14, 13, 14], "requisitos": {"lingua_portuguesa": 13, "historia": 13}},
-    "cearte_teatro": {"nome": "Técnico de Teatro e Cinema (CEARTE)", "vetor_ideal": [18, 13, 12, 12, 12, 16, 14, 15, 16, 14, 14, 14], "requisitos": {"lingua_portuguesa": 13, "historia": 13}},
+    "cearte_artes": {"nome": "Técnico de Artes Visuais e Plásticas (CEARTE)", "vetor_ideal": [15, 13, 12, 12, 12, 14, 13, 14, 14, 14, 19, 15], "requisitos": {"ed_visual": 15, "lingua_portuguesa": 14}},
+    "cearte_musica": {"nome": "Técnico de Música (CEARTE)", "vetor_ideal": [15, 13, 12, 12, 12, 14, 13, 15, 14, 14, 13, 14], "requisitos": {"lingua_portuguesa": 14, "historia": 14, "ed_moral_civica": 14}},
+    "cearte_teatro": {"nome": "Técnico de Teatro e Cinema (CEARTE)", "vetor_ideal": [18, 13, 12, 12, 12, 16, 14, 15, 16, 14, 14, 14], "requisitos": {"lingua_portuguesa": 14, "historia": 15}},
 }
 
 
