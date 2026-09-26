@@ -50,3 +50,8 @@ class Recomendacao(models.Model):
 
     def __str__(self):
         return f"{self.aluno.nome} → {self.curso.nome} (rank {self.rank})"
+
+    alertas_vieses = models.JSONField(
+    default=dict, blank=True,
+    help_text='Alertas de viés detectados (RF09, RF11). Ex: {"sobrestimacao": ["Analítico"], "subestimacao": []}'
+)

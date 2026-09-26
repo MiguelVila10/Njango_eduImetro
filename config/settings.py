@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'cat',
     'recomendacoes',
     'filtro_regras',
+    'deteccao_vieses',
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
