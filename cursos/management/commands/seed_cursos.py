@@ -19,6 +19,7 @@ MAPA_REQUISITOS = {
     "biologia": "Biologia", "lingua_portuguesa": "Português",
     "historia": "História", "ed_visual": "Educação Visual",
     "ed_laboral": "Educação Laboral", "educacao_fisica": "Educação Física",
+    "ed_moral_civica": "Educação Moral e Cívica",
 }
 
 ARQUETIPO_POR_INSTITUICAO = {
@@ -26,11 +27,8 @@ ARQUETIPO_POR_INSTITUICAO = {
     "IMEL": "Estrategista", "IMS": "Humanista", "CEARTE": "Criativo",
 }
 
-# Pré-requisitos extra que não seguem o padrão "requisitos" simples
-# (disciplina, nota_min) adicionados manualmente por curso, por chave
 REQUISITOS_EXTRA = {
     "imel_comunicacao": [("Educação Moral e Cívica", 14)],
-    "cearte_musica": [("Educação Moral e Cívica", 14)],
 }
 
 CURSOS_DISPONIVEIS = {
@@ -62,7 +60,7 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
-        Curso.objects.all().delete()  # idempotente — corre quantas vezes quiseres, sem duplicar
+        Curso.objects.all().delete()
 
         for chave, dados in CURSOS_DISPONIVEIS.items():
             instituicao = dados["nome"].split("(")[-1].rstrip(")")
