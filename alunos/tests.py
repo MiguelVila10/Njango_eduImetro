@@ -94,3 +94,32 @@ class NotaDisciplinaModelTest(TestCase):
         with self.assertRaises(IntegrityError):
             with transaction.atomic():
                 NotaDisciplina.objects.create(aluno=self.aluno, disciplina="Matemática", nota=18)
+
+    def test_boletim_completo_indica_disciplinas_em_falta(self):
+        """GET /api/alunos/{id}/boletim-completo/ lista as disciplinas que faltam."""
+        aluno = Aluno.objects.create(nome="Aluno Incompleto", idade=14, escola="Escola Teste")
+        NotaDisciplina.objects.create(aluno=aluno, disciplina="Matemática", nota=15)
+
+        response = self.client.get(f"/api/alunos/{aluno.id}/boletim-completo/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data["completo"])
+        self.assertIn("Física", response.data["faltam"])
+        self.assertNotIn("Matemática", response.data["faltam"])
+
+    def test_boletim_completo_confirma_quando_todas_as_notas_existem(self):
+        """GET /api/alunos/{id}/boletim-completo/ confirma boletim completo."""
+        aluno = Aluno.objects.create(nome="Aluno Completo", idade=14, escola="Escola Teste")
+        disciplinas = [
+            "Português", "Matemática", "Física", "Química", "Biologia",
+            "História", "Geografia", "Língua Estrangeira", "Educação Moral e Cívica",
+            "Educação Física", "Educação Visual", "Educação Laboral",
+        ]
+        for disciplina in disciplinas:
+            NotaDisciplina.objects.create(aluno=aluno, disciplina=disciplina, nota=14)
+
+        response = self.client.get(f"/api/alunos/{aluno.id}/boletim-completo/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data["completo"])
+        self.assertEqual(response.data["faltam"], [])

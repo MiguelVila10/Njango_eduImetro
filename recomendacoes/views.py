@@ -1,17 +1,17 @@
-from django.shortcuts import render
+# recomendacoes/views.py
 
-# Create your views here.
-from rest_framework import viewsets
-from .models import Recomendacao
-from .serializers import RecomendacaoSerializer
+from rest_framework import viewsets, status as drf_status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework import status as drf_status
 
 from alunos.models import Aluno
+from .models import Recomendacao
+from .serializers import RecomendacaoSerializer
 from .services import gerar_recomendacoes
 
+
 class RecomendacaoViewSet(viewsets.ModelViewSet):
+    """Endpoint CRUD para recomendações de curso (RF10, RF13)."""
     queryset = Recomendacao.objects.all()
     serializer_class = RecomendacaoSerializer
 
@@ -20,7 +20,7 @@ class RecomendacaoViewSet(viewsets.ModelViewSet):
         """
         POST /api/recomendacoes/gerar/{aluno_id}/
         Corre o motor de inferência completo (RF07-RF10) para o aluno
-        indicado e devolve as recomendações geradas.
+        indicado e devolve as 3 recomendações geradas.
         """
         try:
             aluno = Aluno.objects.get(pk=aluno_id)

@@ -114,3 +114,51 @@ class GerarRecomendacoesTest(TestCase):
 
         with self.assertRaises(ValueError):
             gerar_recomendacoes(aluno_sem_cat)
+class GerarRecomendacoesViewTest(APITestCase):
+    """Testa o endpoint POST /api/recomendacoes/gerar/{aluno_id}/."""
+
+    def setUp(self):
+        self.aluno = Aluno.objects.create(nome="Cientista Teste", idade=14, escola="Escola Teste")
+        notas = {
+            "Matemática": 18, "Física": 17, "Química": 16,
+            "Biologia": 14, "Português": 13, "Educação Moral e Cívica": 14,
+            "Educação Visual": 13, "Educação Laboral": 14, "Língua Estrangeira": 13,
+            "História": 13, "Geografia": 14, "Educação Física": 13,
+        }
+        for disciplina, nota in notas.items():
+            NotaDisciplina.objects.create(aluno=self.aluno, disciplina=disciplina, nota=nota)
+
+        self.curso = Curso.objects.create(nome="Técnico de Informática", instituicao="ITEL", arquetipo_dominante="Analítico")
+        PreRequisitoCurso.objects.create(curso=self.curso, disciplina="Matemática", nota_min=14)
+        VetorIdealCurso.objects.create(curso=self.curso, disciplina="Matemática", peso_ideal=18)
+        VetorIdealCurso.objects.create(curso=self.curso, disciplina="Física", peso_ideal=17)
+
+        item = ItemCAT.objects.create(texto="Pergunta", tipo="nucleo", opcoes=[
+            {"texto": "a", "arquetipo": "Analítico"}, {"texto": "b", "arquetipo": "Humanista"},
+            {"texto": "c", "arquetipo": "Criativo"}, {"texto": "d", "arquetipo": "Estrategista"},
+        ])
+        RespostaCAT.objects.create(aluno=self.aluno, item=item, arquetipo_escolhido="Analítico")
+
+    def test_gerar_via_api_retorna_recomendacoes(self):
+        """Happy path: POST gera e devolve as recomendações via HTTP."""
+        response = self.client.post(f"/api/recomendacoes/gerar/{self.aluno.id}/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]["rank"], 1)
+        self.assertIn("alertas_vieses", response.data[0])
+
+    def test_gerar_com_aluno_inexistente_retorna_404(self):
+        """Caso de erro: aluno_id inexistente devolve 404."""
+        response = self.client.post("/api/recomendacoes/gerar/9999/")
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_gerar_sem_respostas_cat_retorna_400(self):
+        """Caso de erro: aluno sem respostas ao CAT devolve 400 com mensagem clara."""
+        aluno_sem_cat = Aluno.objects.create(nome="Aluno Sem CAT", idade=14, escola="Escola Teste")
+
+        response = self.client.post(f"/api/recomendacoes/gerar/{aluno_sem_cat.id}/")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("erro", response.data)

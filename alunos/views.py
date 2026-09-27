@@ -1,21 +1,11 @@
-from django.shortcuts import render
-
-# Create your views here.
 # alunos/views.py
 
 from rest_framework import viewsets
-from .models import Aluno
-from .serializers import AlunoSerializer
-from .models import NotaDisciplina
-from .serializers import NotaDisciplinaSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-cDISCIPLINAS_OBRIGATORIAS = [
-    "Português", "Matemática", "Física", "Química", "Biologia",
-    "História", "Geografia", "Língua Estrangeira", "Educação Moral e Cívica",
-    "Educação Física", "Educação Visual", "Educação Laboral",
-]
+from .models import Aluno, NotaDisciplina
+from .serializers import AlunoSerializer, NotaDisciplinaSerializer
 
 
 DISCIPLINAS_OBRIGATORIAS = [
@@ -26,6 +16,7 @@ DISCIPLINAS_OBRIGATORIAS = [
 
 
 class AlunoViewSet(viewsets.ModelViewSet):
+    """Endpoint CRUD para o registo e gestão do perfil básico do aluno (RF01)."""
     queryset = Aluno.objects.all()
     serializer_class = AlunoSerializer
 
@@ -43,3 +34,9 @@ class AlunoViewSet(viewsets.ModelViewSet):
             "completo": len(faltam) == 0,
             "faltam": faltam,
         })
+
+
+class NotaDisciplinaViewSet(viewsets.ModelViewSet):
+    """Endpoint CRUD para notas por disciplina (RF02, RF03)."""
+    queryset = NotaDisciplina.objects.all()
+    serializer_class = NotaDisciplinaSerializer
