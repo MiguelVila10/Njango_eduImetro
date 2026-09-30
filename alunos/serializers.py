@@ -9,8 +9,8 @@ class AlunoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Aluno
-        fields = ["id", "nome", "idade", "escola"]
-        read_only_fields = ["id"]
+        fields = ["id", "nome", "idade", "escola", "codigo_acesso", "solicitacoes_orientacao"]
+        read_only_fields = ["id", "codigo_acesso", "solicitacoes_orientacao"]
 
     def validate_idade(self, value):
         if value <= 0:

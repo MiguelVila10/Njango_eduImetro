@@ -8,12 +8,23 @@ from deteccao_vieses.services import detectar_vieses
 from .models import Recomendacao
 
 
+LIMITE_SOLICITACOES = 3
+
+
 def gerar_recomendacoes(aluno):
     """
     Orquestra o motor de inferência completo (RF07, RF08, RF09, RF10) para
     um aluno: filtra cursos, calcula compatibilidade, detecta vieses
     cognitivos, e grava as 3 melhores recomendações com os alertas anexados.
+
+    Limita a 3 o número de vezes que um aluno pode solicitar orientação
+    (regra confirmada pelo utilizador).
     """
+    if aluno.solicitacoes_orientacao >= LIMITE_SOLICITACOES:
+        raise ValueError(
+            f"Este aluno já atingiu o limite de {LIMITE_SOLICITACOES} pedidos de orientação."
+        )
+
     cursos_aprovados, eliminacoes = filtrar_cursos(aluno)
 
     if not cursos_aprovados:
@@ -26,7 +37,6 @@ def gerar_recomendacoes(aluno):
         raise ValueError("O aluno ainda não respondeu a nenhuma questão do CAT.")
 
     contagem_por_arquetipo = Counter(r.arquetipo_escolhido for r in respostas)
-
     alertas_vieses = detectar_vieses(aluno)
 
     resultados = []
@@ -52,5 +62,8 @@ def gerar_recomendacoes(aluno):
             alertas_vieses=alertas_vieses
         )
         recomendacoes_criadas.append(rec)
+
+    aluno.solicitacoes_orientacao += 1
+    aluno.save()
 
     return recomendacoes_criadas

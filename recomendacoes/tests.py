@@ -22,6 +22,8 @@ class RecomendacaoModelTest(TestCase):
             arquetipo_dominante="Analítico"
         )
 
+
+
     def test_criar_recomendacao_com_dados_validos(self):
         rec = Recomendacao.objects.create(
             aluno=self.aluno, curso=self.curso,
@@ -162,3 +164,21 @@ class GerarRecomendacoesViewTest(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("erro", response.data)
+class GerarRecomendacoesTestExtra(GerarRecomendacoesTest):
+    def test_limite_de_tres_solicitacoes_e_respeitado(self):
+        """Caso de erro: a 4ª chamada ao motor é recusada para o mesmo aluno."""
+        gerar_recomendacoes(self.aluno)
+        gerar_recomendacoes(self.aluno)
+        gerar_recomendacoes(self.aluno)
+
+        with self.assertRaises(ValueError):
+            gerar_recomendacoes(self.aluno)
+
+    def test_contador_de_solicitacoes_incrementa(self):
+        """Confirma que o contador de solicitações sobe a cada chamada bem-sucedida."""
+        self.assertEqual(self.aluno.solicitacoes_orientacao, 0)
+
+        gerar_recomendacoes(self.aluno)
+        self.aluno.refresh_from_db()
+
+        self.assertEqual(self.aluno.solicitacoes_orientacao, 1)

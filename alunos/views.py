@@ -3,6 +3,7 @@
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework import status as drf_status
 
 from .models import Aluno, NotaDisciplina
 from .serializers import AlunoSerializer, NotaDisciplinaSerializer
@@ -34,6 +35,20 @@ class AlunoViewSet(viewsets.ModelViewSet):
             "completo": len(faltam) == 0,
             "faltam": faltam,
         })
+
+    @action(detail=False, methods=["get"], url_path="entrar")
+    def entrar(self, request):
+        """
+        GET /api/alunos/entrar/?codigo=A1B2C3
+        Recupera o perfil do aluno a partir do código de acesso.
+        """
+        codigo = request.query_params.get("codigo", "").upper()
+        try:
+            aluno = Aluno.objects.get(codigo_acesso=codigo)
+        except Aluno.DoesNotExist:
+            return Response({"erro": "Código inválido."}, status=drf_status.HTTP_404_NOT_FOUND)
+
+        return Response(self.get_serializer(aluno).data)
 
 
 class NotaDisciplinaViewSet(viewsets.ModelViewSet):
