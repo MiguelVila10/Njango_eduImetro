@@ -3,24 +3,15 @@
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
-import secrets
-
-
-def gerar_codigo_acesso():
-    return secrets.token_hex(3).upper()  # 6 caracteres, ex. "A1B2C3"
-
 
 class Aluno(models.Model):
+    """
+    Representa o perfil básico do aluno registado no sistema (RF01).
+    """
+
     nome = models.CharField(max_length=255, help_text="Nome do aluno.")
     idade = models.PositiveSmallIntegerField(help_text="Idade do aluno.")
     escola = models.CharField(max_length=255, help_text="Instituição de origem do aluno.")
-    codigo_acesso = models.CharField(
-        max_length=6, unique=True, editable=False, default=gerar_codigo_acesso,
-        help_text="Código gerado automaticamente para o aluno voltar ao seu perfil."
-    )
-    solicitacoes_orientacao = models.PositiveSmallIntegerField(
-        default=0, help_text="Número de vezes que o motor de recomendação já foi accionado (máximo 3)."
-    )
 
     class Meta:
         verbose_name = "Aluno"
@@ -29,6 +20,7 @@ class Aluno(models.Model):
 
     def __str__(self):
         return f"{self.nome} ({self.escola})"
+
 
 class NotaDisciplina(models.Model):
     """

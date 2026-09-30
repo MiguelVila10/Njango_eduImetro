@@ -46,28 +46,6 @@ class AlunoViewSetTest(APITestCase):
         data = {"nome": "Aluno Inválido", "idade": 0, "escola": "Escola Teste"}
         response = self.client.post("/api/alunos/", data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-    def test_entrar_com_codigo_valido_devolve_aluno(self):
-        """Happy path: GET /api/alunos/entrar/?codigo=X devolve o perfil certo."""
-        aluno = Aluno.objects.create(nome="Cientista Teste", idade=14, escola="Escola Teste")
-
-        response = self.client.get(f"/api/alunos/entrar/?codigo={aluno.codigo_acesso}")
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["id"], aluno.id)
-
-    def test_entrar_com_codigo_invalido_devolve_404(self):
-        """Caso de erro: código inexistente devolve 404 com mensagem clara."""
-        response = self.client.get("/api/alunos/entrar/?codigo=ZZZZZZ")
-
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertIn("erro", response.data)
-
-    def test_cada_aluno_recebe_codigo_unico(self):
-        """Confirma que dois alunos, mesmo com o mesmo nome/escola, têm códigos diferentes."""
-        aluno1 = Aluno.objects.create(nome="João Silva", idade=14, escola="Escola X")
-        aluno2 = Aluno.objects.create(nome="João Silva", idade=14, escola="Escola X")
-
-        self.assertNotEqual(aluno1.codigo_acesso, aluno2.codigo_acesso)
 
 class NotaDisciplinaViewSetTest(APITestCase):
     """Testa o endpoint CRUD de NotaDisciplina (RF02, RF03)."""
