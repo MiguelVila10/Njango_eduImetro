@@ -4,16 +4,40 @@ import math
 
 from cursos.models import VetorIdealCurso
 
+# Valor devolvido quando um dos vetores não tem variação (ex.: aluno com as
+# 12 notas iguais): sem pontos fortes nem fracos, não há afinidade a medir.
+SIMILARIDADE_NEUTRA = 0.5
+
+
+def _centrar(valores):
+    """Subtrai a média do próprio vetor a cada valor."""
+    media = sum(valores) / len(valores)
+    return [v - media for v in valores]
+
 
 def calcular_similaridade(aluno, curso):
     """
-    Calcula a Similaridade de Cosseno entre o vetor de notas do aluno e o
-    vetor ideal do curso, restrito às disciplinas-chave desse curso (RF08).
+    Calcula a Similaridade de Cosseno AJUSTADA (centrada) entre o vetor de
+    notas do aluno e o vetor ideal do curso, sobre as disciplinas do vetor
+    ideal desse curso (RF08, Cap. II, Secção 2.7.3).
 
-    Fórmula: cos(θ) = (A · B) / (|A| |B|), conforme Cap. II, Secção 2.7.3.
+    Porquê a versão ajustada: as notas e os pesos ideais estão todos entre
+    10 e 20, por isso o cosseno simples dá ~0,98–0,99 para QUALQUER par
+    aluno/curso e não distingue cursos. Centrando cada vetor na sua própria
+    média, compara-se o padrão de pontos fortes e fracos do aluno com o
+    perfil do curso (cosseno ajustado / correlação de Pearson, usado em
+    sistemas de recomendação — Sarwar et al., 2001).
 
-    Retorna: float entre -1 e 1 (na prática, entre 0 e 1, já que notas e
-    pesos ideais são sempre positivos, 10-20).
+    Fórmula:
+        a' = a - média(a),  b' = b - média(b)
+        r  = (a' · b') / (|a'| |b'|)          ∈ [-1, 1]
+        similaridade = (r + 1) / 2             ∈ [0, 1]
+
+    A conversão para [0, 1] mantém a compatibilidade com
+    score_final = 0,6 × score_academico + 0,4 × score_psicografico.
+
+    Retorna: float entre 0 e 1 (0,5 = neutro, quando um dos vetores não tem
+    variação).
     """
     vetores_ideais = VetorIdealCurso.objects.filter(curso=curso)
 
@@ -40,11 +64,16 @@ def calcular_similaridade(aluno, curso):
         vetor_aluno.append(nota_aluno)
         vetor_curso.append(vetor_ideal.peso_ideal)
 
-    produto_escalar = sum(a * b for a, b in zip(vetor_aluno, vetor_curso))
-    magnitude_aluno = math.sqrt(sum(a ** 2 for a in vetor_aluno))
-    magnitude_curso = math.sqrt(sum(b ** 2 for b in vetor_curso))
+    aluno_centrado = _centrar(vetor_aluno)
+    curso_centrado = _centrar(vetor_curso)
+
+    produto_escalar = sum(a * b for a, b in zip(aluno_centrado, curso_centrado))
+    magnitude_aluno = math.sqrt(sum(a ** 2 for a in aluno_centrado))
+    magnitude_curso = math.sqrt(sum(b ** 2 for b in curso_centrado))
 
     if magnitude_aluno == 0 or magnitude_curso == 0:
-        return 0.0
+        return SIMILARIDADE_NEUTRA
 
-    return produto_escalar / (magnitude_aluno * magnitude_curso)
+    r = produto_escalar / (magnitude_aluno * magnitude_curso)
+    r = max(-1.0, min(1.0, r))  # protege contra erros de arredondamento
+    return (r + 1) / 2
