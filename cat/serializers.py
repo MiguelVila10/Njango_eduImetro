@@ -11,7 +11,7 @@ ARQUETIPOS_VALIDOS = {"Analítico", "Humanista", "Criativo", "Estrategista"}
 class ItemCATSerializer(serializers.ModelSerializer):
     class Meta:
         model = ItemCAT
-        fields = ["id", "texto", "tipo", "opcoes"]
+        fields = ["id", "texto", "tipo", "tendencia", "opcoes"]
         read_only_fields = ["id"]
 
     def validate_opcoes(self, value):

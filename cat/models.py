@@ -14,10 +14,24 @@ class ItemCAT(models.Model):
         ("verificacao", "Verificação de Coerência"),
     ]
 
+    TENDENCIAS = [
+        ("neutra", "Neutra"),
+        ("Analítico", "Analítico"),
+        ("Humanista", "Humanista"),
+        ("Criativo", "Criativo"),
+        ("Estrategista", "Estrategista"),
+    ]
+
     texto = models.TextField(help_text="Enunciado da questão.")
     tipo = models.CharField(
         max_length=20, choices=TIPOS, default="nucleo",
         help_text="Núcleo ou verificação de coerência (RF05)."
+    )
+    tendencia = models.CharField(
+        max_length=20, choices=TENDENCIAS, default="neutra",
+        help_text="Arquétipo para o qual a situação da pergunta puxa naturalmente "
+                  "(a opção desse arquétipo é a mais 'socialmente esperada'). "
+                  "Usado na calibração do CAT adaptativo."
     )
     opcoes = models.JSONField(
         help_text='Lista de 4 opções. Ex: [{"texto": "...", "arquetipo": "Analítico"}, ...]'

@@ -1,15 +1,15 @@
+# cat/admin.py
+
 from django.contrib import admin
 
-# Register your models here.
-# cat/admin.py
-from django.contrib import admin
 from .models import ItemCAT, RespostaCAT
 
 
 @admin.register(ItemCAT)
 class ItemCATAdmin(admin.ModelAdmin):
-    list_display = ["texto", "tipo"]
-    list_filter = ["tipo"]
+    list_display = ["texto", "tipo", "tendencia"]
+    list_filter = ["tipo", "tendencia"]
+    search_fields = ["texto"]
 
 
 @admin.register(RespostaCAT)
