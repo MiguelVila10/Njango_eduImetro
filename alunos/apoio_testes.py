@@ -11,3 +11,9 @@ def autenticar_orientador(client, username="orientador"):
     )
     client.force_login(user)
     return user
+
+
+def autenticar_aluno(client, aluno):
+    """Dá ao cliente de testes a sessão do aluno (como o frontend faria)."""
+    from .sessao import gerar_token_sessao
+    client.credentials(HTTP_X_SESSAO_ALUNO=gerar_token_sessao(aluno))

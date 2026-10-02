@@ -2,14 +2,14 @@
 
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, BasePermission
 from rest_framework.response import Response
 
 from .models import Aluno, NotaDisciplina
 from .serializers import AlunoSerializer, NotaDisciplinaSerializer
 from .sessao import (
     EhOrientador,
-    OrientadorOuSessaoDoAluno,
+    OrientadorLeAlunoEscreve,
     exigir_acesso_ao_aluno,
     filtrar_pelo_aluno,
     gerar_token_sessao,
@@ -23,13 +23,21 @@ DISCIPLINAS_OBRIGATORIAS = [
 ]
 
 
+class NinguemPelaAPI(BasePermission):
+    message = "Os registos dos alunos não se apagam pela API."
+
+    def has_permission(self, request, view):
+        return False
+
+
 class AlunoViewSet(viewsets.ModelViewSet):
     """
     Registo do perfil básico do aluno (RF01).
 
     - POST (público): o aluno inicia o teste e recebe o token de sessão.
-    - GET/PATCH do próprio registo: o aluno (com sessão) ou o orientador.
-    - Lista de todos os alunos e eliminação: só o orientador.
+    - GET do registo: o próprio aluno ou o orientador; PATCH: só o aluno.
+    - Lista de todos os alunos: só o orientador (consulta).
+    - Eliminar: ninguém pela API.
     """
     serializer_class = AlunoSerializer
 
@@ -39,9 +47,11 @@ class AlunoViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action == "create":
             return [AllowAny()]
-        if self.action in ("list", "destroy"):
+        if self.action == "list":
             return [EhOrientador()]
-        return [OrientadorOuSessaoDoAluno()]
+        if self.action == "destroy":
+            return [NinguemPelaAPI()]
+        return [OrientadorLeAlunoEscreve()]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -68,9 +78,9 @@ class AlunoViewSet(viewsets.ModelViewSet):
 
 
 class NotaDisciplinaViewSet(viewsets.ModelViewSet):
-    """Notas por disciplina (RF02, RF03). O aluno só gere as suas."""
+    """Notas por disciplina (RF02, RF03). O aluno gere as suas; o orientador só consulta."""
     serializer_class = NotaDisciplinaSerializer
-    permission_classes = [OrientadorOuSessaoDoAluno]
+    permission_classes = [OrientadorLeAlunoEscreve]
 
     def get_queryset(self):
         return filtrar_pelo_aluno(self.request, NotaDisciplina.objects.all())

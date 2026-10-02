@@ -4,8 +4,10 @@ Controlo de acesso aos dados dos alunos (RNF de privacidade — alunos menores).
 
 Dois tipos de utilizador:
 
-- Orientador: utilizador Django com is_staff. Faz login (token ou sessão)
-  e vê os dados de todos os alunos.
+- Orientador: utilizador Django com is_staff. Faz login (token ou sessão).
+  Regra de negócio: o orientador NÃO altera dados dos alunos. Só consulta
+  (alunos, notas, respostas, recomendações) e gere o catálogo (adiciona e
+  edita cursos, regras, vetores ideais e perguntas do CAT).
 - Aluno: NÃO tem conta nem palavra-passe. Ao iniciar o teste
   (POST /api/alunos/) recebe um token de sessão assinado, que o frontend
   envia no cabeçalho X-Sessao-Aluno. O token só dá acesso aos dados desse
@@ -46,6 +48,11 @@ def eh_orientador(request):
     return bool(user and user.is_authenticated and user.is_staff)
 
 
+def eh_o_proprio_aluno(request, aluno_id):
+    """Verdadeiro só para o aluno dono do registo (o orientador não conta)."""
+    return aluno_id is not None and aluno_id_da_sessao(request) == int(aluno_id)
+
+
 def pode_aceder_aluno(request, aluno_id):
     """O orientador acede a todos; o aluno só ao seu próprio registo."""
     if eh_orientador(request):
@@ -64,7 +71,8 @@ def filtrar_pelo_aluno(request, queryset, campo="aluno_id"):
 
 
 def exigir_acesso_ao_aluno(request, aluno):
-    if not pode_aceder_aluno(request, aluno.pk):
+    """Escrita de dados do aluno: só o próprio aluno (o orientador só consulta)."""
+    if not eh_o_proprio_aluno(request, aluno.pk):
         raise PermissionDenied("Só podes registar dados no teu próprio perfil.")
 
 
@@ -76,26 +84,40 @@ class EhOrientador(BasePermission):
         return eh_orientador(request)
 
 
-class OrientadorOuSessaoDoAluno(BasePermission):
+class OrientadorLeAlunoEscreve(BasePermission):
     """
-    Orientador: acesso total. Aluno: precisa de uma sessão válida; o acesso a
-    cada objecto é verificado em has_object_permission (e nas querysets).
+    Dados dos alunos (perfil, notas, respostas, recomendações):
+    - orientador: só leitura;
+    - aluno: lê e escreve, mas só os seus próprios dados (sessão válida).
     """
-    message = "Sessão do aluno inválida ou expirada."
+    message = "O orientador só pode consultar; o aluno precisa de uma sessão válida."
 
     def has_permission(self, request, view):
-        return eh_orientador(request) or aluno_id_da_sessao(request) is not None
+        if eh_orientador(request):
+            return request.method in SAFE_METHODS
+        return aluno_id_da_sessao(request) is not None
 
     def has_object_permission(self, request, view, obj):
         aluno_id = getattr(obj, "aluno_id", None)
         if aluno_id is None:  # o próprio Aluno
             aluno_id = obj.pk
-        return pode_aceder_aluno(request, aluno_id)
+        if eh_orientador(request):
+            return request.method in SAFE_METHODS
+        return eh_o_proprio_aluno(request, aluno_id)
 
 
-class LeituraPublicaEscritaOrientador(BasePermission):
-    """Catálogo (cursos, perguntas): qualquer um lê; só o orientador altera."""
-    message = "Só o orientador pode alterar o catálogo."
+class CatalogoOrientador(BasePermission):
+    """
+    Catálogo (cursos, regras, vetores ideais, perguntas do CAT):
+    qualquer um lê; o orientador adiciona e edita. Ninguém apaga pela API —
+    apagar um curso apagaria as recomendações já feitas; nas perguntas usa-se
+    o campo "ativo".
+    """
+    message = "Só o orientador pode adicionar ou editar o catálogo; apagar não é permitido."
 
     def has_permission(self, request, view):
-        return request.method in SAFE_METHODS or eh_orientador(request)
+        if request.method in SAFE_METHODS:
+            return True
+        if request.method == "DELETE":
+            return False
+        return eh_orientador(request)

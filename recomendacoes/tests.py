@@ -1,6 +1,6 @@
 # recomendacoes/tests.py
 
-from alunos.apoio_testes import autenticar_orientador
+from alunos.apoio_testes import autenticar_aluno, autenticar_orientador
 from django.test import TestCase
 from django.db import IntegrityError, transaction
 from rest_framework.test import APITestCase
@@ -55,21 +55,31 @@ class RecomendacaoViewSetTest(APITestCase):
             arquetipo_dominante="Analítico"
         )
 
-    def test_criar_recomendacao_via_api(self):
+    def test_orientador_nao_cria_recomendacao_a_mao(self):
+        """Regra de negócio (RF11): as recomendações só são geradas pelo motor."""
         data = {
             "aluno": self.aluno.id, "curso": self.curso.id,
             "score_academico": 0.92, "score_psicografico": 0.85, "score_final": 0.89, "rank": 1
         }
         response = self.client.post("/api/recomendacoes/", data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_criar_recomendacao_com_rank_invalido_via_api(self):
-        data = {
-            "aluno": self.aluno.id, "curso": self.curso.id,
-            "score_academico": 0.92, "score_psicografico": 0.85, "score_final": 0.89, "rank": 5
-        }
-        response = self.client.post("/api/recomendacoes/", data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+    def test_orientador_nao_altera_recomendacao(self):
+        rec = Recomendacao.objects.create(
+            aluno=self.aluno, curso=self.curso,
+            score_academico=0.92, score_psicografico=0.85, score_final=0.89, rank=1
+        )
+        response = self.client.patch(f"/api/recomendacoes/{rec.id}/", {"rank": 2}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_orientador_consulta_recomendacoes(self):
+        Recomendacao.objects.create(
+            aluno=self.aluno, curso=self.curso,
+            score_academico=0.92, score_psicografico=0.85, score_final=0.89, rank=1
+        )
+        response = self.client.get("/api/recomendacoes/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data[0]["curso_nome"], "Técnico de Informática")
 
 
 class GerarRecomendacoesTest(TestCase):
@@ -120,8 +130,8 @@ class GerarRecomendacoesViewTest(APITestCase):
     """Testa o endpoint POST /api/recomendacoes/gerar/{aluno_id}/."""
 
     def setUp(self):
-        autenticar_orientador(self.client)
         self.aluno = Aluno.objects.create(nome="Cientista Teste", idade=14, escola="Escola Teste")
+        autenticar_aluno(self.client, self.aluno)
         notas = {
             "Matemática": 18, "Física": 17, "Química": 16,
             "Biologia": 14, "Português": 13, "Educação Moral e Cívica": 14,
@@ -151,15 +161,24 @@ class GerarRecomendacoesViewTest(APITestCase):
         self.assertEqual(response.data[0]["rank"], 1)
         self.assertIn("alertas_vieses", response.data[0])
 
-    def test_gerar_com_aluno_inexistente_retorna_404(self):
-        """Caso de erro: aluno_id inexistente devolve 404."""
+    def test_gerar_para_outro_aluno_retorna_403(self):
+        """Caso de erro: um aluno não gera recomendações por outro."""
         response = self.client.post("/api/recomendacoes/gerar/9999/")
 
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_orientador_nao_gera_recomendacoes(self):
+        """Regra de negócio: o orientador só consulta."""
+        self.client.credentials()
+        autenticar_orientador(self.client)
+        response = self.client.post(f"/api/recomendacoes/gerar/{self.aluno.id}/")
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_gerar_sem_respostas_cat_retorna_400(self):
         """Caso de erro: aluno sem respostas ao CAT devolve 400 com mensagem clara."""
         aluno_sem_cat = Aluno.objects.create(nome="Aluno Sem CAT", idade=14, escola="Escola Teste")
+        autenticar_aluno(self.client, aluno_sem_cat)
 
         response = self.client.post(f"/api/recomendacoes/gerar/{aluno_sem_cat.id}/")
 

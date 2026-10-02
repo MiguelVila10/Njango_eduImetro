@@ -1,4 +1,4 @@
-from alunos.apoio_testes import autenticar_orientador
+from alunos.apoio_testes import autenticar_aluno, autenticar_orientador
 from django.test import TestCase
 
 # Create your tests here.
@@ -108,8 +108,8 @@ class RespostaCATViewSetTest(APITestCase):
     """Testa o endpoint CRUD de RespostaCAT."""
 
     def setUp(self):
-        autenticar_orientador(self.client)
         self.aluno = Aluno.objects.create(nome="Cientista Teste", idade=14, escola="Escola Teste")
+        autenticar_aluno(self.client, self.aluno)
         self.item = ItemCAT.objects.create(texto="Pergunta teste", tipo="nucleo", opcoes=OPCOES_VALIDAS)
 
     def test_criar_resposta_via_api(self):

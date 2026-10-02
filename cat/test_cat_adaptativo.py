@@ -2,7 +2,7 @@
 """Testes do CAT adaptativo: motor, serviço, endpoint, seed e simulação."""
 
 import random
-from alunos.apoio_testes import autenticar_orientador
+from alunos.apoio_testes import autenticar_aluno, autenticar_orientador
 from io import StringIO
 
 from django.core.management import call_command
@@ -169,6 +169,8 @@ class ProximaPerguntaEndpointTest(APITestCase):
 
     def test_fluxo_completo_ate_terminar(self):
         """Simula o frontend: pede pergunta, responde, repete até o CAT terminar."""
+        self.client.logout()
+        autenticar_aluno(self.client, self.aluno)
         for _ in range(10):
             dados = self.client.get(f"/api/cat/proxima/{self.aluno.id}/").data
             if dados["terminado"]:

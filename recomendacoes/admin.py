@@ -15,6 +15,5 @@ class RecomendacaoAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request):
         return False  # não se cria uma Recomendacao à mão, só via gerar_recomendacoes()
-
-    def has_delete_permission(self, request, obj=None):
-        return True  # pode fazer sentido apagar para limpar dados de teste
+    # Apagar segue as permissões normais do Django: o administrador (superuser)
+    # pode limpar dados de teste; o grupo Orientador não tem essa permissão.

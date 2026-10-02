@@ -255,3 +255,108 @@ class SeedCursosTest(TestCase):
         self.assertEqual(sorted(Curso.objects.values_list("id", flat=True)), ids)
         self.assertEqual(Recomendacao.objects.count(), 1)
         self.assertEqual(VetorIdealCurso.objects.count(), 20 * 12)
+
+
+class RegraOrientadorSoConsultaTest(APITestCase):
+    """O orientador consulta os dados dos alunos, mas não os altera."""
+
+    def setUp(self):
+        self.aluno = Aluno.objects.create(nome="A", idade=15, escola="X")
+        NotaDisciplina.objects.create(aluno=self.aluno, disciplina="Matemática", nota=15)
+        self.item = ItemCAT.objects.create(texto="P", tipo="nucleo", opcoes=OPCOES)
+        self.curso = Curso.objects.create(nome="Informática", instituicao="ITEL", arquetipo_dominante="Analítico")
+        autenticar_orientador(self.client)
+
+    def test_orientador_le_alunos_e_notas(self):
+        self.assertEqual(self.client.get("/api/alunos/").status_code, status.HTTP_200_OK)
+        self.assertEqual(self.client.get(f"/api/alunos/{self.aluno.id}/").status_code, status.HTTP_200_OK)
+        self.assertEqual(self.client.get("/api/notas-disciplina/").status_code, status.HTTP_200_OK)
+
+    def test_orientador_nao_altera_aluno(self):
+        resposta = self.client.patch(f"/api/alunos/{self.aluno.id}/", {"nome": "B"}, format="json")
+        self.assertEqual(resposta.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_ninguem_apaga_aluno_pela_api(self):
+        resposta = self.client.delete(f"/api/alunos/{self.aluno.id}/")
+        self.assertEqual(resposta.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertTrue(Aluno.objects.filter(pk=self.aluno.pk).exists())
+
+    def test_orientador_nao_lanca_notas_nem_respostas(self):
+        r1 = self.client.post("/api/notas-disciplina/",
+                              {"aluno": self.aluno.id, "disciplina": "Física", "nota": 15}, format="json")
+        r2 = self.client.post("/api/respostas-cat/",
+                              {"aluno": self.aluno.id, "item": self.item.id,
+                               "arquetipo_escolhido": "Criativo"}, format="json")
+        self.assertEqual(r1.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(r2.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_orientador_nao_escolhe_curso_pelo_aluno(self):
+        rec = Recomendacao.objects.create(aluno=self.aluno, curso=self.curso, score_academico=0.5,
+                                          score_psicografico=0.5, score_final=0.5, rank=1)
+        resposta = self.client.post(f"/api/recomendacoes/{rec.id}/escolher/")
+        self.assertEqual(resposta.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_orientador_adiciona_e_edita_cursos_e_perguntas(self):
+        r1 = self.client.post("/api/cursos/", {"nome": "Novo", "instituicao": "IMEL",
+                                               "arquetipo_dominante": "Estrategista"}, format="json")
+        r2 = self.client.post("/api/itens-cat/", {"texto": "Nova pergunta", "tipo": "nucleo",
+                                                  "tendencia": "Criativo", "opcoes": OPCOES}, format="json")
+        r3 = self.client.patch(f"/api/itens-cat/{self.item.id}/", {"ativo": False}, format="json")
+        self.assertEqual([r1.status_code, r2.status_code, r3.status_code],
+                         [status.HTTP_201_CREATED, status.HTTP_201_CREATED, status.HTTP_200_OK])
+
+    def test_ninguem_apaga_catalogo_pela_api(self):
+        self.assertEqual(self.client.delete(f"/api/cursos/{self.curso.id}/").status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(self.client.delete(f"/api/itens-cat/{self.item.id}/").status_code, status.HTTP_403_FORBIDDEN)
+
+
+class PainelResumoTest(APITestCase):
+
+    def setUp(self):
+        curso = Curso.objects.create(nome="Informática", instituicao="ITEL", arquetipo_dominante="Analítico")
+        for nome, escolheu, alerta in [("A", True, []), ("B", False, ["Analítico"])]:
+            aluno = Aluno.objects.create(nome=nome, idade=15, escola="X")
+            Recomendacao.objects.create(aluno=aluno, curso=curso, score_academico=0.5, score_psicografico=0.5,
+                                        score_final=0.5, rank=1, escolhida_pelo_aluno=escolheu,
+                                        alertas_vieses={"sobrestimacao": alerta, "subestimacao": []})
+        Aluno.objects.create(nome="C", idade=15, escola="X")
+
+    def test_orientador_ve_os_numeros(self):
+        autenticar_orientador(self.client)
+        dados = self.client.get("/api/painel/resumo/").data
+        self.assertEqual(dados["total_alunos"], 3)
+        self.assertEqual(dados["alunos_com_recomendacoes"], 2)
+        self.assertEqual(dados["alunos_que_escolheram_curso"], 1)
+        self.assertEqual(dados["alunos_com_alertas_de_vies"], 1)
+        self.assertEqual(dados["cursos_mais_recomendados"][0], {"curso": "Informática", "instituicao": "ITEL", "alunos": 2})
+
+    def test_aluno_nao_ve_o_painel(self):
+        iniciar_sessao(self.client)
+        self.assertIn(self.client.get("/api/painel/resumo/").status_code, NEGADO)
+
+
+class ConfigurarOrientadorTest(TestCase):
+
+    def test_cria_grupo_e_conta_so_com_as_permissoes_da_regra(self):
+        call_command("configurar_orientador", username="prof", password="senha-forte-123", stdout=StringIO())
+        user = get_user_model().objects.get(username="prof")
+        self.assertTrue(user.is_staff)
+        self.assertFalse(user.is_superuser)
+        self.assertTrue(user.has_perm("alunos.view_aluno"))
+        self.assertTrue(user.has_perm("cursos.add_curso"))
+        self.assertTrue(user.has_perm("cat.change_itemcat"))
+        self.assertFalse(user.has_perm("alunos.change_aluno"))
+        self.assertFalse(user.has_perm("alunos.change_notadisciplina"))
+        self.assertFalse(user.has_perm("recomendacoes.delete_recomendacao"))
+        self.assertFalse(user.has_perm("cursos.delete_curso"))
+
+    def test_no_admin_o_orientador_ve_o_aluno_mas_nao_o_altera(self):
+        call_command("configurar_orientador", username="prof", password="senha-forte-123", stdout=StringIO())
+        aluno = Aluno.objects.create(nome="A", idade=15, escola="X")
+        self.client.force_login(get_user_model().objects.get(username="prof"))
+        url = f"/admin/alunos/aluno/{aluno.id}/change/"
+        self.assertEqual(self.client.get(url).status_code, 200)
+        resposta = self.client.post(url, {"nome": "Alterado", "idade": 15, "escola": "X"})
+        self.assertEqual(resposta.status_code, 403)
+        aluno.refresh_from_db()
+        self.assertEqual(aluno.nome, "A")

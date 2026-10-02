@@ -6,8 +6,8 @@ from rest_framework.views import APIView
 
 from alunos.models import Aluno
 from alunos.sessao import (
-    LeituraPublicaEscritaOrientador,
-    OrientadorOuSessaoDoAluno,
+    CatalogoOrientador,
+    OrientadorLeAlunoEscreve,
     exigir_acesso_ao_aluno,
     filtrar_pelo_aluno,
     pode_aceder_aluno,
@@ -18,19 +18,19 @@ from .services import estado_cat
 
 
 class ItemCATViewSet(viewsets.ModelViewSet):
-    """Banco de itens do CAT (RF04, RF05). Leitura pública; só o orientador altera."""
+    """Banco de itens do CAT (RF04, RF05). Leitura pública; o orientador adiciona e edita."""
     queryset = ItemCAT.objects.all()
     serializer_class = ItemCATSerializer
-    permission_classes = [LeituraPublicaEscritaOrientador]
+    permission_classes = [CatalogoOrientador]
 
 
 class RespostaCATViewSet(viewsets.ModelViewSet):
     """
     Respostas ao CAT (RF04, RF06). Cada resposta é enviada individualmente
-    (RNF de disponibilidade). O aluno só vê e regista as suas.
+    (RNF de disponibilidade). O aluno regista as suas; o orientador só consulta.
     """
     serializer_class = RespostaCATSerializer
-    permission_classes = [OrientadorOuSessaoDoAluno]
+    permission_classes = [OrientadorLeAlunoEscreve]
 
     def get_queryset(self):
         return filtrar_pelo_aluno(self.request, RespostaCAT.objects.all())
@@ -55,7 +55,7 @@ class ProximaPerguntaView(APIView):
     banco_esgotado). Cada resposta continua a ser enviada individualmente
     para POST /api/respostas-cat/.
     """
-    permission_classes = [OrientadorOuSessaoDoAluno]
+    permission_classes = [OrientadorLeAlunoEscreve]
 
     def get(self, request, aluno_id):
         if not pode_aceder_aluno(request, aluno_id):
