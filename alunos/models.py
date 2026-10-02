@@ -2,6 +2,7 @@
 
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
+from django.utils import timezone
 
 
 class Aluno(models.Model):
@@ -12,6 +13,15 @@ class Aluno(models.Model):
     nome = models.CharField(max_length=255, help_text="Nome do aluno.")
     idade = models.PositiveSmallIntegerField(help_text="Idade do aluno.")
     escola = models.CharField(max_length=255, help_text="Instituição de origem do aluno.")
+    criado_em = models.DateTimeField(
+        default=timezone.now, editable=False,
+        help_text="Data e hora em que o aluno iniciou o teste."
+    )
+    tentativa_cat = models.PositiveSmallIntegerField(
+        default=1, editable=False,
+        help_text="Tentativa actual do CAT (1 ou 2). A 2.ª só existe se a "
+                  "1.ª tiver confiança baixa e o aluno aceitar repetir."
+    )
 
     class Meta:
         verbose_name = "Aluno"

@@ -12,9 +12,9 @@ from alunos.models import Aluno
 from .management.commands.seed_itens_cat import BANCO_PROVISORIO
 from .models import ItemCAT, RespostaCAT, validar_opcoes
 from .services import (
-    CONFIANCA_BAIXA,
-    CONFIANCA_INDETERMINADA,
-    CONFIANCA_NORMAL,
+    COERENTE,
+    INCOERENTE,
+    INDETERMINADA,
     avaliar_coerencia,
     estado_cat,
 )
@@ -98,7 +98,7 @@ class AvaliarCoerenciaTest(TestCase):
 
     def test_sem_pares_completos_e_indeterminada(self):
         r = avaliar_coerencia([_RespostaFalsa("P1", "Analítico")])
-        self.assertEqual(r["confianca"], CONFIANCA_INDETERMINADA)
+        self.assertEqual(r["resultado"], INDETERMINADA)
 
     def test_dois_de_tres_pares_coincidentes_e_normal(self):
         respostas = [
@@ -107,8 +107,8 @@ class AvaliarCoerenciaTest(TestCase):
             _RespostaFalsa("P3", "Criativo"), _RespostaFalsa("P3", "Analítico"),
         ]
         r = avaliar_coerencia(respostas)
-        self.assertEqual((r["pares_avaliados"], r["pares_coincidentes"], r["confianca"]),
-                         (3, 2, CONFIANCA_NORMAL))
+        self.assertEqual((r["pares_avaliados"], r["pares_coincidentes"], r["resultado"]),
+                         (3, 2, COERENTE))
 
     def test_um_de_tres_pares_coincidente_e_baixa(self):
         respostas = [
@@ -116,7 +116,7 @@ class AvaliarCoerenciaTest(TestCase):
             _RespostaFalsa("P2", "Humanista"), _RespostaFalsa("P2", "Estrategista"),
             _RespostaFalsa("P3", "Criativo"), _RespostaFalsa("P3", "Criativo"),
         ]
-        self.assertEqual(avaliar_coerencia(respostas)["confianca"], CONFIANCA_BAIXA)
+        self.assertEqual(avaliar_coerencia(respostas)["resultado"], INCOERENTE)
 
 
 class CATComBancoV2Test(TestCase):

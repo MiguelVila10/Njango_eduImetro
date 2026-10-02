@@ -2,13 +2,14 @@
 
 from collections import Counter
 
+from cat.models import respostas_atuais
 from filtro_regras.services import filtrar_cursos
 from similaridade.services import calcular_similaridade
 from deteccao_vieses.services import detectar_vieses
 from .models import Recomendacao
 
 
-def gerar_recomendacoes(aluno):
+def gerar_recomendacoes(aluno, confianca=None):
     """
     Orquestra o motor de inferência completo (RF07, RF08, RF09, RF10) para
     um aluno: filtra cursos, calcula compatibilidade, detecta vieses
@@ -19,7 +20,7 @@ def gerar_recomendacoes(aluno):
     if not cursos_aprovados:
         raise ValueError("Nenhum curso cumpre os pré-requisitos deste aluno.")
 
-    respostas = aluno.respostas_cat.all()
+    respostas = respostas_atuais(aluno)
     total_respostas = respostas.count()
 
     if total_respostas == 0:
@@ -49,7 +50,8 @@ def gerar_recomendacoes(aluno):
             score_psicografico=score_psicografico,
             score_final=score_final,
             rank=rank,
-            alertas_vieses=alertas_vieses
+            alertas_vieses=alertas_vieses,
+            confianca_cat=confianca or {},
         )
         recomendacoes_criadas.append(rec)
 

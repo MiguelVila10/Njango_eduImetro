@@ -16,6 +16,6 @@ class RecomendacaoSerializer(serializers.ModelSerializer):
         fields = [
             "id", "aluno", "curso", "curso_nome", "curso_instituicao", "curso_arquetipo",
             "score_academico", "score_psicografico", "score_final", "rank",
-            "escolhida_pelo_aluno", "alertas_vieses",
+            "escolhida_pelo_aluno", "alertas_vieses", "confianca_cat",
         ]
         read_only_fields = ["id"]

@@ -77,7 +77,7 @@ class RecomendacaoViewSet(viewsets.ModelViewSet):
             )
 
         try:
-            recomendacoes = gerar_recomendacoes(aluno)
+            recomendacoes = gerar_recomendacoes(aluno, confianca=estado["confianca"])
         except ValueError as e:
             return Response({"erro": str(e)}, status=drf_status.HTTP_400_BAD_REQUEST)
 

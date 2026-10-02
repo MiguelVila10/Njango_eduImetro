@@ -122,11 +122,32 @@ class RespostaCAT(models.Model):
         ],
         help_text="Arquétipo associado à opção escolhida pelo aluno."
     )
+    tentativa = models.PositiveSmallIntegerField(
+        default=1,
+        help_text="Tentativa do CAT a que esta resposta pertence. As respostas "
+                  "de tentativas anteriores ficam guardadas para análise."
+    )
+    tempo_resposta_ms = models.PositiveIntegerField(
+        null=True, blank=True,
+        help_text="Tempo que o aluno levou a responder, em milissegundos (enviado pelo frontend)."
+    )
+    posicao_ecra = models.CharField(
+        max_length=1, blank=True,
+        choices=[("A", "A"), ("B", "B"), ("C", "C"), ("D", "D")],
+        help_text="Posição da opção escolhida no ecrã (as opções são baralhadas)."
+    )
+    respondida_em = models.DateTimeField(auto_now_add=True, null=True)
 
     class Meta:
         verbose_name = "Resposta CAT"
         verbose_name_plural = "Respostas CAT"
-        unique_together = ["aluno", "item"]
+        unique_together = ["aluno", "item", "tentativa"]
+        ordering = ["aluno", "tentativa", "respondida_em", "id"]
 
     def __str__(self):
         return f"{self.aluno.nome} → item {self.item_id}: {self.arquetipo_escolhido}"
+
+
+def respostas_atuais(aluno):
+    """Respostas da tentativa actual do CAT (as de tentativas anteriores não contam)."""
+    return aluno.respostas_cat.filter(tentativa=aluno.tentativa_cat)

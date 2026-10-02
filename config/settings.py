@@ -157,6 +157,10 @@ REST_FRAMEWORK = {
 # tem conta nem palavra-passe; a sessão expira e não há reentrada.
 SESSAO_ALUNO_DURACAO = timedelta(hours=int(os.getenv("SESSAO_ALUNO_HORAS", "24")))
 
+# CAT: resposta abaixo deste tempo conta como "demasiado rápida" (limiar
+# provisório; os itens têm 25-35 palavras — afinar no piloto).
+CAT_LIMIAR_TEMPO_RAPIDO_MS = int(os.getenv("CAT_LIMIAR_TEMPO_RAPIDO_MS", "3000"))
+
 
 # --- CORS (frontend React) -----------------------------------------------------
 

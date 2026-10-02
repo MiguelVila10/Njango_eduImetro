@@ -114,9 +114,14 @@ class CatalogoPublicoTest(APITestCase):
         Curso.objects.create(nome="Informática", instituicao="ITEL", arquetipo_dominante="Analítico")
         ItemCAT.objects.create(texto="P", tipo="nucleo", opcoes=OPCOES)
 
-    def test_qualquer_um_le_cursos_e_perguntas(self):
+    def test_qualquer_um_le_cursos(self):
         self.assertEqual(self.client.get("/api/cursos/").status_code, status.HTTP_200_OK)
-        self.assertEqual(self.client.get("/api/itens-cat/").status_code, status.HTTP_200_OK)
+
+    def test_banco_de_perguntas_e_reservado_ao_orientador(self):
+        """Os arquétipos das opções não podem chegar ao aluno."""
+        self.assertIn(self.client.get("/api/itens-cat/").status_code, NEGADO)
+        iniciar_sessao(self.client)
+        self.assertIn(self.client.get("/api/itens-cat/").status_code, NEGADO)
 
     def test_aluno_nao_altera_o_catalogo(self):
         iniciar_sessao(self.client)

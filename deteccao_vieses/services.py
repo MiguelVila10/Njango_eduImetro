@@ -2,6 +2,8 @@
 
 from collections import Counter
 
+from cat.models import respostas_atuais
+
 # Diferença mínima entre a preferência do aluno por um arquétipo (VPC) e a
 # preferência "neutra" (25%) para contar como preferência marcada.
 LIMIAR_VIES = 0.15  # 15 pontos percentuais (Cap. II, Secção 2.6.2-2.6.3)
@@ -51,7 +53,7 @@ def detectar_vieses(aluno):
             raise ValueError(f"Boletim incompleto: falta nota para calcular VPM({arquetipo}).")
         medias[arquetipo] = sum(notas) / len(notas)
 
-    respostas = aluno.respostas_cat.all()
+    respostas = respostas_atuais(aluno)
     total_respostas = respostas.count()
     if total_respostas == 0:
         raise ValueError("O aluno ainda não respondeu a nenhuma questão do CAT.")

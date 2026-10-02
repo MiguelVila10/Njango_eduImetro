@@ -15,8 +15,10 @@ class ItemCATAdmin(admin.ModelAdmin):
 
 @admin.register(RespostaCAT)
 class RespostaCATAdmin(admin.ModelAdmin):
-    list_display = ["aluno", "item", "arquetipo_escolhido"]
-    readonly_fields = ["aluno", "item", "arquetipo_escolhido"]  # gerado pelo aluno a responder, não pelo orientador
+    list_display = ["aluno", "item", "arquetipo_escolhido", "tentativa", "tempo_resposta_ms", "posicao_ecra"]
+    list_filter = ["tentativa"]
+    readonly_fields = ["aluno", "item", "arquetipo_escolhido", "tentativa",
+                       "tempo_resposta_ms", "posicao_ecra", "respondida_em"]  # gerado pelo aluno a responder, não pelo orientador
 
     def has_add_permission(self, request):
         return False

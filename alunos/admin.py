@@ -13,6 +13,7 @@ class NotaDisciplinaInline(admin.TabularInline):
 
 @admin.register(Aluno)
 class AlunoAdmin(admin.ModelAdmin):
-    list_display = ["nome", "idade", "escola"]
+    list_display = ["nome", "idade", "escola", "criado_em", "tentativa_cat"]
+    readonly_fields = ["criado_em", "tentativa_cat"]
     search_fields = ["nome"]
     inlines = [NotaDisciplinaInline]

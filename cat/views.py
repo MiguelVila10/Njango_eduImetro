@@ -1,27 +1,43 @@
 # cat/views.py
 
 from rest_framework import status, viewsets
+from rest_framework.permissions import BasePermission
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from alunos.models import Aluno
 from alunos.sessao import (
-    CatalogoOrientador,
     OrientadorLeAlunoEscreve,
+    eh_o_proprio_aluno,
+    eh_orientador,
     exigir_acesso_ao_aluno,
     filtrar_pelo_aluno,
     pode_aceder_aluno,
 )
 from .models import ItemCAT, RespostaCAT
-from .serializers import ItemCATSerializer, RespostaCATSerializer
-from .services import estado_cat
+from .serializers import ItemCATSerializer, RespostaCATSerializer, item_para_aluno
+from .services import estado_cat, repetir_cat
+
+
+class BancoCATOrientador(BasePermission):
+    message = "O banco de perguntas é reservado ao orientador; apagar não é permitido."
+
+    def has_permission(self, request, view):
+        if request.method == "DELETE":
+            return False
+        return eh_orientador(request)
 
 
 class ItemCATViewSet(viewsets.ModelViewSet):
-    """Banco de itens do CAT (RF04, RF05). Leitura pública; o orientador adiciona e edita."""
+    """
+    Banco de itens do CAT (RF04, RF05). Só o orientador vê e gere o banco
+    completo (com os arquétipos das opções); o aluno recebe as perguntas,
+    sem arquétipos, através de /api/cat/proxima/. Ninguém apaga pela API:
+    desactiva-se com "ativo".
+    """
     queryset = ItemCAT.objects.all()
     serializer_class = ItemCATSerializer
-    permission_classes = [CatalogoOrientador]
+    permission_classes = [BancoCATOrientador]
 
 
 class RespostaCATViewSet(viewsets.ModelViewSet):
@@ -65,7 +81,39 @@ class ProximaPerguntaView(APIView):
         except Aluno.DoesNotExist:
             return Response({"erro": "Aluno não encontrado."}, status=status.HTTP_404_NOT_FOUND)
 
-        estado = estado_cat(aluno)
-        item = estado.pop("item")
+        return Response(_formatar_estado(request, aluno, estado_cat(aluno)), status=status.HTTP_200_OK)
+
+
+def _formatar_estado(request, aluno, estado):
+    """O orientador vê tudo; o aluno não vê arquétipos, crença nem indicadores internos."""
+    item = estado.pop("item")
+    if eh_orientador(request):
         estado["item"] = ItemCATSerializer(item).data if item else None
-        return Response(estado, status=status.HTTP_200_OK)
+        return estado
+    return {
+        "terminado": estado["terminado"],
+        "tentativa": estado["tentativa"],
+        "respondidas": estado["respondidas"],
+        "pode_repetir": estado["pode_repetir"],
+        "item": item_para_aluno(item, aluno) if item else None,
+    }
+
+
+class RepetirCATView(APIView):
+    """
+    POST /api/cat/repetir/{aluno_id}/
+    Inicia a 2.ª (e última) tentativa do CAT, só quando a 1.ª terminou com
+    confiança baixa. Só o próprio aluno pode pedir.
+    """
+    permission_classes = [OrientadorLeAlunoEscreve]
+
+    def post(self, request, aluno_id):
+        if not eh_o_proprio_aluno(request, aluno_id):
+            return Response({"erro": "Só o próprio aluno pode repetir o teste."},
+                            status=status.HTTP_403_FORBIDDEN)
+        aluno = Aluno.objects.get(pk=aluno_id)
+        try:
+            estado = repetir_cat(aluno)
+        except ValueError as e:
+            return Response({"erro": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(_formatar_estado(request, aluno, estado), status=status.HTTP_200_OK)

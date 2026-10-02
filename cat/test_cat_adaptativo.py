@@ -175,14 +175,20 @@ class ProximaPerguntaEndpointTest(APITestCase):
             dados = self.client.get(f"/api/cat/proxima/{self.aluno.id}/").data
             if dados["terminado"]:
                 break
+            # O aluno não vê os arquétipos: envia o número da opção escolhida.
+            self.assertNotIn("arquetipo", dados["item"]["opcoes"][0])
+            item = ItemCAT.objects.get(pk=dados["item"]["id"])
+            opcao = [o["arquetipo"] for o in item.opcoes].index("Humanista")
             resposta = self.client.post(
                 "/api/respostas-cat/",
-                {"aluno": self.aluno.id, "item": dados["item"]["id"], "arquetipo_escolhido": "Humanista"},
+                {"aluno": self.aluno.id, "item": item.id, "opcao": opcao,
+                 "tempo_resposta_ms": 8000, "posicao_ecra": "B"},
                 format="json",
             )
             self.assertEqual(resposta.status_code, status.HTTP_201_CREATED)
+            self.assertEqual(resposta.data["arquetipo_escolhido"], "Humanista")
         self.assertTrue(dados["terminado"])
-        self.assertEqual(dados["arquetipo_provavel"], "Humanista")
+        self.assertEqual(estado_cat(self.aluno)["arquetipo_provavel"], "Humanista")
 
 
 class SeedItensCATTest(TestCase):
