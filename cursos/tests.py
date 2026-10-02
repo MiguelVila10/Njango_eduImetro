@@ -1,3 +1,4 @@
+from alunos.apoio_testes import autenticar_orientador
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
@@ -55,6 +56,9 @@ class VetorIdealCursoModelTest(TestCase):
 
 
 class CursoViewSetTest(APITestCase):
+
+    def setUp(self):
+        autenticar_orientador(self.client)
     def test_criar_curso_via_api(self):
         data = {"nome": "Técnico de Informática", "instituicao": "IPIL", "arquetipo_dominante": "Analítico"}
         response = self.client.post("/api/cursos/", data, format="json")
@@ -63,6 +67,7 @@ class CursoViewSetTest(APITestCase):
 
 class PreRequisitoCursoViewSetTest(APITestCase):
     def setUp(self):
+        autenticar_orientador(self.client)
         self.curso = Curso.objects.create(nome="Técnico de Electrónica", instituicao="ITEL", arquetipo_dominante="Analítico")
 
     def test_criar_prerequisito_via_api(self):
@@ -78,6 +83,7 @@ class PreRequisitoCursoViewSetTest(APITestCase):
 
 class VetorIdealCursoViewSetTest(APITestCase):
     def setUp(self):
+        autenticar_orientador(self.client)
         self.curso = Curso.objects.create(nome="Técnico de Informática", instituicao="ITEL", arquetipo_dominante="Analítico")
 
     def test_criar_vetor_ideal_via_api(self):

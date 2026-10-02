@@ -1,5 +1,6 @@
 # recomendacoes/tests.py
 
+from alunos.apoio_testes import autenticar_orientador
 from django.test import TestCase
 from django.db import IntegrityError, transaction
 from rest_framework.test import APITestCase
@@ -47,6 +48,7 @@ class RecomendacaoViewSetTest(APITestCase):
     """Testa o endpoint CRUD de Recomendacao."""
 
     def setUp(self):
+        autenticar_orientador(self.client)
         self.aluno = Aluno.objects.create(nome="Cientista Teste", idade=14, escola="Escola Teste")
         self.curso = Curso.objects.create(
             nome="Técnico de Informática", instituicao="ITEL",
@@ -118,6 +120,7 @@ class GerarRecomendacoesViewTest(APITestCase):
     """Testa o endpoint POST /api/recomendacoes/gerar/{aluno_id}/."""
 
     def setUp(self):
+        autenticar_orientador(self.client)
         self.aluno = Aluno.objects.create(nome="Cientista Teste", idade=14, escola="Escola Teste")
         notas = {
             "Matemática": 18, "Física": 17, "Química": 16,

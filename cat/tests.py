@@ -1,3 +1,4 @@
+from alunos.apoio_testes import autenticar_orientador
 from django.test import TestCase
 
 # Create your tests here.
@@ -64,6 +65,9 @@ class ItemCATSerializerTest(TestCase):
 class ItemCATViewSetTest(APITestCase):
     """Testa o endpoint CRUD de ItemCAT."""
 
+    def setUp(self):
+        autenticar_orientador(self.client)
+
     def test_criar_item_via_api(self):
         """Happy path: POST /api/itens-cat/ cria um item com sucesso."""
         data = {"texto": "Pergunta via API", "tipo": "nucleo", "opcoes": OPCOES_VALIDAS}
@@ -104,6 +108,7 @@ class RespostaCATViewSetTest(APITestCase):
     """Testa o endpoint CRUD de RespostaCAT."""
 
     def setUp(self):
+        autenticar_orientador(self.client)
         self.aluno = Aluno.objects.create(nome="Cientista Teste", idade=14, escola="Escola Teste")
         self.item = ItemCAT.objects.create(texto="Pergunta teste", tipo="nucleo", opcoes=OPCOES_VALIDAS)
 

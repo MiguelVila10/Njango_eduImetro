@@ -2,6 +2,7 @@
 """Testes do CAT adaptativo: motor, serviço, endpoint, seed e simulação."""
 
 import random
+from alunos.apoio_testes import autenticar_orientador
 from io import StringIO
 
 from django.core.management import call_command
@@ -149,6 +150,7 @@ class ProximaPerguntaEndpointTest(APITestCase):
     """GET /api/cat/proxima/{aluno_id}/"""
 
     def setUp(self):
+        autenticar_orientador(self.client)
         self.aluno = Aluno.objects.create(nome="Aluno API", idade=15, escola="Escola Teste")
         for i in range(6):
             ItemCAT.objects.create(texto=f"Pergunta {i}", tipo="nucleo", tendencia="neutra", opcoes=_opcoes())

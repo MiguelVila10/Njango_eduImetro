@@ -56,21 +56,31 @@ CURSOS_DISPONIVEIS = {
 
 
 class Command(BaseCommand):
-    help = "Povoa a base de conhecimento com os 20 cursos técnicos de Luanda (Curso, PreRequisitoCurso, VetorIdealCurso)."
+    help = "Povoa/actualiza os 20 cursos técnicos de Luanda (Curso, PreRequisitoCurso, VetorIdealCurso) sem apagar cursos."
 
     @transaction.atomic
     def handle(self, *args, **options):
-        Curso.objects.all().delete()
+        """
+        Idempotente e NÃO apaga cursos: cria os que faltam e actualiza os
+        existentes (identificados por nome + instituição). Assim os ids ficam
+        estáveis e as recomendações já geradas para os alunos são preservadas.
+        Os pré-requisitos e o vetor ideal de cada curso são substituídos pelos
+        valores deste ficheiro (isso não afecta as recomendações).
+        """
+        criados, actualizados = 0, 0
 
         for chave, dados in CURSOS_DISPONIVEIS.items():
             instituicao = dados["nome"].split("(")[-1].rstrip(")")
             arquetipo = ARQUETIPO_POR_INSTITUICAO[instituicao]
 
-            curso = Curso.objects.create(
+            curso, criado = Curso.objects.update_or_create(
                 nome=dados["nome"].split(" (")[0],
                 instituicao=instituicao,
-                arquetipo_dominante=arquetipo,
+                defaults={"arquetipo_dominante": arquetipo},
             )
+
+            PreRequisitoCurso.objects.filter(curso=curso).delete()
+            VetorIdealCurso.objects.filter(curso=curso).delete()
 
             for chave_req, nota_min in dados["requisitos"].items():
                 disciplina = MAPA_REQUISITOS[chave_req]
@@ -82,6 +92,13 @@ class Command(BaseCommand):
             for disciplina, peso in zip(ORDEM_DISCIPLINAS, dados["vetor_ideal"]):
                 VetorIdealCurso.objects.create(curso=curso, disciplina=disciplina, peso_ideal=peso)
 
-            self.stdout.write(self.style.SUCCESS(f"Criado: {curso.nome} ({curso.instituicao})"))
+            if criado:
+                criados += 1
+                self.stdout.write(self.style.SUCCESS(f"Criado: {curso.nome} ({curso.instituicao})"))
+            else:
+                actualizados += 1
 
-        self.stdout.write(self.style.SUCCESS(f"\n{Curso.objects.count()} cursos criados com sucesso."))
+        self.stdout.write(self.style.SUCCESS(
+            f"\nCursos: {criados} criados, {actualizados} actualizados. "
+            f"Total na base de dados: {Curso.objects.count()}."
+        ))

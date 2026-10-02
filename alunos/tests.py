@@ -1,3 +1,4 @@
+from alunos.apoio_testes import autenticar_orientador
 from django.db import IntegrityError, transaction
 from django.test import TestCase
 from django.core.exceptions import ValidationError
@@ -51,6 +52,7 @@ class NotaDisciplinaViewSetTest(APITestCase):
     """Testa o endpoint CRUD de NotaDisciplina (RF02, RF03)."""
 
     def setUp(self):
+        autenticar_orientador(self.client)
         self.aluno = Aluno.objects.create(nome="Cientista Teste", idade=14, escola="Escola Teste")
 
     def test_criar_nota_via_api(self):
@@ -78,6 +80,7 @@ class NotaDisciplinaModelTest(TestCase):
     """Testa o registo de notas por disciplina (RF02, RF03)."""
 
     def setUp(self):
+        autenticar_orientador(self.client)
         self.aluno = Aluno.objects.create(nome="Cientista Teste", idade=14, escola="Escola Teste")
 
     def test_criar_nota_com_dados_validos(self):
