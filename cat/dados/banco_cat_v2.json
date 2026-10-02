@@ -1,0 +1,702 @@
+[
+  {
+    "codigo": "ES-01",
+    "posicao": 1,
+    "tendencia": "ES",
+    "contexto": "Escola",
+    "tipo": "nucleo",
+    "par_coerencia": null,
+    "texto": "A tua turma vai fazer uma visita de estudo à Fortaleza de São Miguel, na Baixa de Luanda. Cada aluno fica com uma tarefa. O que preferias fazer?",
+    "opcoes": [
+      {
+        "arquetipo": "AN",
+        "texto": "Descobrir como as muralhas aguentam tantos anos sem cair.",
+        "faceta": "Física",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "HU",
+        "texto": "Ouvir o guia e escrever um texto sobre a visita.",
+        "faceta": "Português",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "CR",
+        "texto": "Desenhar no caderno as portas, os canhões e as janelas.",
+        "faceta": "Ed. Visual e Plástica",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "ES",
+        "texto": "Pesquisar o que aconteceu na Fortaleza em cada época.",
+        "faceta": "História",
+        "peso": 1.0
+      }
+    ]
+  },
+  {
+    "codigo": "HU-02",
+    "posicao": 2,
+    "tendencia": "HU",
+    "contexto": "Amigos",
+    "tipo": "nucleo",
+    "par_coerencia": null,
+    "texto": "Tu e dois kambas estão a fazer um trabalho de grupo. Os dois querem temas diferentes e o trabalho ainda não começou. O que preferias fazer?",
+    "opcoes": [
+      {
+        "arquetipo": "AN",
+        "texto": "Fazer uma lista com os prós e contras de cada tema.",
+        "faceta": "Matemática",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "HU",
+        "texto": "Conversar com os dois para perceber o que cada um quer.",
+        "faceta": "EMC/Social",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "CR",
+        "texto": "Inventar um tema novo que junte as duas ideias.",
+        "faceta": "Criação geral",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "ES",
+        "texto": "Ver no calendário qual dos temas dá para acabar a tempo.",
+        "faceta": "Organização",
+        "peso": 1.0
+      }
+    ]
+  },
+  {
+    "codigo": "AN-01",
+    "posicao": 3,
+    "tendencia": "AN",
+    "contexto": "Escola",
+    "tipo": "nucleo",
+    "par_coerencia": "P1",
+    "texto": "A tua escola vai ter uma feira de ciências e a tua turma ficou com o tema \"A água do nosso bairro\". O que preferias fazer?",
+    "opcoes": [
+      {
+        "arquetipo": "AN",
+        "texto": "Testar com experiências simples qual filtro limpa melhor a água.",
+        "faceta": "Química",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "HU",
+        "texto": "Conversar com os vizinhos sobre como guardam a água em casa.",
+        "faceta": "EMC/Social",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "CR",
+        "texto": "Construir a maqueta e decorar a banca da turma.",
+        "faceta": "Ed. Laboral",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "ES",
+        "texto": "Traçar num mapa o caminho da água até ao bairro.",
+        "faceta": "Geografia",
+        "peso": 1.0
+      }
+    ]
+  },
+  {
+    "codigo": "CR-02",
+    "posicao": 4,
+    "tendencia": "CR",
+    "contexto": "Família",
+    "tipo": "nucleo",
+    "par_coerencia": null,
+    "texto": "No sábado há festa de aniversário da tua prima lá em casa, com tios, vizinhos e kambas. O que preferias fazer?",
+    "opcoes": [
+      {
+        "arquetipo": "AN",
+        "texto": "Calcular quanta comida e bebida é preciso para os convidados.",
+        "faceta": "Matemática",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "HU",
+        "texto": "Escrever a mensagem de parabéns no cartão da prima.",
+        "faceta": "Português",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "CR",
+        "texto": "Fazer à mão os convites e os enfeites da sala.",
+        "faceta": "Ed. Laboral",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "ES",
+        "texto": "Organizar os jogos e as brincadeiras de corrida da festa.",
+        "faceta": "Ed. Física",
+        "peso": 1.0
+      }
+    ]
+  },
+  {
+    "codigo": "HU-01",
+    "posicao": 5,
+    "tendencia": "HU",
+    "contexto": "Escola",
+    "tipo": "nucleo",
+    "par_coerencia": "P2",
+    "texto": "A tua escola vai fazer uma semana de prevenção do paludismo, e cada turma tem uma tarefa. O que preferias fazer?",
+    "opcoes": [
+      {
+        "arquetipo": "AN",
+        "texto": "Comparar que repelentes caseiros afastam mais os mosquitos.",
+        "faceta": "Química",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "HU",
+        "texto": "Explicar aos colegas como o mosquito passa a doença ao corpo.",
+        "faceta": "Biologia",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "CR",
+        "texto": "Fazer cartazes e uma pequena peça de teatro sobre o tema.",
+        "faceta": "Ed. Visual e Plástica",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "ES",
+        "texto": "Marcar num mapa do bairro os sítios com água parada.",
+        "faceta": "Geografia",
+        "peso": 1.0
+      }
+    ]
+  },
+  {
+    "codigo": "ES-02",
+    "posicao": 6,
+    "tendencia": "ES",
+    "contexto": "Bairro",
+    "tipo": "nucleo",
+    "par_coerencia": null,
+    "texto": "Nas férias, os jovens do teu bairro vão fazer um torneio de futebol entre ruas, aberto a rapazes e raparigas. O que preferias fazer?",
+    "opcoes": [
+      {
+        "arquetipo": "AN",
+        "texto": "Fazer a tabela com os pontos e os golos de cada equipa.",
+        "faceta": "Matemática",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "HU",
+        "texto": "Escrever o relato de cada jogo para o grupo do bairro.",
+        "faceta": "Português",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "CR",
+        "texto": "Criar o emblema e a bandeira de cada equipa.",
+        "faceta": "Ed. Visual e Plástica",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "ES",
+        "texto": "Preparar os treinos e o aquecimento das equipas antes dos jogos.",
+        "faceta": "Ed. Física",
+        "peso": 1.0
+      }
+    ]
+  },
+  {
+    "codigo": "AN-02",
+    "posicao": 7,
+    "tendencia": "AN",
+    "contexto": "Família",
+    "tipo": "nucleo",
+    "par_coerencia": null,
+    "texto": "Lá em casa acham que se gasta cada vez mais energia eléctrica e querem perceber porquê. O que preferias fazer?",
+    "opcoes": [
+      {
+        "arquetipo": "AN",
+        "texto": "Medir quanto tempo cada aparelho fica ligado e fazer as contas.",
+        "faceta": "Física",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "HU",
+        "texto": "Conversar com cada pessoa da casa sobre como usa a energia.",
+        "faceta": "EMC/Social",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "CR",
+        "texto": "Inventar e desenhar avisos para colar perto das tomadas.",
+        "faceta": "Ed. Visual e Plástica",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "ES",
+        "texto": "Fazer um horário para usar os aparelhos à vez.",
+        "faceta": "Organização",
+        "peso": 1.0
+      }
+    ]
+  },
+  {
+    "codigo": "CR-01",
+    "posicao": 8,
+    "tendencia": "CR",
+    "contexto": "Amigos",
+    "tipo": "nucleo",
+    "par_coerencia": "P3",
+    "texto": "Tu e os teus kambas querem fazer um vídeo curto sobre o vosso bairro para o TikTok, com o telemóvel de um de vocês. O que preferias fazer?",
+    "opcoes": [
+      {
+        "arquetipo": "AN",
+        "texto": "Ver que vídeos parecidos tiveram mais visualizações e porquê.",
+        "faceta": "Matemática",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "HU",
+        "texto": "Escrever o texto que vai ser dito no vídeo.",
+        "faceta": "Português",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "CR",
+        "texto": "Criar a música e os efeitos especiais do vídeo.",
+        "faceta": "Criação geral",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "ES",
+        "texto": "Escolher os sítios e a ordem das filmagens.",
+        "faceta": "Organização",
+        "peso": 1.0
+      }
+    ]
+  },
+  {
+    "codigo": "ES-03",
+    "posicao": 9,
+    "tendencia": "ES",
+    "contexto": "Família",
+    "tipo": "nucleo",
+    "par_coerencia": null,
+    "texto": "No fim-de-semana, a tua avó abriu uma caixa com fotografias e papéis antigos da família. O que preferias fazer?",
+    "opcoes": [
+      {
+        "arquetipo": "AN",
+        "texto": "Calcular, pelas datas, que idade tinha cada pessoa nas fotografias.",
+        "faceta": "Matemática",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "HU",
+        "texto": "Escrever um texto sobre a vida da avó, contada por ela.",
+        "faceta": "Português",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "CR",
+        "texto": "Fazer à mão um álbum novo e decorado com as fotografias.",
+        "faceta": "Ed. Laboral",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "ES",
+        "texto": "Ordenar as fotografias por datas e ver o que se passava em Angola nessa altura.",
+        "faceta": "História",
+        "peso": 1.0
+      }
+    ]
+  },
+  {
+    "codigo": "HU-03",
+    "posicao": 10,
+    "tendencia": "HU",
+    "contexto": "Bairro",
+    "tipo": "nucleo",
+    "par_coerencia": null,
+    "texto": "No Dia da Criança, os jovens do bairro vão preparar actividades para os miúdos da rua. O que preferias fazer?",
+    "opcoes": [
+      {
+        "arquetipo": "AN",
+        "texto": "Preparar jogos de contas e adivinhas com prémios.",
+        "faceta": "Matemática",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "HU",
+        "texto": "Ler e contar histórias aos miúdos.",
+        "faceta": "Português",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "CR",
+        "texto": "Pintar caras e fazer brinquedos com material reciclado.",
+        "faceta": "Ed. Laboral",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "ES",
+        "texto": "Preparar corridas de sacos e jogos tradicionais no campo.",
+        "faceta": "Ed. Física",
+        "peso": 1.0
+      }
+    ]
+  },
+  {
+    "codigo": "ES-04",
+    "posicao": 11,
+    "tendencia": "ES",
+    "contexto": "Amigos",
+    "tipo": "nucleo",
+    "par_coerencia": null,
+    "texto": "O teu grupo de amigos combinou um passeio ao Miradouro da Lua num sábado de manhã. O que preferias fazer?",
+    "opcoes": [
+      {
+        "arquetipo": "AN",
+        "texto": "Experimentar com água como a chuva escava a terra das ravinas.",
+        "faceta": "Física",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "HU",
+        "texto": "Observar as plantas e os bichos que vivem naquela zona.",
+        "faceta": "Biologia",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "CR",
+        "texto": "Desenhar a paisagem para fazer postais para a família.",
+        "faceta": "Ed. Visual e Plástica",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "ES",
+        "texto": "Ver no mapa onde fica e planear o caminho e as paragens.",
+        "faceta": "Geografia",
+        "peso": 1.0
+      }
+    ]
+  },
+  {
+    "codigo": "AN-04",
+    "posicao": 12,
+    "tendencia": "AN",
+    "contexto": "Bairro",
+    "tipo": "verificacao",
+    "par_coerencia": "P1",
+    "texto": "Sempre que chove, a água fica parada no mesmo sítio da tua rua. Os moradores querem perceber porque é que isso acontece. O que preferias fazer?",
+    "opcoes": [
+      {
+        "arquetipo": "AN",
+        "texto": "Medir se a rua desce naquele sítio e para onde corre a água.",
+        "faceta": "Física",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "HU",
+        "texto": "Ouvir os moradores sobre como a água parada lhes muda o dia.",
+        "faceta": "EMC/Social",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "CR",
+        "texto": "Fazer com papelão um modelo da rua para mostrar o problema.",
+        "faceta": "Ed. Laboral",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "ES",
+        "texto": "Ver num mapa do bairro por onde a água da chuva devia escorrer.",
+        "faceta": "Geografia",
+        "peso": 1.0
+      }
+    ]
+  },
+  {
+    "codigo": "CR-03",
+    "posicao": 13,
+    "tendencia": "CR",
+    "contexto": "Bairro",
+    "tipo": "nucleo",
+    "par_coerencia": null,
+    "texto": "A administração deixou os jovens do bairro arranjarem o muro velho ao lado do mercado. O que preferias fazer?",
+    "opcoes": [
+      {
+        "arquetipo": "AN",
+        "texto": "Medir o muro e calcular quanta tinta é precisa.",
+        "faceta": "Matemática",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "HU",
+        "texto": "Perguntar aos moradores que mensagem querem ver no muro.",
+        "faceta": "EMC/Social",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "CR",
+        "texto": "Desenhar o mural e pintá-lo com os outros jovens.",
+        "faceta": "Ed. Visual e Plástica",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "ES",
+        "texto": "Pesquisar momentos da história de Angola para pôr no mural.",
+        "faceta": "História",
+        "peso": 1.0
+      }
+    ]
+  },
+  {
+    "codigo": "HU-04",
+    "posicao": 14,
+    "tendencia": "HU",
+    "contexto": "Família",
+    "tipo": "verificacao",
+    "par_coerencia": "P2",
+    "texto": "A tua família decidiu que, este ano, todos lá em casa vão comer de forma mais saudável. O que preferias fazer?",
+    "opcoes": [
+      {
+        "arquetipo": "AN",
+        "texto": "Comparar os rótulos dos sumos e ver qual tem mais açúcar.",
+        "faceta": "Química",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "HU",
+        "texto": "Ensinar aos mais novos para que serve cada alimento no corpo.",
+        "faceta": "Biologia",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "CR",
+        "texto": "Fazer um cartaz colorido com o menu da semana para a cozinha.",
+        "faceta": "Ed. Visual e Plástica",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "ES",
+        "texto": "Descobrir de que províncias vêm os alimentos que a família compra.",
+        "faceta": "Geografia",
+        "peso": 1.0
+      }
+    ]
+  },
+  {
+    "codigo": "AN-03",
+    "posicao": 15,
+    "tendencia": "AN",
+    "contexto": "Amigos",
+    "tipo": "nucleo",
+    "par_coerencia": null,
+    "texto": "Nas férias, tu e os teus kambas vão fazer papagaios de papel para lançar no descampado. O que preferias fazer?",
+    "opcoes": [
+      {
+        "arquetipo": "AN",
+        "texto": "Testar que tamanho e que cauda fazem o papagaio subir mais.",
+        "faceta": "Física",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "HU",
+        "texto": "Escrever para o grupo um passo-a-passo de como se faz.",
+        "faceta": "Português",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "CR",
+        "texto": "Escolher as cores e desenhar o padrão do papagaio.",
+        "faceta": "Ed. Visual e Plástica",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "ES",
+        "texto": "Descobrir a que horas e em que sítio sopra mais vento.",
+        "faceta": "Geografia",
+        "peso": 1.0
+      }
+    ]
+  },
+  {
+    "codigo": "HU-05",
+    "posicao": 16,
+    "tendencia": "HU",
+    "contexto": "Família",
+    "tipo": "nucleo",
+    "par_coerencia": null,
+    "texto": "A tua família vai cuidar do cão de um vizinho durante duas semanas, enquanto ele viaja. O que preferias fazer?",
+    "opcoes": [
+      {
+        "arquetipo": "AN",
+        "texto": "Calcular quanta comida o cão precisa por dia e por semana.",
+        "faceta": "Matemática",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "HU",
+        "texto": "Observar o comportamento do cão e perceber do que precisa.",
+        "faceta": "Biologia",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "CR",
+        "texto": "Construir-lhe uma casota com madeira e restos de material.",
+        "faceta": "Ed. Laboral",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "ES",
+        "texto": "Planear os passeios e as corridas diárias com ele.",
+        "faceta": "Ed. Física",
+        "peso": 1.0
+      }
+    ]
+  },
+  {
+    "codigo": "CR-04",
+    "posicao": 17,
+    "tendencia": "CR",
+    "contexto": "Escola",
+    "tipo": "verificacao",
+    "par_coerencia": "P3",
+    "texto": "A tua turma vai apresentar uma dança tradicional no dia cultural da escola. O que preferias fazer?",
+    "opcoes": [
+      {
+        "arquetipo": "AN",
+        "texto": "Cronometrar cada parte e ajustar para caber no tempo dado.",
+        "faceta": "Matemática",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "HU",
+        "texto": "Escrever o texto que o apresentador vai ler ao público.",
+        "faceta": "Português",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "CR",
+        "texto": "Inventar passos novos e as roupas e enfeites da dança.",
+        "faceta": "Criação geral",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "ES",
+        "texto": "Decidir a ordem das entradas e o lugar de cada um no palco.",
+        "faceta": "Organização",
+        "peso": 1.0
+      }
+    ]
+  },
+  {
+    "codigo": "ES-05",
+    "posicao": 18,
+    "tendencia": "ES",
+    "contexto": "Amigos",
+    "tipo": "nucleo",
+    "par_coerencia": null,
+    "texto": "Tu e os teus kambas decidiram treinar juntos para uma corrida de bairro daqui a um mês. O que preferias fazer?",
+    "opcoes": [
+      {
+        "arquetipo": "AN",
+        "texto": "Medir os tempos de cada um e registar a melhoria semanal.",
+        "faceta": "Matemática",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "HU",
+        "texto": "Ler sobre o que comer e beber e explicar ao grupo.",
+        "faceta": "Biologia",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "CR",
+        "texto": "Criar o nome, o grito e o símbolo do grupo.",
+        "faceta": "Criação geral",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "ES",
+        "texto": "Planear o percurso e o calendário dos treinos.",
+        "faceta": "Ed. Física",
+        "peso": 1.0
+      }
+    ]
+  },
+  {
+    "codigo": "AN-05",
+    "posicao": 19,
+    "tendencia": "AN",
+    "contexto": "Escola",
+    "tipo": "nucleo",
+    "par_coerencia": null,
+    "texto": "A direcção quer perceber porque se junta tanto lixo no pátio depois do intervalo, e a tua turma vai ajudar. O que preferias fazer?",
+    "opcoes": [
+      {
+        "arquetipo": "AN",
+        "texto": "Contar o lixo que aparece em cada canto do pátio e fazer um gráfico.",
+        "faceta": "Matemática",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "HU",
+        "texto": "Entrevistar colegas e funcionários sobre o que pensam do lixo.",
+        "faceta": "EMC/Social",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "CR",
+        "texto": "Construir objectos úteis com garrafas e latas usadas.",
+        "faceta": "Ed. Laboral",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "ES",
+        "texto": "Marcar na planta da escola onde pôr os caixotes do lixo.",
+        "faceta": "Geografia",
+        "peso": 1.0
+      }
+    ]
+  },
+  {
+    "codigo": "CR-05",
+    "posicao": 20,
+    "tendencia": "CR",
+    "contexto": "Bairro",
+    "tipo": "nucleo",
+    "par_coerencia": null,
+    "texto": "Um grupo de jovens estrangeiros que fala inglês vem passar uma tarde no teu bairro, com um guia que traduz. O que preferias fazer?",
+    "opcoes": [
+      {
+        "arquetipo": "AN",
+        "texto": "Comparar números com eles: alunos por turma, horas de aula, preços.",
+        "faceta": "Matemática",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "HU",
+        "texto": "Conversar sobre como vivem os jovens e as famílias deles.",
+        "faceta": "EMC/Social",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "CR",
+        "texto": "Aprender umas frases em inglês e ensinar-lhes outras em português.",
+        "faceta": "Língua Estrangeira",
+        "peso": 1.0
+      },
+      {
+        "arquetipo": "ES",
+        "texto": "Mostrar-lhes o bairro e contar a história de cada sítio.",
+        "faceta": "História",
+        "peso": 1.0
+      }
+    ]
+  }
+]

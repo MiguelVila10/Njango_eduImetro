@@ -22,6 +22,17 @@ class ItemCAT(models.Model):
         ("Estrategista", "Estrategista"),
     ]
 
+    CONTEXTOS = [
+        ("Escola", "Escola"),
+        ("Família", "Família"),
+        ("Bairro", "Bairro"),
+        ("Amigos", "Amigos"),
+    ]
+
+    codigo = models.CharField(
+        max_length=20, unique=True, null=True, blank=True,
+        help_text="Código do item no banco validado (ex.: AN-01). Opcional para itens novos."
+    )
     texto = models.TextField(help_text="Enunciado da questão.")
     tipo = models.CharField(
         max_length=20, choices=TIPOS, default="nucleo",
@@ -33,23 +44,61 @@ class ItemCAT(models.Model):
                   "(a opção desse arquétipo é a mais 'socialmente esperada'). "
                   "Usado na calibração do CAT adaptativo."
     )
+    contexto = models.CharField(
+        max_length=20, choices=CONTEXTOS, blank=True,
+        help_text="Contexto da situação (escola, família, bairro, amigos)."
+    )
+    posicao = models.PositiveSmallIntegerField(
+        null=True, blank=True,
+        help_text="Ordem de referência na versão fixa do teste (1 a 20)."
+    )
+    par_coerencia = models.CharField(
+        max_length=10, blank=True,
+        help_text="Identificador do par de coerência (ex.: P1). Os dois membros do par "
+                  "medem a mesma preferência em contextos diferentes."
+    )
+    ativo = models.BooleanField(
+        default=True,
+        help_text="Só os itens activos entram no CAT. Desactivar em vez de apagar "
+                  "preserva as respostas antigas."
+    )
     opcoes = models.JSONField(
-        help_text='Lista de 4 opções. Ex: [{"texto": "...", "arquetipo": "Analítico"}, ...]'
+        help_text='Lista de 4 opções, uma por arquétipo. Ex: [{"texto": "...", '
+                  '"arquetipo": "Analítico", "faceta": "Física", "peso": 1.0}, ...]'
     )
 
     class Meta:
         verbose_name = "Item CAT"
         verbose_name_plural = "Itens CAT"
+        ordering = ["posicao", "id"]
 
     def __str__(self):
         return self.texto[:50]
 
     def clean(self):
-        if not isinstance(self.opcoes, list) or len(self.opcoes) != 4:
-            raise ValidationError("Um ItemCAT deve ter exactamente 4 opções.")
-        arquetipos_validos = {"Analítico", "Humanista", "Criativo", "Estrategista"}
-        if {o.get("arquetipo") for o in self.opcoes} != arquetipos_validos:
-            raise ValidationError("As 4 opções devem cobrir exactamente os 4 arquétipos.")
+        erro = validar_opcoes(self.opcoes)
+        if erro:
+            raise ValidationError(erro)
+
+
+ARQUETIPOS_VALIDOS = {"Analítico", "Humanista", "Criativo", "Estrategista"}
+
+
+def validar_opcoes(opcoes):
+    """Devolve a mensagem de erro, ou None se as opções forem válidas."""
+    if not isinstance(opcoes, list) or len(opcoes) != 4:
+        return "Um ItemCAT deve ter exactamente 4 opções."
+    if not all(isinstance(o, dict) for o in opcoes):
+        return "Cada opção deve ser um objecto com texto e arquétipo."
+    if {o.get("arquetipo") for o in opcoes} != ARQUETIPOS_VALIDOS:
+        return "As 4 opções devem cobrir exactamente os 4 arquétipos: Analítico, Humanista, Criativo, Estrategista."
+    for o in opcoes:
+        if not str(o.get("texto", "")).strip():
+            return "Todas as opções precisam de texto."
+        peso = o.get("peso", 1.0)
+        if not isinstance(peso, (int, float)) or isinstance(peso, bool) or not 0 < peso <= 1:
+            return "O peso de cada opção deve ser um número maior que 0 e no máximo 1."
+    return None
 
 
 class RespostaCAT(models.Model):

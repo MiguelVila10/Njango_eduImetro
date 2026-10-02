@@ -1,29 +1,25 @@
 # cat/serializers.py
 
 from rest_framework import serializers
-from .models import ItemCAT
-from .models import RespostaCAT
 
-
-ARQUETIPOS_VALIDOS = {"Analítico", "Humanista", "Criativo", "Estrategista"}
+from .models import ItemCAT, RespostaCAT, validar_opcoes
 
 
 class ItemCATSerializer(serializers.ModelSerializer):
     class Meta:
         model = ItemCAT
-        fields = ["id", "texto", "tipo", "tendencia", "opcoes"]
+        fields = [
+            "id", "codigo", "texto", "tipo", "tendencia", "contexto",
+            "posicao", "par_coerencia", "ativo", "opcoes",
+        ]
         read_only_fields = ["id"]
 
     def validate_opcoes(self, value):
-        if not isinstance(value, list) or len(value) != 4:
-            raise serializers.ValidationError("Um ItemCAT deve ter exactamente 4 opções.")
-
-        arquetipos_presentes = {opcao.get("arquetipo") for opcao in value}
-        if arquetipos_presentes != ARQUETIPOS_VALIDOS:
-            raise serializers.ValidationError(
-                "As 4 opções devem cobrir exactamente os 4 arquétipos: Analítico, Humanista, Criativo, Estrategista."
-            )
+        erro = validar_opcoes(value)
+        if erro:
+            raise serializers.ValidationError(erro)
         return value
+
 
 class RespostaCATSerializer(serializers.ModelSerializer):
     class Meta:

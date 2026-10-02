@@ -118,12 +118,13 @@ def decidir_paragem(crenca, n_respondidas, n_disponiveis):
     return None
 
 
-def escolher_item(crenca, candidatos, rng=None):
+def escolher_item(crenca, candidatos, rng=None, preferidos=None):
     """
     candidatos: lista de pares (item_id, tendencia) ainda não respondidos.
     Escolhe a pergunta mais informativa. Entre perguntas igualmente
-    informativas (mesma tendência), sorteia uma, para que alunos diferentes
-    não recebam sempre a mesma sequência.
+    informativas (mesma tendência), dá prioridade às de `preferidos` (ex.:
+    primeiros membros de pares de coerência) e depois sorteia, para que
+    alunos diferentes não recebam sempre a mesma sequência.
     """
     if not candidatos:
         return None
@@ -139,4 +140,8 @@ def escolher_item(crenca, candidatos, rng=None):
             melhores, melhor_valor = [item_id], valor
         elif abs(valor - melhor_valor) <= 1e-12:
             melhores.append(item_id)
+    if preferidos:
+        com_prioridade = [i for i in melhores if i in preferidos]
+        if com_prioridade:
+            melhores = com_prioridade
     return rng.choice(sorted(melhores))

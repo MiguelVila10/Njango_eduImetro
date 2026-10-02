@@ -7,9 +7,10 @@ from .models import ItemCAT, RespostaCAT
 
 @admin.register(ItemCAT)
 class ItemCATAdmin(admin.ModelAdmin):
-    list_display = ["texto", "tipo", "tendencia"]
-    list_filter = ["tipo", "tendencia"]
-    search_fields = ["texto"]
+    list_display = ["posicao", "codigo", "texto", "tendencia", "contexto", "tipo", "par_coerencia", "ativo"]
+    list_display_links = ["codigo", "texto"]
+    list_filter = ["ativo", "tendencia", "contexto", "tipo"]
+    search_fields = ["codigo", "texto"]
 
 
 @admin.register(RespostaCAT)

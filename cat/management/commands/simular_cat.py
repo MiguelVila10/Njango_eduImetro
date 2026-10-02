@@ -96,7 +96,7 @@ class Command(BaseCommand):
         parser.add_argument("--seed", type=int, default=42)
 
     def handle(self, *args, **opts):
-        banco = list(ItemCAT.objects.values_list("id", "tendencia"))
+        banco = list(ItemCAT.objects.filter(ativo=True).exclude(tipo="verificacao").values_list("id", "tendencia"))
         if not banco:
             raise CommandError("O banco de itens está vazio. Corre primeiro: python manage.py seed_itens_cat")
         if not 0 <= opts["ruido"] <= 1:
