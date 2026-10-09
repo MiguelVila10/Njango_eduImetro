@@ -171,6 +171,7 @@ def estado_cat(aluno, rng=None):
             terminado
             and confianca["nivel"] == CONFIANCA_BAIXA
             and aluno.tentativa_cat < MAX_TENTATIVAS
+            and not aluno.recomendacoes.filter(escolhida_pelo_aluno=True).exists()
         ),
         "item": ItemCAT.objects.get(pk=item_id) if item_id else None,
     }
@@ -182,6 +183,8 @@ def repetir_cat(aluno):
     guardadas para análise; as recomendações antigas são apagadas porque
     serão geradas de novo no fim.
     """
+    if aluno.recomendacoes.filter(escolhida_pelo_aluno=True).exists():
+        raise ValueError("O aluno já confirmou a escolha do curso; o teste não pode ser repetido.")
     estado = estado_cat(aluno)
     if not estado["pode_repetir"]:
         raise ValueError(

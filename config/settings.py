@@ -123,6 +123,9 @@ TIME_ZONE = "Africa/Luanda"
 USE_I18N = True
 USE_TZ = True
 
+# Explícito para as migrações serem iguais em qualquer versão do Django.
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
 
 # --- Ficheiros estáticos -------------------------------------------------------
 

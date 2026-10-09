@@ -20,7 +20,7 @@ from cat.models import RespostaCAT
 from cat.services import estado_cat
 from .models import Recomendacao
 from .serializers import RecomendacaoSerializer
-from .services import gerar_recomendacoes
+from .services import SemCursosCompativeis, gerar_recomendacoes
 
 
 class SoPeloMotor(BasePermission):
@@ -66,6 +66,15 @@ class RecomendacaoViewSet(viewsets.ModelViewSet):
         except Aluno.DoesNotExist:
             return Response({"erro": "Aluno não encontrado."}, status=drf_status.HTTP_404_NOT_FOUND)
 
+        if aluno.recomendacoes.filter(escolhida_pelo_aluno=True).exists():
+            return Response(
+                {
+                    "codigo": "escolha_ja_confirmada",
+                    "erro": "Já confirmaste o teu curso. As recomendações não são geradas de novo.",
+                },
+                status=drf_status.HTTP_409_CONFLICT,
+            )
+
         estado = estado_cat(aluno)
         if not estado["terminado"]:
             return Response(
@@ -78,6 +87,15 @@ class RecomendacaoViewSet(viewsets.ModelViewSet):
 
         try:
             recomendacoes = gerar_recomendacoes(aluno, confianca=estado["confianca"])
+        except SemCursosCompativeis as e:
+            return Response(
+                {
+                    "codigo": "sem_cursos_compativeis",
+                    "erro": str(e),
+                    "cursos_proximos": e.cursos_proximos,
+                },
+                status=drf_status.HTTP_422_UNPROCESSABLE_ENTITY,
+            )
         except ValueError as e:
             return Response({"erro": str(e)}, status=drf_status.HTTP_400_BAD_REQUEST)
 
@@ -89,14 +107,51 @@ class RecomendacaoViewSet(viewsets.ModelViewSet):
         """
         POST /api/recomendacoes/{id}/escolher/
         Regista o curso escolhido pelo aluno entre as recomendações (RF13).
-        Só uma recomendação por aluno fica marcada como escolhida.
+
+        A escolha é definitiva: depois de confirmada não se muda. Repetir o
+        pedido para a mesma recomendação não dá erro (devolve-a outra vez);
+        escolher outra devolve 409.
         """
-        recomendacao = self.get_object()
+        recomendacao = self.get_object()  # a permissão já garante que é o próprio aluno
         with transaction.atomic():
-            Recomendacao.objects.filter(aluno=recomendacao.aluno).update(escolhida_pelo_aluno=False)
-            recomendacao.escolhida_pelo_aluno = True
-            recomendacao.save(update_fields=["escolhida_pelo_aluno"])
+            # Bloqueia as linhas do aluno para dois pedidos ao mesmo tempo
+            # não deixarem duas escolhas gravadas.
+            do_aluno = list(
+                Recomendacao.objects.select_for_update().filter(aluno_id=recomendacao.aluno_id)
+            )
+            ja_escolhida = next((r for r in do_aluno if r.escolhida_pelo_aluno), None)
+            if ja_escolhida and ja_escolhida.pk != recomendacao.pk:
+                return Response(
+                    {
+                        "codigo": "escolha_ja_confirmada",
+                        "erro": "Já confirmaste a tua escolha. O curso escolhido não pode ser mudado.",
+                        "curso_escolhido": ja_escolhida.curso.nome,
+                    },
+                    status=drf_status.HTTP_409_CONFLICT,
+                )
+            if not ja_escolhida:
+                recomendacao.escolhida_pelo_aluno = True
+                recomendacao.save(update_fields=["escolhida_pelo_aluno"])
         return Response(self.get_serializer(recomendacao).data, status=drf_status.HTTP_200_OK)
+
+
+def _distribuicao_perfis():
+    """
+    Quantos alunos têm cada perfil dominante (arquétipo mais provável no
+    motor bayesiano, tentativa actual). Só conta alunos com respostas.
+    """
+    from cat import motor
+
+    contagem = {a: 0 for a in motor.ARQUETIPOS}
+    alunos = Aluno.objects.filter(respostas_cat__isnull=False).distinct() \
+        .prefetch_related("respostas_cat__item")
+    for aluno in alunos:
+        respostas = [r for r in aluno.respostas_cat.all() if r.tentativa == aluno.tentativa_cat]
+        if not respostas:
+            continue
+        crenca = motor.calcular_crenca((r.item.tendencia, r.arquetipo_escolhido) for r in respostas)
+        contagem[motor.arquetipo_provavel(crenca)] += 1
+    return contagem
 
 
 class PainelResumoView(APIView):
@@ -124,10 +179,14 @@ class PainelResumoView(APIView):
             .exclude(alertas_vieses__sobrestimacao=[], alertas_vieses__subestimacao=[])
             .values("aluno").distinct().count()
         )
+        total_alunos = Aluno.objects.count()
+        com_recomendacoes = Recomendacao.objects.values("aluno").distinct().count()
         return Response({
-            "total_alunos": Aluno.objects.count(),
+            "total_alunos": total_alunos,
+            "testes_por_terminar": total_alunos - com_recomendacoes,
+            "distribuicao_perfis": _distribuicao_perfis(),
             "alunos_com_respostas_cat": RespostaCAT.objects.values("aluno").distinct().count(),
-            "alunos_com_recomendacoes": Recomendacao.objects.values("aluno").distinct().count(),
+            "alunos_com_recomendacoes": com_recomendacoes,
             "alunos_que_escolheram_curso": Recomendacao.objects.filter(escolhida_pelo_aluno=True)
                                            .values("aluno").distinct().count(),
             "alunos_com_alertas_de_vies": com_alertas,

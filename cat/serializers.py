@@ -5,6 +5,7 @@ import random
 from rest_framework import serializers
 
 from .models import ItemCAT, RespostaCAT, validar_opcoes
+from .motor import ARQUETIPOS
 
 POSICOES = "ABCD"
 
@@ -19,6 +20,16 @@ class ItemCATSerializer(serializers.ModelSerializer):
             "posicao", "par_coerencia", "ativo", "opcoes",
         ]
         read_only_fields = ["id"]
+
+    def to_representation(self, instance):
+        # Contagem de respostas por arquétipo (só a versão do orientador
+        # usa este serializer). Vem do annotate da view; num item acabado
+        # de criar é zero.
+        dados = super().to_representation(instance)
+        por_arquetipo = {a: getattr(instance, f"_resp_{i}", 0) for i, a in enumerate(ARQUETIPOS)}
+        dados["respostas_por_arquetipo"] = por_arquetipo
+        dados["total_respostas"] = getattr(instance, "_resp_total", 0)
+        return dados
 
     def validate_opcoes(self, value):
         erro = validar_opcoes(value)

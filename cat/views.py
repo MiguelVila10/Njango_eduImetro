@@ -1,5 +1,6 @@
 # cat/views.py
 
+from django.db.models import Count, Q
 from rest_framework import status, viewsets
 from rest_framework.permissions import BasePermission
 from rest_framework.response import Response
@@ -15,6 +16,7 @@ from alunos.sessao import (
     pode_aceder_aluno,
 )
 from .models import ItemCAT, RespostaCAT
+from .motor import ARQUETIPOS
 from .serializers import ItemCATSerializer, RespostaCATSerializer, item_para_aluno
 from .services import estado_cat, repetir_cat
 
@@ -35,9 +37,17 @@ class ItemCATViewSet(viewsets.ModelViewSet):
     sem arquétipos, através de /api/cat/proxima/. Ninguém apaga pela API:
     desactiva-se com "ativo".
     """
-    queryset = ItemCAT.objects.all()
     serializer_class = ItemCATSerializer
     permission_classes = [BancoCATOrientador]
+
+    def get_queryset(self):
+        # Quantas vezes cada arquétipo foi escolhido em cada pergunta (todas
+        # as tentativas). Ajuda o orientador a ver perguntas desequilibradas.
+        contagens = {
+            f"_resp_{i}": Count("respostas", filter=Q(respostas__arquetipo_escolhido=a))
+            for i, a in enumerate(ARQUETIPOS)
+        }
+        return ItemCAT.objects.annotate(_resp_total=Count("respostas"), **contagens)
 
 
 class RespostaCATViewSet(viewsets.ModelViewSet):

@@ -8,6 +8,44 @@ from similaridade.services import calcular_similaridade
 from deteccao_vieses.services import detectar_vieses
 from .models import Recomendacao
 
+MAX_CURSOS_PROXIMOS = 3
+
+
+class SemCursosCompativeis(ValueError):
+    """
+    Nenhum curso cumpre os pré-requisitos. Leva consigo os cursos mais
+    próximos (os que pedem menos pontos para lá chegar), para o aluno ver
+    o que lhe falta em vez de uma mensagem vazia.
+    """
+
+    def __init__(self, cursos_proximos):
+        super().__init__("Nenhum curso cumpre os pré-requisitos deste aluno.")
+        self.cursos_proximos = cursos_proximos
+
+
+def cursos_mais_proximos(eliminacoes, arquetipo_aluno=None, limite=MAX_CURSOS_PROXIMOS):
+    """
+    Ordena os cursos eliminados pelo total de pontos em falta (menos é
+    melhor). Em caso de empate, vem primeiro o curso do perfil do aluno.
+    """
+    def chave(e):
+        total = sum(f["falta"] for f in e["faltas"])
+        outro_perfil = e["curso"].arquetipo_dominante != arquetipo_aluno
+        return (total, outro_perfil, e["curso"].nome)
+
+    proximos = []
+    for e in sorted(eliminacoes, key=chave)[:limite]:
+        curso = e["curso"]
+        proximos.append({
+            "curso": curso.pk,
+            "curso_nome": curso.nome,
+            "curso_instituicao": curso.instituicao,
+            "curso_arquetipo": curso.arquetipo_dominante,
+            "faltas": e["faltas"],
+            "pontos_em_falta": sum(f["falta"] for f in e["faltas"]),
+        })
+    return proximos
+
 
 def gerar_recomendacoes(aluno, confianca=None):
     """
@@ -17,16 +55,16 @@ def gerar_recomendacoes(aluno, confianca=None):
     """
     cursos_aprovados, eliminacoes = filtrar_cursos(aluno)
 
-    if not cursos_aprovados:
-        raise ValueError("Nenhum curso cumpre os pré-requisitos deste aluno.")
-
     respostas = respostas_atuais(aluno)
     total_respostas = respostas.count()
+    contagem_por_arquetipo = Counter(r.arquetipo_escolhido for r in respostas)
+
+    if not cursos_aprovados:
+        arquetipo = contagem_por_arquetipo.most_common(1)[0][0] if contagem_por_arquetipo else None
+        raise SemCursosCompativeis(cursos_mais_proximos(eliminacoes, arquetipo))
 
     if total_respostas == 0:
         raise ValueError("O aluno ainda não respondeu a nenhuma questão do CAT.")
-
-    contagem_por_arquetipo = Counter(r.arquetipo_escolhido for r in respostas)
 
     alertas_vieses = detectar_vieses(aluno)
 

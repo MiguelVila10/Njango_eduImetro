@@ -20,6 +20,10 @@ class Curso(models.Model):
         max_length=20, choices=ARQUETIPOS,
         help_text="Analítico, Humanista, Criativo ou Estrategista."
     )
+    descricao = models.TextField(
+        blank=True, default="",
+        help_text="Explicação simples do curso para o aluno (o que se aprende, onde se trabalha)."
+    )
 
     class Meta:
         verbose_name = "Curso"

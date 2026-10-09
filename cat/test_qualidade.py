@@ -68,7 +68,10 @@ class QualidadeEdRepeticaoTest(APITestCase):
         self._responder(8, tempo=500, posicao="A")
         resposta = self.client.post(f"/api/recomendacoes/gerar/{self.aluno.id}/")
         self.assertEqual(resposta.status_code, status.HTTP_200_OK)
-        self.assertEqual(resposta.data[0]["confianca_cat"]["nivel"], CONFIANCA_BAIXA)
+        # O aluno não vê a confiança; fica gravada para o orientador.
+        self.assertNotIn("confianca_cat", resposta.data[0])
+        rec = Recomendacao.objects.get(pk=resposta.data[0]["id"])
+        self.assertEqual(rec.confianca_cat["nivel"], CONFIANCA_BAIXA)
 
     def test_nao_repete_com_confianca_normal(self):
         self._responder(8, tempo=9000, posicao="")

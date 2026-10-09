@@ -191,16 +191,42 @@ class FluxoDoAlunoTest(APITestCase):
         self.assertEqual(resposta.status_code, status.HTTP_200_OK)
         self.assertTrue(Recomendacao.objects.get(pk=rec_id).escolhida_pelo_aluno)
 
-    def test_escolher_outro_curso_desmarca_o_anterior(self):
+    def _gerar_com_dois_cursos(self):
         segundo = Curso.objects.create(nome="Electrónica", instituicao="ITEL", arquetipo_dominante="Analítico")
         VetorIdealCurso.objects.create(curso=segundo, disciplina="Matemática", peso_ideal=17)
         VetorIdealCurso.objects.create(curso=segundo, disciplina="Física", peso_ideal=18)
         self._responder_todas()
-        recs = self.client.post(f"/api/recomendacoes/gerar/{self.aluno_id}/").data
+        return self.client.post(f"/api/recomendacoes/gerar/{self.aluno_id}/").data
+
+    def test_escolha_confirmada_nao_se_muda(self):
+        recs = self._gerar_com_dois_cursos()
         self.client.post(f"/api/recomendacoes/{recs[0]['id']}/escolher/")
-        self.client.post(f"/api/recomendacoes/{recs[1]['id']}/escolher/")
+        resposta = self.client.post(f"/api/recomendacoes/{recs[1]['id']}/escolher/")
+        self.assertEqual(resposta.status_code, status.HTTP_409_CONFLICT)
+        self.assertEqual(resposta.data["codigo"], "escolha_ja_confirmada")
         escolhidas = Recomendacao.objects.filter(aluno_id=self.aluno_id, escolhida_pelo_aluno=True)
-        self.assertEqual(list(escolhidas.values_list("id", flat=True)), [recs[1]["id"]])
+        self.assertEqual(list(escolhidas.values_list("id", flat=True)), [recs[0]["id"]])
+
+    def test_confirmar_a_mesma_escolha_duas_vezes_nao_da_erro(self):
+        recs = self._gerar_com_dois_cursos()
+        self.client.post(f"/api/recomendacoes/{recs[0]['id']}/escolher/")
+        resposta = self.client.post(f"/api/recomendacoes/{recs[0]['id']}/escolher/")
+        self.assertEqual(resposta.status_code, status.HTTP_200_OK)
+        self.assertTrue(resposta.data["escolhida_pelo_aluno"])
+
+    def test_depois_de_escolher_nao_gera_de_novo(self):
+        recs = self._gerar_com_dois_cursos()
+        self.client.post(f"/api/recomendacoes/{recs[0]['id']}/escolher/")
+        resposta = self.client.post(f"/api/recomendacoes/gerar/{self.aluno_id}/")
+        self.assertEqual(resposta.status_code, status.HTTP_409_CONFLICT)
+        self.assertTrue(Recomendacao.objects.get(pk=recs[0]["id"]).escolhida_pelo_aluno)
+
+    def test_orientador_nao_escolhe_pelo_aluno(self):
+        recs = self._gerar_com_dois_cursos()
+        self.client.credentials()
+        autenticar_orientador(self.client)
+        resposta = self.client.post(f"/api/recomendacoes/{recs[0]['id']}/escolher/")
+        self.assertIn(resposta.status_code, NEGADO)
 
     def test_aluno_nao_escolhe_recomendacao_de_outro(self):
         rec = Recomendacao.objects.create(aluno=self.outro, curso=self.curso, score_academico=0.5,

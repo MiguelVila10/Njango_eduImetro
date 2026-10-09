@@ -6,9 +6,15 @@ from rest_framework.permissions import AllowAny, BasePermission
 from rest_framework.response import Response
 
 from .models import Aluno, NotaDisciplina
-from .serializers import AlunoSerializer, NotaDisciplinaSerializer
+from .serializers import (
+    AlunoDetalheSerializer,
+    AlunoResumoSerializer,
+    AlunoSerializer,
+    NotaDisciplinaSerializer,
+)
 from .sessao import (
     EhOrientador,
+    eh_orientador,
     OrientadorLeAlunoEscreve,
     exigir_acesso_ao_aluno,
     filtrar_pelo_aluno,
@@ -42,7 +48,20 @@ class AlunoViewSet(viewsets.ModelViewSet):
     serializer_class = AlunoSerializer
 
     def get_queryset(self):
-        return filtrar_pelo_aluno(self.request, Aluno.objects.all(), campo="pk")
+        qs = Aluno.objects.all().order_by("-criado_em")
+        if eh_orientador(self.request) and self.action in ("list", "retrieve"):
+            qs = qs.prefetch_related("recomendacoes__curso", "respostas_cat__item", "notas")
+        return filtrar_pelo_aluno(self.request, qs, campo="pk")
+
+    def get_serializer_class(self):
+        # O orientador vê o resumo (lista) e a ficha completa (detalhe);
+        # o aluno continua a ver só o seu registo básico.
+        if eh_orientador(self.request):
+            if self.action == "list":
+                return AlunoResumoSerializer
+            if self.action == "retrieve":
+                return AlunoDetalheSerializer
+        return AlunoSerializer
 
     def get_permissions(self):
         if self.action == "create":

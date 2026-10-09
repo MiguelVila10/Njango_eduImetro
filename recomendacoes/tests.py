@@ -159,7 +159,39 @@ class GerarRecomendacoesViewTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]["rank"], 1)
+        # Privacidade: o aluno não vê alertas de viés nem a confiança.
+        self.assertNotIn("alertas_vieses", response.data[0])
+        self.assertNotIn("confianca_cat", response.data[0])
+        # Justificação para o ecrã "porque este curso".
+        chave = response.data[0]["disciplinas_chave"]
+        self.assertEqual(chave[0], {"disciplina": "Matemática", "tua_nota": 18, "referencia": 18})
+
+    def test_orientador_ve_alertas_e_confianca(self):
+        self.client.post(f"/api/recomendacoes/gerar/{self.aluno.id}/")
+        self.client.credentials()
+        autenticar_orientador(self.client)
+        response = self.client.get("/api/recomendacoes/")
         self.assertIn("alertas_vieses", response.data[0])
+        self.assertIn("confianca_cat", response.data[0])
+
+    def test_sem_cursos_compativeis_devolve_os_mais_proximos(self):
+        NotaDisciplina.objects.filter(aluno=self.aluno, disciplina="Matemática").update(nota=12)
+        perto = Curso.objects.create(nome="Contabilidade", instituicao="IMEL", arquetipo_dominante="Estrategista")
+        PreRequisitoCurso.objects.create(curso=perto, disciplina="Matemática", nota_min=13)
+        longe = Curso.objects.create(nome="Electrónica", instituicao="ITEL", arquetipo_dominante="Analítico")
+        PreRequisitoCurso.objects.create(curso=longe, disciplina="Física", nota_min=19)
+        PreRequisitoCurso.objects.create(curso=longe, disciplina="Matemática", nota_min=16)
+
+        response = self.client.post(f"/api/recomendacoes/gerar/{self.aluno.id}/")
+
+        self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
+        self.assertEqual(response.data["codigo"], "sem_cursos_compativeis")
+        proximos = response.data["cursos_proximos"]
+        self.assertEqual([c["curso_nome"] for c in proximos],
+                         ["Contabilidade", "Técnico de Informática", "Electrónica"])
+        self.assertEqual(proximos[0]["faltas"],
+                         [{"disciplina": "Matemática", "nota": 12, "nota_min": 13, "falta": 1}])
+        self.assertEqual(proximos[2]["pontos_em_falta"], 6)
 
     def test_gerar_para_outro_aluno_retorna_403(self):
         """Caso de erro: um aluno não gera recomendações por outro."""
