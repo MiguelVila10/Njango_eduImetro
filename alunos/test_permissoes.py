@@ -391,3 +391,48 @@ class ConfigurarOrientadorTest(TestCase):
         self.assertEqual(resposta.status_code, 403)
         aluno.refresh_from_db()
         self.assertEqual(aluno.nome, "A")
+
+
+class ConfigurarOrientadorSenhaTest(TestCase):
+    """A palavra-passe: criação, confirmação e mudança numa conta existente."""
+
+    def _correr(self, *args, **kwargs):
+        saida = StringIO()
+        call_command("configurar_orientador", *args, stdout=saida, **kwargs)
+        return saida.getvalue()
+
+    def test_sem_username_explica_como_criar(self):
+        self.assertIn("--username", self._correr())
+        self.assertFalse(get_user_model().objects.exists())
+
+    def test_conta_existente_sem_nova_senha_mantem_a_senha_e_avisa(self):
+        self._correr(username="prof", password="senha-antiga-1")
+        saida = self._correr(username="prof", password="outra-senha-2")
+        self.assertIn("--nova-senha", saida)
+        self.assertTrue(get_user_model().objects.get(username="prof").check_password("senha-antiga-1"))
+
+    def test_nova_senha_muda_a_senha_da_conta_existente(self):
+        self._correr(username="prof", password="senha-antiga-1")
+        self._correr(username="prof", password="senha-nova-22", nova_senha=True)
+        self.assertTrue(get_user_model().objects.get(username="prof").check_password("senha-nova-22"))
+
+    def test_pede_a_senha_duas_vezes_e_recusa_se_forem_diferentes(self):
+        from unittest import mock
+        from django.core.management.base import CommandError
+        with mock.patch("getpass.getpass", side_effect=["senha-boa-123", "senha-diferente"]):
+            with self.assertRaises(CommandError):
+                self._correr(username="prof")
+        self.assertFalse(get_user_model().objects.filter(username="prof").exists())
+
+    def test_cria_conta_quando_as_duas_senhas_coincidem(self):
+        from unittest import mock
+        with mock.patch("getpass.getpass", side_effect=["senha-boa-123", "senha-boa-123"]):
+            self._correr(username="prof")
+        self.assertTrue(get_user_model().objects.get(username="prof").check_password("senha-boa-123"))
+
+    def test_senha_curta_e_recusada(self):
+        from unittest import mock
+        from django.core.management.base import CommandError
+        with mock.patch("getpass.getpass", side_effect=["curta"]):
+            with self.assertRaises(CommandError):
+                self._correr(username="prof")
