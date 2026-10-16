@@ -216,3 +216,16 @@ class GerarRecomendacoesViewTest(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("erro", response.data)
+
+class GerarNaoApagaEscolhaTest(TestCase):
+    """Mesmo chamando o serviço directamente, uma escolha confirmada não se apaga."""
+
+    setUp = GerarRecomendacoesTest.setUp
+
+    def test_servico_recusa_gerar_depois_de_escolher(self):
+        rec = gerar_recomendacoes(self.aluno)[0]
+        rec.escolhida_pelo_aluno = True
+        rec.save()
+        with self.assertRaises(ValueError):
+            gerar_recomendacoes(self.aluno)
+        self.assertTrue(Recomendacao.objects.get(pk=rec.pk).escolhida_pelo_aluno)

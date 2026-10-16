@@ -5,6 +5,22 @@ import { useCallback, useEffect, useState } from "react";
 
 import { escolherCurso, gerarRecomendacoes, listarRecomendacoes } from "../api/aluno";
 
+// Um só pedido de cada vez por aluno: se o ecrã montar duas vezes (o React
+// faz isso em desenvolvimento) ou o aluno recarregar a meio, reaproveita-se
+// o pedido que já está a correr em vez de gerar as sugestões duas vezes.
+const emCurso = new Map();
+
+export function obterOuGerar(alunoId) {
+  if (!emCurso.has(alunoId)) {
+    const promessa = (async () => {
+      const lista = await listarRecomendacoes();
+      return lista.length ? lista : gerarRecomendacoes(alunoId);
+    })().finally(() => emCurso.delete(alunoId));
+    emCurso.set(alunoId, promessa);
+  }
+  return emCurso.get(alunoId);
+}
+
 export function useRecomendacoes(alunoId) {
   const [recomendacoes, setRecomendacoes] = useState([]);
   const [cursosProximos, setCursosProximos] = useState(null); // só quando nenhum curso é compatível
@@ -18,8 +34,7 @@ export function useRecomendacoes(alunoId) {
     try {
       // Se já existem (o aluno voltou à página), mostram-se as mesmas;
       // só se corre o motor quando ainda não há nenhuma.
-      let lista = await listarRecomendacoes();
-      if (!lista.length) lista = await gerarRecomendacoes(alunoId);
+      const lista = await obterOuGerar(alunoId);
       setRecomendacoes([...lista].sort((a, b) => a.rank - b.rank));
     } catch (e) {
       if (e.codigo === "sem_cursos_compativeis") setCursosProximos(e.dados.cursos_proximos);

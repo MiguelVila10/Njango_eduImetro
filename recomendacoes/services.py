@@ -2,6 +2,8 @@
 
 from collections import Counter
 
+from django.db import transaction
+
 from cat.models import respostas_atuais
 from filtro_regras.services import filtrar_cursos
 from similaridade.services import calcular_similaridade
@@ -78,19 +80,28 @@ def gerar_recomendacoes(aluno, confianca=None):
     resultados.sort(key=lambda r: r[3], reverse=True)
     top_3 = resultados[:3]
 
-    Recomendacao.objects.filter(aluno=aluno).delete()
+    # Dois pedidos ao mesmo tempo para o mesmo aluno (dois separadores, ou o
+    # React em desenvolvimento) apagavam e criavam as recomendações em
+    # paralelo e colidiam no "rank" único (erro 500 no MySQL). O bloqueio da
+    # linha do aluno faz o segundo pedido esperar que o primeiro termine.
+    with transaction.atomic():
+        type(aluno).objects.select_for_update().get(pk=aluno.pk)
+        # Volta a verificar já com o bloqueio: uma escolha confirmada nunca se apaga.
+        if Recomendacao.objects.filter(aluno=aluno, escolhida_pelo_aluno=True).exists():
+            raise ValueError("Já confirmaste o teu curso. As recomendações não são geradas de novo.")
+        Recomendacao.objects.filter(aluno=aluno).delete()
 
-    recomendacoes_criadas = []
-    for rank, (curso, score_academico, score_psicografico, score_final) in enumerate(top_3, start=1):
-        rec = Recomendacao.objects.create(
-            aluno=aluno, curso=curso,
-            score_academico=score_academico,
-            score_psicografico=score_psicografico,
-            score_final=score_final,
-            rank=rank,
-            alertas_vieses=alertas_vieses,
-            confianca_cat=confianca or {},
-        )
-        recomendacoes_criadas.append(rec)
+        recomendacoes_criadas = []
+        for rank, (curso, score_academico, score_psicografico, score_final) in enumerate(top_3, start=1):
+            rec = Recomendacao.objects.create(
+                aluno=aluno, curso=curso,
+                score_academico=score_academico,
+                score_psicografico=score_psicografico,
+                score_final=score_final,
+                rank=rank,
+                alertas_vieses=alertas_vieses,
+                confianca_cat=confianca or {},
+            )
+            recomendacoes_criadas.append(rec)
 
     return recomendacoes_criadas
