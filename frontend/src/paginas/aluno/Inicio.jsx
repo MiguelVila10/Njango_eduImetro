@@ -3,7 +3,8 @@
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Brush, CheckCircle, ChevronDown, Goal, GraduationCap, HeartHandshake,
-  Lightbulb, ListChecks, Microscope, NotebookPen, Users,
+  Briefcase, Cpu, Factory, Lightbulb, ListChecks, Microscope, NotebookPen, Palette,
+  Stethoscope, Users,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -57,11 +58,11 @@ const AVISOS = [
 ];
 
 const ESCOLAS = [
-  ["ITEL", "Telecomunicações e Informática"],
-  ["IPIL", "Indústria"],
-  ["IMEL", "Economia e Gestão"],
-  ["IMS", "Saúde"],
-  ["CEARTE", "Arte"],
+  ["ITEL", "Telecomunicações e Informática", Cpu],
+  ["IPIL", "Indústria", Factory],
+  ["IMEL", "Economia e Gestão", Briefcase],
+  ["IMS", "Saúde", Stethoscope],
+  ["CEARTE", "Arte", Palette],
 ];
 
 const PERGUNTAS = [
@@ -275,8 +276,11 @@ export default function Inicio() {
               </p>
             </Revelar>
             <motion.ul {...grelha} className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-5">
-              {ESCOLAS.map(([sigla, area], i) => (
-                <motion.li key={sigla} {...itemGrelha} className={`flex flex-col items-center rounded-lg border border-borda bg-white p-6 text-center hover:border-primaria last:col-span-2 lg:last:col-span-1 ${SUBIR_HOVER}`}>
+              {ESCOLAS.map(([sigla, area, Icone]) => (
+                <motion.li key={sigla} {...itemGrelha} className={`group flex flex-col items-center rounded-lg border border-borda bg-white p-6 text-center hover:border-primaria last:col-span-2 lg:last:col-span-1 ${SUBIR_HOVER}`}>
+                  <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primaria-clara text-primaria transition-transform duration-300 ease-out motion-safe:group-hover:scale-110">
+                    <Icone className="h-6 w-6" strokeWidth={1.75} aria-hidden="true" />
+                  </span>
                   <span className="mb-2 text-[24px] font-extrabold tracking-tight text-primaria sm:text-[26px]">{sigla}</span>
                   <span className="text-[15px] font-semibold leading-snug text-texto-suave">{area}</span>
                 </motion.li>
