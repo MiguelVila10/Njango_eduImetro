@@ -1,4 +1,6 @@
 // Fundo do hero com várias fotografias que trocam por esbatimento suave.
+// Só opacidade (sem zoom): ampliar uma foto grande enquanto se faz scroll
+// pesa muito à placa gráfica e provocava saltos em computadores fracos.
 // Não muda o layout: ocupa o mesmo espaço da imagem única que havia antes.
 //
 // - A primeira foto carrega logo; a seguinte é pré-carregada antes da troca.
@@ -7,8 +9,6 @@
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useEffect, useState } from "react";
-
-import { SUAVE } from "./Movimento";
 
 const DURACAO_MS = 6500;
 
@@ -60,8 +60,8 @@ export default function SlideFundo({ fotos }) {
           fetchpriority={atual === 0 ? "high" : "auto"}
           className="absolute inset-0 h-full w-full object-cover"
           style={{ objectPosition: foto.posicao ?? "center" }}
-          initial={{ opacity: 0, scale: 1.06 }}
-          animate={{ opacity: 1, scale: 1, transition: { opacity: { duration: 1.2, ease: "easeInOut" }, scale: { duration: DURACAO_MS / 1000 + 1.2, ease: SUAVE } } }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1, transition: { duration: 1.2, ease: "easeInOut" } }}
           exit={{ opacity: 0, transition: { duration: 1.2, ease: "easeInOut" } }}
         />
       </AnimatePresence>

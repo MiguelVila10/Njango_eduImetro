@@ -2,8 +2,8 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Calculator, CheckCircle, ChevronDown, Compass, Crosshair, FileSpreadsheet,
-  Heart, HelpCircle, Lightbulb, Palette, Users,
+  Brush, CheckCircle, ChevronDown, Goal, GraduationCap, HeartHandshake,
+  Lightbulb, ListChecks, Microscope, NotebookPen, Users,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -16,8 +16,7 @@ import heroImelPequena from "../../assets/hero-imel-768.webp";
 import heroPatio from "../../assets/hero-patio.webp";
 import heroPatioPequena from "../../assets/hero-patio-768.webp";
 import Cabecalho, { destinoComecar } from "../../componentes/Cabecalho";
-import FaixaSamakaka from "../../componentes/FaixaSamakaka";
-import { Contador, Revelar, SUAVE, cartao } from "../../componentes/Movimento";
+import { Contador, Revelar, SUAVE, SUBIR_HOVER, grelha, itemGrelha } from "../../componentes/Movimento";
 import Rodape from "../../componentes/Rodape";
 import SlideFundo from "../../componentes/SlideFundo";
 
@@ -29,22 +28,22 @@ const FOTOS_HERO = [
 ];
 
 const PASSOS = [
-  { icone: FileSpreadsheet, titulo: "Indica as tuas notas",
+  { icone: NotebookPen, titulo: "Indica as tuas notas",
     texto: "Escreve as notas finais das 12 disciplinas da 9.ª classe. Elas mostram em que áreas tens mais facilidade." },
-  { icone: HelpCircle, titulo: "Responde ao teste",
+  { icone: ListChecks, titulo: "Responde ao teste",
     texto: "Escolhe o que farias em várias situações do dia-a-dia. As perguntas mudam conforme as tuas respostas." },
-  { icone: Compass, titulo: "Descobre os teus cursos",
+  { icone: GraduationCap, titulo: "Descobre os teus cursos",
     texto: "Recebes três cursos técnicos que combinam contigo. Para cada um, explicamos porquê." },
 ];
 
 const PERFIS = [
-  { nome: "Analítico", icone: Calculator, fundo: "bg-primaria-clara", cor: "text-primaria",
+  { nome: "Analítico", icone: Microscope, fundo: "bg-primaria-clara", cor: "text-primaria",
     texto: "Gostas de números, de experiências e de perceber como as coisas funcionam." },
-  { nome: "Humanista", icone: Heart, fundo: "bg-humanista-claro", cor: "text-humanista",
+  { nome: "Humanista", icone: HeartHandshake, fundo: "bg-humanista-claro", cor: "text-humanista",
     texto: "Gostas de ajudar, de ouvir os outros e de cuidar das pessoas." },
-  { nome: "Criativo", icone: Palette, destaque: true,
+  { nome: "Criativo", icone: Brush, destaque: true,
     texto: "Gostas de desenhar, de criar e de dar forma às tuas ideias." },
-  { nome: "Estrategista", icone: Crosshair, fundo: "bg-estrategista-claro", cor: "text-estrategista",
+  { nome: "Estrategista", icone: Goal, fundo: "bg-estrategista-claro", cor: "text-estrategista",
     texto: "Gostas de organizar, de planear e de liderar um grupo." },
 ];
 
@@ -183,32 +182,31 @@ export default function Inicio() {
             </motion.div>
           </div>
 
-          <FaixaSamakaka className="relative" />
         </section>
 
         {/* Como funciona */}
-        {/* flow-root: impede que a margem negativa dos cartões "puxe" o fundo branco por cima da faixa samakaka */}
+        {/* flow-root: os cartões sobem por cima da foto sem "puxar" o fundo branco da secção */}
         <section className="relative z-20 flow-root bg-white" aria-labelledby="titulo-como-funciona">
           <div className="mx-auto max-w-[1140px] px-4 pb-24 sm:px-6 -mt-[88px]">
             <h2 id="titulo-como-funciona" className="sr-only">Como funciona</h2>
-            <ol className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <motion.ol {...grelha} className="grid grid-cols-1 gap-6 md:grid-cols-3">
               {PASSOS.map(({ icone: Icone, titulo, texto }, i) => (
                 <motion.li
                   key={titulo}
-                  {...cartao(i)}
-                  className="group relative flex flex-col items-center rounded-xl border border-borda bg-white p-8 text-center shadow-[0_4px_24px_rgba(0,0,0,0.06)] transition-[border-color,box-shadow] duration-200 hover:border-primaria hover:shadow-[0_12px_32px_rgba(31,111,192,0.12)] sm:p-10"
+                  {...itemGrelha}
+                  className={`group relative flex flex-col items-center rounded-xl border border-borda bg-white p-8 text-center shadow-[0_4px_24px_rgba(0,0,0,0.06)] hover:border-primaria hover:shadow-[0_12px_32px_rgba(31,111,192,0.12)] sm:p-10 ${SUBIR_HOVER}`}
                 >
                   <span aria-hidden="true" className="absolute left-6 top-6 flex h-7 w-7 items-center justify-center rounded-full border border-borda bg-fundo text-[13px] font-bold text-primaria">
                     {i + 1}
                   </span>
                   <span className="mb-6 flex h-[72px] w-[72px] items-center justify-center rounded-full bg-primaria text-white shadow-sm transition-transform duration-300 motion-safe:group-hover:scale-105">
-                    <Icone className="h-[34px] w-[34px]" aria-hidden="true" />
+                    <Icone className="h-[34px] w-[34px]" strokeWidth={1.75} aria-hidden="true" />
                   </span>
                   <h3 className="mb-4 text-[20px] font-bold"><span className="sr-only">Passo {i + 1}: </span>{titulo}</h3>
                   <p className="text-[17px] font-medium leading-[1.6] text-texto-suave">{texto}</p>
                 </motion.li>
               ))}
-            </ol>
+            </motion.ol>
           </div>
         </section>
 
@@ -223,26 +221,26 @@ export default function Inicio() {
                 está mais presente em ti. Nenhum é melhor do que o outro.
               </p>
             </Revelar>
-            <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <motion.ul {...grelha} className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {PERFIS.map(({ nome, icone: Icone, fundo, cor, texto, destaque }, i) => (
                 <motion.li
                   key={nome}
-                  {...cartao(i)}
-                  className={`group flex flex-col rounded-xl border p-8 transition-shadow duration-200 hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)] sm:p-10 ${
+                  {...itemGrelha}
+                  className={`group flex flex-col rounded-xl border p-8 hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)] sm:p-10 ${SUBIR_HOVER} ${
                     destaque
                       ? "border-primaria-escura bg-primaria text-white shadow-[0_8px_32px_rgba(31,111,192,0.25)]"
                       : "border-borda bg-white shadow-[0_4px_24px_rgba(0,0,0,0.04)]"
                   }`}
                 >
-                  <span className={`mb-6 flex h-14 w-14 items-center justify-center rounded-lg ${destaque ? "bg-white text-primaria" : `${fundo} ${cor}`}`}>
-                    <Icone className="h-7 w-7" aria-hidden="true" />
+                  <span className={`mb-6 flex h-14 w-14 items-center justify-center rounded-lg transition-transform duration-300 ease-out motion-safe:group-hover:scale-110 ${destaque ? "bg-white text-primaria" : `${fundo} ${cor}`}`}>
+                    <Icone className="h-7 w-7" strokeWidth={1.75} aria-hidden="true" />
                   </span>
                   <h3 className="mb-3 text-[20px] font-bold">{nome}</h3>
                   <span aria-hidden="true" className={`mb-4 h-[3px] w-8 rounded-full transition-[width] duration-300 motion-safe:group-hover:w-12 ${destaque ? "bg-white" : "bg-primaria"}`} />
                   <p className={`text-[17px] font-medium leading-[1.6] ${destaque ? "text-white/95" : "text-texto-suave"}`}>{texto}</p>
                 </motion.li>
               ))}
-            </ul>
+            </motion.ul>
           </div>
         </section>
 
@@ -250,9 +248,9 @@ export default function Inicio() {
         <section className="border-t border-borda bg-fundo py-20 md:py-24" aria-labelledby="titulo-antes">
           <div className="mx-auto max-w-[1140px] px-4 sm:px-6">
             <Revelar como="h2" id="titulo-antes" className="mb-12 text-center text-[30px] font-bold tracking-tight md:mb-14 md:text-[38px]">Antes de começares</Revelar>
-            <ul className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <motion.ul {...grelha} className="grid grid-cols-1 gap-6 md:grid-cols-3">
               {AVISOS.map(({ icone: Icone, titulo, texto }, i) => (
-                <motion.li key={titulo} {...cartao(i)} className="flex flex-col rounded-xl border border-borda bg-white p-8 shadow-sm transition-shadow duration-200 hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)] sm:p-10">
+                <motion.li key={titulo} {...itemGrelha} className={`flex flex-col rounded-xl border border-borda bg-white p-8 shadow-sm hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)] sm:p-10 ${SUBIR_HOVER}`}>
                   <span className="mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-[#f0f4f9] text-primaria">
                     <Icone className="h-6 w-6" aria-hidden="true" />
                   </span>
@@ -260,7 +258,7 @@ export default function Inicio() {
                   <p className="text-[17px] font-medium leading-[1.6] text-texto-suave">{texto}</p>
                 </motion.li>
               ))}
-            </ul>
+            </motion.ul>
           </div>
         </section>
 
@@ -276,14 +274,14 @@ export default function Inicio() {
                 Sugerimos cursos, não escolas. Para cada curso sugerido, mostramos em que escola é dado.
               </p>
             </Revelar>
-            <ul className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-5">
+            <motion.ul {...grelha} className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-5">
               {ESCOLAS.map(([sigla, area], i) => (
-                <motion.li key={sigla} {...cartao(i)} className="flex flex-col items-center rounded-lg border border-borda bg-white p-6 text-center transition-colors hover:border-primaria last:col-span-2 lg:last:col-span-1">
+                <motion.li key={sigla} {...itemGrelha} className={`flex flex-col items-center rounded-lg border border-borda bg-white p-6 text-center hover:border-primaria last:col-span-2 lg:last:col-span-1 ${SUBIR_HOVER}`}>
                   <span className="mb-2 text-[24px] font-extrabold tracking-tight text-primaria sm:text-[26px]">{sigla}</span>
                   <span className="text-[15px] font-semibold leading-snug text-texto-suave">{area}</span>
                 </motion.li>
               ))}
-            </ul>
+            </motion.ul>
           </div>
         </section>
 
