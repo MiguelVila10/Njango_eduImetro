@@ -9,12 +9,24 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { pedido } from "../../api/cliente";
-import heroGrande from "../../assets/hero-alunos.webp";
-import heroPequena from "../../assets/hero-alunos-768.webp";
+import heroAlunos from "../../assets/hero-alunos.webp";
+import heroAlunosPequena from "../../assets/hero-alunos-768.webp";
+import heroImel from "../../assets/hero-imel.webp";
+import heroImelPequena from "../../assets/hero-imel-768.webp";
+import heroPatio from "../../assets/hero-patio.webp";
+import heroPatioPequena from "../../assets/hero-patio-768.webp";
 import Cabecalho, { destinoComecar } from "../../componentes/Cabecalho";
 import FaixaSamakaka from "../../componentes/FaixaSamakaka";
 import { Contador, Revelar, SUAVE, cartao } from "../../componentes/Movimento";
 import Rodape from "../../componentes/Rodape";
+import SlideFundo from "../../componentes/SlideFundo";
+
+// Fotografias do fundo do hero, pela ordem em que aparecem.
+const FOTOS_HERO = [
+  { grande: heroAlunos, pequena: heroAlunosPequena },
+  { grande: heroImel, pequena: heroImelPequena },
+  { grande: heroPatio, pequena: heroPatioPequena, posicao: "center 30%" },
+];
 
 const PASSOS = [
   { icone: FileSpreadsheet, titulo: "Indica as tuas notas",
@@ -145,17 +157,7 @@ export default function Inicio() {
         {/* Hero */}
         <section className="relative overflow-hidden bg-noite text-white">
           <div className="absolute inset-0">
-            <motion.img
-              initial={{ scale: 1.06 }}
-              animate={{ scale: 1 }}
-              transition={{ duration: 1.8, ease: SUAVE }}
-              src={heroGrande}
-              srcSet={`${heroPequena} 768w, ${heroGrande} 1376w`}
-              sizes="100vw"
-              alt=""
-              fetchpriority="high"
-              className="h-full w-full object-cover object-center"
-            />
+            <SlideFundo fotos={FOTOS_HERO} />
             <div className="absolute inset-0 bg-gradient-to-b from-noite/85 via-noite/70 to-noite/85" />
           </div>
 
