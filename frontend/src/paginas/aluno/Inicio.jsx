@@ -309,10 +309,10 @@ export default function Inicio() {
         </section>
 
         {/* Chamada final */}
-        <section className="bg-primaria py-20 text-white md:py-24">
+        <section className="bg-primaria py-12 text-white md:py-14">
           <Revelar className="mx-auto flex max-w-[1140px] flex-col items-center px-4 text-center sm:px-6">
-            <h2 className="mb-5 text-[30px] font-bold tracking-tight md:text-[38px]">Pronto para descobrir o teu caminho?</h2>
-            <p className="mb-9 max-w-[65ch] text-[18px] font-medium leading-[1.6] text-white/95">
+            <h2 className="mb-3 text-[26px] font-bold tracking-tight md:text-[32px]">Pronto para descobrir o teu caminho?</h2>
+            <p className="mb-6 max-w-[65ch] text-[17px] font-medium leading-[1.6] text-white/95">
               Tem o teu boletim à mão e começa quando quiseres.
             </p>
             <Link
