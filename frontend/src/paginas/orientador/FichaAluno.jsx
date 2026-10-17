@@ -34,6 +34,22 @@ export default function FichaAluno() {
         </>
       )}
 
+      {a.cursos_proximos.length > 0 && (
+        <>
+          <h2 className="mb-2 mt-6 font-semibold">Nenhum curso compatível: cursos mais próximos</h2>
+          <ul className="mb-6 space-y-2 text-sm">
+            {a.cursos_proximos.map((c) => (
+              <li key={c.curso}>
+                <strong>{c.curso_nome}</strong> ({c.curso_instituicao}):{" "}
+                {c.faltas.map((f) => `${f.disciplina} ${f.nota}/${f.nota_min}`).join(", ")}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+
+      {a.sugestoes.length > 0 && (
+        <>
       <h2 className="mb-2 mt-6 font-semibold">Sugestões</h2>
       <ol className="mb-6 space-y-1 text-sm">
         {a.sugestoes.map((s) => (
@@ -42,6 +58,8 @@ export default function FichaAluno() {
           </li>
         ))}
       </ol>
+        </>
+      )}
 
       <h2 className="mb-2 font-semibold">Notas</h2>
       <ul className="grid grid-cols-2 gap-1 text-sm sm:grid-cols-3">

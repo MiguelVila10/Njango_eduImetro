@@ -10,6 +10,7 @@ export default function Painel() {
   const numeros = [
     ["Alunos", dados.total_alunos],
     ["Testes por terminar", dados.testes_por_terminar],
+    ["Sem curso compatível", dados.alunos_sem_curso_compativel],
     ["Com sugestões", dados.alunos_com_recomendacoes],
     ["Já escolheram curso", dados.alunos_que_escolheram_curso],
     ["Com alerta de viés", dados.alunos_com_alertas_de_vies],
@@ -17,7 +18,7 @@ export default function Painel() {
 
   return (
     <EcraProvisorio titulo="Painel" largo>
-      <dl className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-5">
+      <dl className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
         {numeros.map(([rotulo, valor]) => (
           <div key={rotulo} className="rounded border bg-white p-3">
             <dt className="text-xs text-slate-500">{rotulo}</dt>

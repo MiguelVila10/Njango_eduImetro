@@ -115,3 +115,56 @@ class VistaDoOrientadorTest(APITestCase):
         self.assertEqual(resposta.status_code, status.HTTP_200_OK)
         self.curso.refresh_from_db()
         self.assertEqual(self.curso.descricao, "Redes, programação e manutenção.")
+
+
+class SemCursoCompativelTest(APITestCase):
+    """Alunos que terminaram mas cujas notas não chegam a nenhum curso."""
+
+    DISCIPLINAS = [
+        "Português", "Matemática", "Física", "Química", "Biologia", "História", "Geografia",
+        "Língua Estrangeira", "Educação Moral e Cívica", "Educação Física", "Educação Visual",
+        "Educação Laboral",
+    ]
+
+    def setUp(self):
+        from cursos.models import PreRequisitoCurso
+        self.item = ItemCAT.objects.create(texto="P1", tipo="nucleo", opcoes=OPCOES)
+        curso = Curso.objects.create(nome="Informática", instituicao="ITEL", arquetipo_dominante="Analítico")
+        PreRequisitoCurso.objects.create(curso=curso, disciplina="Matemática", nota_min=14)
+
+        # Dina: notas baixas e já respondeu → sem curso compatível
+        self.dina = self._aluno("Dina", nota=12, respondeu=True)
+        # Eva: notas baixas mas ainda não respondeu ao teste → por terminar
+        self._aluno("Eva", nota=12, respondeu=False)
+        # Fábio: notas boas e respondeu (ainda sem sugestões geradas) → por terminar
+        self._aluno("Fábio", nota=16, respondeu=True)
+        # Gil: boletim incompleto → por terminar
+        gil = Aluno.objects.create(nome="Gil", idade=15, escola="X")
+        RespostaCAT.objects.create(aluno=gil, item=self.item, arquetipo_escolhido="Analítico")
+        autenticar_orientador(self.client)
+
+    def _aluno(self, nome, nota, respondeu):
+        aluno = Aluno.objects.create(nome=nome, idade=15, escola="X")
+        for d in self.DISCIPLINAS:
+            NotaDisciplina.objects.create(aluno=aluno, disciplina=d, nota=nota)
+        if respondeu:
+            RespostaCAT.objects.create(aluno=aluno, item=self.item, arquetipo_escolhido="Analítico")
+        return aluno
+
+    def test_lista_mostra_estado_sem_curso_compativel(self):
+        estados = {a["nome"]: a["estado"] for a in self.client.get("/api/alunos/").data}
+        self.assertEqual(estados, {
+            "Dina": "sem_curso_compativel", "Eva": "por_terminar",
+            "Fábio": "por_terminar", "Gil": "por_terminar",
+        })
+
+    def test_ficha_mostra_os_cursos_mais_proximos(self):
+        dados = self.client.get(f"/api/alunos/{self.dina.id}/").data
+        self.assertEqual(dados["cursos_proximos"][0]["curso_nome"], "Informática")
+        self.assertEqual(dados["cursos_proximos"][0]["faltas"],
+                         [{"disciplina": "Matemática", "nota": 12, "nota_min": 14, "falta": 2}])
+
+    def test_painel_conta_a_parte(self):
+        dados = self.client.get("/api/painel/resumo/").data
+        self.assertEqual(dados["alunos_sem_curso_compativel"], 1)
+        self.assertEqual(dados["testes_por_terminar"], 3)

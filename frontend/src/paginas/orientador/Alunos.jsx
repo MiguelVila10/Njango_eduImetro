@@ -6,6 +6,7 @@ import { useCarregar } from "../../hooks/useCarregar";
 
 export const NOME_ESTADO = {
   por_terminar: "Por terminar",
+  sem_curso_compativel: "Sem curso compatível",
   concluido: "Concluído",
   ponto_de_atencao: "Ponto de atenção",
 };

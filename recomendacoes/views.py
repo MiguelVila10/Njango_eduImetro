@@ -154,6 +154,18 @@ def _distribuicao_perfis():
     return contagem
 
 
+def _alunos_sem_curso_compativel():
+    """Alunos que terminaram notas e teste, mas sem nenhum curso compatível."""
+    from alunos.estado import SEM_CURSO_COMPATIVEL, carregar_cursos, estado_do_aluno
+
+    cursos = carregar_cursos()
+    alunos = (
+        Aluno.objects.filter(recomendacoes__isnull=True, respostas_cat__isnull=False).distinct()
+        .prefetch_related("recomendacoes", "respostas_cat", "notas")
+    )
+    return sum(1 for a in alunos if estado_do_aluno(a, cursos) == SEM_CURSO_COMPATIVEL)
+
+
 class PainelResumoView(APIView):
     """
     GET /api/painel/resumo/
@@ -181,9 +193,11 @@ class PainelResumoView(APIView):
         )
         total_alunos = Aluno.objects.count()
         com_recomendacoes = Recomendacao.objects.values("aluno").distinct().count()
+        sem_curso = _alunos_sem_curso_compativel()
         return Response({
             "total_alunos": total_alunos,
-            "testes_por_terminar": total_alunos - com_recomendacoes,
+            "testes_por_terminar": total_alunos - com_recomendacoes - sem_curso,
+            "alunos_sem_curso_compativel": sem_curso,
             "distribuicao_perfis": _distribuicao_perfis(),
             "alunos_com_respostas_cat": RespostaCAT.objects.values("aluno").distinct().count(),
             "alunos_com_recomendacoes": com_recomendacoes,

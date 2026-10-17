@@ -27,29 +27,20 @@ class NotaDisciplinaSerializer(serializers.ModelSerializer):
 
 # --- Vista do orientador ---------------------------------------------------------
 
-ESTADO_POR_TERMINAR = "por_terminar"
-ESTADO_CONCLUIDO = "concluido"
-ESTADO_PONTO_DE_ATENCAO = "ponto_de_atencao"
-
-
-def _tem_alertas(alertas):
-    return any(alertas.get(k) for k in ("sobrestimacao", "subestimacao")) if alertas else False
+from .estado import carregar_cursos, compatibilidade, estado_do_aluno
 
 
 class AlunoResumoSerializer(serializers.ModelSerializer):
     """
     Linha da lista de alunos do orientador (só leitura).
 
-    estado:
-      - por_terminar: ainda não tem recomendações;
-      - ponto_de_atencao: tem recomendações, mas com alerta de viés ou
-        confiança baixa nas respostas do CAT;
-      - concluido: tem recomendações sem alertas.
+    estado: ver alunos/estado.py (por_terminar, sem_curso_compativel,
+    ponto_de_atencao, concluido).
     perfil_dominante: arquétipo mais provável segundo o motor bayesiano,
     calculado com as respostas da tentativa actual.
 
     A view deve fazer prefetch de "recomendacoes__curso" e
-    "respostas_cat__item" para não repetir consultas por aluno.
+    "respostas_cat__item" e "notas" para não repetir consultas por aluno.
     """
     estado = serializers.SerializerMethodField()
     perfil_dominante = serializers.SerializerMethodField()
@@ -74,14 +65,15 @@ class AlunoResumoSerializer(serializers.ModelSerializer):
         recs = self._recs(aluno)
         return recs[0] if recs else None
 
+    def _cursos(self):
+        # Um serializer de lista usa a mesma instância para todos os alunos:
+        # o catálogo carrega-se uma só vez por pedido.
+        if not hasattr(self, "_cache_cursos"):
+            self._cache_cursos = carregar_cursos()
+        return self._cache_cursos
+
     def get_estado(self, aluno):
-        primeira = self._primeira(aluno)
-        if primeira is None:
-            return ESTADO_POR_TERMINAR
-        baixa = (primeira.confianca_cat or {}).get("nivel") == "baixa"
-        if baixa or _tem_alertas(primeira.alertas_vieses):
-            return ESTADO_PONTO_DE_ATENCAO
-        return ESTADO_CONCLUIDO
+        return estado_do_aluno(aluno, self._cursos())
 
     def get_perfil_dominante(self, aluno):
         from cat import motor
@@ -117,12 +109,13 @@ class AlunoDetalheSerializer(AlunoResumoSerializer):
     """Ficha completa de um aluno para o orientador (só leitura)."""
     notas = serializers.SerializerMethodField()
     sugestoes = serializers.SerializerMethodField()
+    cursos_proximos = serializers.SerializerMethodField()
     motivos_confianca = serializers.SerializerMethodField()
     alertas_vieses = serializers.SerializerMethodField()
 
     class Meta(AlunoResumoSerializer.Meta):
         fields = AlunoResumoSerializer.Meta.fields + [
-            "notas", "sugestoes", "motivos_confianca", "alertas_vieses",
+            "notas", "sugestoes", "cursos_proximos", "motivos_confianca", "alertas_vieses",
         ]
         read_only_fields = fields
 
@@ -139,6 +132,16 @@ class AlunoDetalheSerializer(AlunoResumoSerializer):
             }
             for r in self._recs(aluno)
         ]
+
+    def get_cursos_proximos(self, aluno):
+        """Só para alunos sem curso compatível: os 3 cursos mais perto e o que falta."""
+        if self._recs(aluno):
+            return []
+        resultado = compatibilidade(aluno, self._cursos())
+        if resultado is None or resultado[0]:
+            return []
+        from recomendacoes.services import cursos_mais_proximos
+        return cursos_mais_proximos(resultado[1], self.get_perfil_dominante(aluno))
 
     def get_motivos_confianca(self, aluno):
         primeira = self._primeira(aluno)
