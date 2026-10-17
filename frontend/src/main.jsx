@@ -10,7 +10,7 @@ createRoot(document.getElementById("root")).render(
   <StrictMode>
     {/* Respeita a opção "reduzir movimento" do sistema operativo. */}
     <MotionConfig reducedMotion="user">
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <App />
       </BrowserRouter>
     </MotionConfig>

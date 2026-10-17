@@ -27,7 +27,16 @@ export function destinoComecar() {
 
 export default function Cabecalho() {
   const [menuAberto, setMenuAberto] = useState(false);
+  const [comSombra, setComSombra] = useState(false);
   const { para, texto } = destinoComecar();
+
+  // Sombra suave no cabeçalho quando a página já desceu um pouco.
+  useEffect(() => {
+    const aoDeslizar = () => setComSombra(window.scrollY > 8);
+    aoDeslizar();
+    window.addEventListener("scroll", aoDeslizar, { passive: true });
+    return () => window.removeEventListener("scroll", aoDeslizar);
+  }, []);
 
   useEffect(() => {
     if (!menuAberto) return undefined;
@@ -37,7 +46,7 @@ export default function Cabecalho() {
   }, [menuAberto]);
 
   return (
-    <header className="sticky top-0 z-30 w-full border-b border-borda bg-white">
+    <header className={`sticky top-0 z-30 w-full border-b border-borda bg-white transition-shadow duration-300 ${comSombra ? "shadow-[0_2px_16px_rgba(0,0,0,0.06)]" : ""}`}>
       <div className="mx-auto flex h-[72px] max-w-[1140px] items-center justify-between px-4 sm:px-6 md:h-[80px]">
         <Logotipo />
 
@@ -45,7 +54,7 @@ export default function Cabecalho() {
           <Link to="/orientador/entrar" className="inline-flex min-h-[44px] items-center px-2 text-[16px] font-medium text-texto-suave transition-colors hover:text-primaria">
             Área do orientador
           </Link>
-          <Link to={para} className="inline-flex h-12 items-center rounded-md bg-primaria px-6 text-[15px] font-semibold text-white shadow-sm transition-colors hover:bg-primaria-escura focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primaria focus-visible:ring-offset-2">
+          <Link to={para} className="inline-flex h-12 items-center rounded-md bg-primaria px-6 text-[15px] font-semibold text-white shadow-sm transition-[background-color,transform] hover:bg-primaria-escura active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primaria focus-visible:ring-offset-2">
             {texto}
           </Link>
         </nav>
