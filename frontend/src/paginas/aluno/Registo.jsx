@@ -8,8 +8,8 @@ import { useNavigate } from "react-router-dom";
 import { registarAluno } from "../../api/aluno";
 import Cabecalho from "../../componentes/Cabecalho";
 import Passos from "../../componentes/Passos";
-import Personagem, { A_PENSAR, CONTENTE, DUVIDA, SURPRESA } from "../../componentes/personagens/Personagem";
-import { precarregar } from "../../componentes/personagens/imagens";
+import Palco, { usePersonagens } from "../../componentes/personagens/Palco";
+import { A_PENSAR, CONTENTE, DUVIDA, SURPRESA } from "../../componentes/personagens/Personagem";
 import { iniciarSessaoAluno } from "../../sessao/sessaoAluno";
 
 const reduzirMovimento = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -56,8 +56,7 @@ const estaCerto = (r) => r && r[0] === CONTENTE;
 
 export default function Registo() {
   const navegar = useNavigate();
-  const nzinga = useRef(null);
-  const kiala = useRef(null);
+  const { nzinga, kiala, falar: falarADois } = usePersonagens();
   const temporizadores = useRef({});
   const [valores, setValores] = useState({ nome: "", idade: "", escola: "" });
   const [tocados, setTocados] = useState({});
@@ -66,13 +65,6 @@ export default function Registo() {
 
   const resultados = Object.fromEntries(Object.keys(CAMPOS).map((c) => [c, CAMPOS[c].validar(valores[c])]));
   const tudoCerto = Object.values(resultados).every(estaCerto);
-
-  // Fala a dois: as duas personagens reagem ao mesmo tempo (sincronizadas).
-  function falarADois(textoN, expN, falaN, textoK, expK, falaK) {
-    clearTimeout(temporizadores.current.kiala);
-    nzinga.current?.diz(textoN, expN, falaN);
-    kiala.current?.diz(textoK, expK, falaK);
-  }
 
   function reagir(campo, focou, novosValores = valores) {
     const r = CAMPOS[campo].validar(novosValores[campo]);
@@ -86,7 +78,6 @@ export default function Registo() {
   }
 
   useEffect(() => {
-    precarregar();
     const t = temporizadores.current;
     t.boasVindas = setTimeout(() => {
       nzinga.current?.diz("Olá! Bem-vindo ao Njango Edu. Eu sou a Nzinga.", CONTENTE, true);
@@ -144,13 +135,7 @@ export default function Registo() {
     <div className="min-h-screen bg-fundo">
       <Cabecalho />
       <main className="mx-auto grid max-w-[1180px] grid-cols-1 gap-4 px-4 pb-10 pt-4 md:gap-6 md:pt-6 sm:px-5 md:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
-        {/* Palco das personagens */}
-        <section aria-label="Personagens Nzinga e Kiala" className="relative flex min-w-0 flex-col justify-center overflow-hidden rounded-[20px] bg-primaria-clara px-3 pb-1 pt-4 sm:px-5 md:pb-9 md:pt-7">
-          <div className="grid grid-cols-2 items-end gap-2.5 sm:gap-4">
-            <Personagem ref={nzinga} id="n" nome="Nzinga" />
-            <Personagem ref={kiala} id="k" nome="Kiala" />
-          </div>
-        </section>
+        <Palco nzinga={nzinga} kiala={kiala} />
 
         {/* Formulário */}
         <form onSubmit={submeter} noValidate className="flex min-w-0 flex-col gap-5 rounded-[20px] bg-white p-6 shadow-[0_10px_28px_rgba(37,43,66,0.07)] md:p-8">
