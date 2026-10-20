@@ -3,12 +3,13 @@
 // cartão da pergunta), com as cores azuis do Njango Edu.
 // Telemóvel: design do Stitch (lista de opções e botão "Seguinte" fixo em baixo).
 // O servidor decide a pergunta seguinte e quando o teste acaba (5 a 18 perguntas).
+// No fim vai sempre para as sugestões (o ecrã não propõe repetir o teste).
 // O tempo de resposta conta até à escolha, não até ao toque em "Avançar".
 
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  ArrowRight, Check, CircleCheck, Info, LoaderCircle, MessageCircle, Puzzle, RefreshCw,
-  RotateCcw, ShieldCheck, WifiOff,
+  ArrowRight, Check, CircleCheck, Info, LoaderCircle, MessageCircle, Puzzle, RefreshCw, ShieldCheck, Sparkles,
+  WifiOff,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -21,7 +22,6 @@ import { sessaoAluno } from "../../sessao/sessaoAluno";
 const BOTAO =
   "flex h-14 whitespace-nowrap items-center justify-center gap-2 rounded-[14px] px-8 text-[16px] font-semibold transition-[background-color,color,transform] active:scale-[0.99] disabled:cursor-not-allowed lg:h-[52px] lg:rounded-[10px]";
 const BOTAO_PRINCIPAL = `${BOTAO} bg-primaria text-white hover:bg-primaria-escura disabled:bg-primaria-clara disabled:text-primaria/50`;
-const BOTAO_SECUNDARIO = `${BOTAO} border-[1.5px] border-primaria text-primaria hover:bg-primaria-clara`;
 
 function Opcao({ opcao, escolhida, desactivada, aoEscolher }) {
   const id = `opcao-${opcao.posicao}`;
@@ -104,88 +104,57 @@ function ColunaLateral({ respondidas, atual }) {
   );
 }
 
-// Ecrã final: resumo das perguntas à esquerda e mensagem ao centro (design Figma).
-function Conclusao({ nome, respondidas, podeRepetir, aEnviar, erro, aoRepetir, aoVerCursos }) {
+// Ecrã final (design "Teste concluído"): progresso a 100%, ilustração com o
+// visto, mensagem e botão para as sugestões. Não se propõe repetir o teste.
+function Conclusao({ respondidas, aoVerCursos }) {
   return (
-    <div className="mx-auto flex w-full max-w-[920px] flex-col-reverse items-center gap-8 px-4 py-8 sm:px-6 md:py-16 lg:flex-row lg:items-center lg:gap-14">
-      <div className="w-full max-w-[300px] rounded-[16px] border-[1.5px] border-borda bg-white p-6">
-        <p className="text-[12px] font-bold uppercase tracking-wide text-primaria">Teste adaptativo</p>
-        <p className="mb-4 text-[18px] font-bold">{respondidas} perguntas respondidas</p>
-        {respondidas <= 6 ? (
-          <ul className="mb-5 flex flex-col gap-2.5">
-            {Array.from({ length: respondidas }, (_, i) => (
-              <li key={i} className="flex items-center gap-2.5 text-[14px]">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primaria text-white">
-                  <Check className="h-3.5 w-3.5" strokeWidth={3} aria-hidden="true" />
-                </span>
-                Pergunta {i + 1}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          // Muitas perguntas: números em grelha, para o cartão não ficar enorme.
-          <ul className="mb-5 grid grid-cols-6 gap-2" aria-label={`${respondidas} perguntas respondidas`}>
-            {Array.from({ length: respondidas }, (_, i) => (
-              <li key={i} className="flex h-8 items-center justify-center rounded-full bg-primaria text-[13px] font-bold text-white">
-                {i + 1}
-              </li>
-            ))}
-          </ul>
-        )}
-        <p className="flex items-center gap-2 rounded-[10px] border border-borda px-3 py-2.5 text-[13px] text-texto-suave">
-          <ShieldCheck className="h-4 w-4 shrink-0" aria-hidden="true" /> Respostas guardadas com segurança
+    <div className="mx-auto flex w-full max-w-[480px] flex-1 flex-col px-4 pb-32 pt-6 sm:px-6 md:pb-16 md:pt-12">
+      <div className="mb-5 px-1">
+        <div className="mb-2 flex items-center justify-between text-[12px] font-bold uppercase tracking-wide">
+          <span className="text-texto-suave">Progresso do teste</span>
+          <span className="text-primaria">100%</span>
+        </div>
+        <div className="h-2 overflow-hidden rounded-full bg-primaria-clara" aria-hidden="true">
+          <div className="barra-concluida h-full w-full rounded-full bg-primaria" />
+        </div>
+      </div>
+
+      <div className="relative mb-8 flex h-[220px] items-center justify-center overflow-hidden rounded-[16px] border-[1.5px] border-borda bg-white">
+        <div aria-hidden="true" className="fundo-cruzes absolute inset-0" />
+        <span aria-hidden="true" className="absolute left-[12%] top-[18%] h-2 w-2 rounded-full bg-samakaka-amarelo" />
+        <span aria-hidden="true" className="absolute right-[10%] top-[28%] h-2.5 w-2.5 rounded-full bg-primaria-escura" />
+        <span aria-hidden="true" className="absolute bottom-[22%] left-[19%] h-3 w-3 rounded-full bg-primaria" />
+        <span aria-hidden="true" className="absolute bottom-[30%] right-[17%] h-2 w-2 rounded-full bg-samakaka-amarelo" />
+        <motion.span
+          initial={{ scale: 0.6, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 260, damping: 18, delay: 0.1 }}
+          className="relative flex h-[88px] w-[88px] items-center justify-center rounded-full bg-primaria-clara"
+        >
+          <span className="flex h-[68px] w-[68px] items-center justify-center rounded-full bg-primaria text-white shadow-[0_6px_16px_rgba(31,111,192,0.35)]">
+            <Check className="h-8 w-8" strokeWidth={3} aria-hidden="true" />
+          </span>
+        </motion.span>
+      </div>
+
+      <h1 className="mb-3 text-center text-[28px] font-bold leading-tight">Teste concluído!</h1>
+      <p className="mx-auto mb-6 max-w-[34ch] text-center text-[16px] leading-relaxed text-texto-suave">
+        Obrigado pelas tuas respostas. Vamos descobrir os cursos técnicos que mais combinam contigo.
+      </p>
+
+      <div className="mb-8 flex items-start gap-3 rounded-[12px] border border-borda bg-fundo p-4">
+        <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-primaria" aria-hidden="true" />
+        <p className="text-[14px] leading-relaxed">
+          Respondeste a <strong className="font-semibold text-primaria">{respondidas} perguntas</strong>. A seguir,
+          juntamos as tuas notas e as tuas respostas para te sugerir até 3 cursos.
         </p>
       </div>
 
-      <div className="flex max-w-[520px] flex-col items-center text-center lg:items-start lg:text-left">
-        {podeRepetir ? (
-          <>
-            <span className="mb-6 flex h-[72px] w-[72px] items-center justify-center rounded-full bg-primaria-clara">
-              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primaria text-white">
-                <RotateCcw className="h-6 w-6" aria-hidden="true" />
-              </span>
-            </span>
-            <p className="mb-2 text-[12px] font-bold uppercase tracking-wide text-primaria">Teste concluído</p>
-            <h1 className="mb-4 text-[30px] font-bold leading-tight md:text-[38px]">Queres responder outra vez?</h1>
-            <p className="mb-3 text-[16px] leading-relaxed text-texto-suave">
-              Algumas respostas foram muito rápidas ou pouco parecidas entre si. Se responderes outra vez, com mais
-              calma, as sugestões ficam mais certas para ti.
-            </p>
-            <p className="mb-7 text-[14px] font-semibold text-texto-suave">Só é possível repetir uma vez.</p>
-            {erro && <p role="alert" className="mb-4 w-full rounded-lg bg-red-50 px-3 py-2 text-[14px] text-red-700">{erro.message}</p>}
-            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap">
-              <button type="button" onClick={aoRepetir} disabled={aEnviar} className={BOTAO_PRINCIPAL}>
-                <RotateCcw className="h-[18px] w-[18px]" aria-hidden="true" />
-                {aEnviar ? "A preparar…" : "Responder outra vez"}
-              </button>
-              <button type="button" onClick={aoVerCursos} className={BOTAO_SECUNDARIO}>
-                Ver os cursos sugeridos
-              </button>
-            </div>
-          </>
-        ) : (
-          <>
-            <span className="mb-6 flex h-[72px] w-[72px] items-center justify-center rounded-full bg-primaria-clara">
-              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primaria text-white">
-                <Check className="h-6 w-6" strokeWidth={3} aria-hidden="true" />
-              </span>
-            </span>
-            <p className="mb-2 text-[12px] font-bold uppercase tracking-wide text-primaria">Teste concluído</p>
-            <h1 className="mb-4 text-[30px] font-bold leading-tight md:text-[42px]">
-              Boa{nome ? `, ${nome}` : ""}! O teu teste está concluído.
-            </h1>
-            <p className="mb-6 text-[16px] leading-relaxed text-texto-suave md:text-[17px]">
-              As tuas respostas, junto com as tuas notas, ajudam a encontrar os cursos técnicos que mais combinam
-              contigo.
-            </p>
-            <p className="mb-6 inline-flex items-center gap-2 rounded-full bg-primaria-clara px-4 py-2 text-[14px] font-semibold text-primaria-escura">
-              <span className="h-2 w-2 rounded-full bg-primaria" aria-hidden="true" /> A seguir: os cursos sugeridos
-            </p>
-            <button type="button" onClick={aoVerCursos} className={`${BOTAO_PRINCIPAL} w-full sm:w-auto`}>
-              <ArrowRight className="h-[18px] w-[18px]" aria-hidden="true" /> Ver os cursos sugeridos
-            </button>
-          </>
-        )}
+      {/* Telemóvel: botão fixo em baixo; computador: logo a seguir ao texto */}
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t-[1.5px] border-borda bg-white px-4 py-3 sm:px-6 md:static md:border-0 md:bg-transparent md:p-0">
+        <button type="button" onClick={aoVerCursos} className={`${BOTAO_PRINCIPAL} w-full`}>
+          Ver os cursos sugeridos <ArrowRight className="h-[18px] w-[18px]" aria-hidden="true" />
+        </button>
       </div>
     </div>
   );
@@ -193,8 +162,8 @@ function Conclusao({ nome, respondidas, podeRepetir, aEnviar, erro, aoRepetir, a
 
 export default function Teste() {
   const navegar = useNavigate();
-  const { alunoId, nome } = sessaoAluno();
-  const { estado, carregando, aEnviar, erro, responder, repetir, recarregar, tempoDecorrido } = useTeste(alunoId);
+  const { alunoId } = sessaoAluno();
+  const { estado, carregando, aEnviar, erro, responder, recarregar, tempoDecorrido } = useTeste(alunoId);
   const [escolha, setEscolha] = useState(null); // { opcao, tempoMs }
   const titulo = useRef(null);
 
@@ -202,7 +171,6 @@ export default function Teste() {
   const respondidas = estado?.respondidas ?? 0;
   const numero = respondidas + 1;
   const percentagem = Math.min(100, Math.round((respondidas / MAX_PERGUNTAS) * 100));
-  const primeiroNome = (nome ?? "").trim().split(/\s+/)[0];
   const aResponder = Boolean(item) && !estado?.terminado;
   const erroAoGuardar = aResponder && erro;
 
@@ -249,17 +217,7 @@ export default function Teste() {
       </div>
     );
   } else if (estado.terminado) {
-    conteudo = (
-      <Conclusao
-        nome={primeiroNome}
-        respondidas={respondidas}
-        podeRepetir={estado.pode_repetir}
-        aEnviar={aEnviar}
-        erro={erro}
-        aoRepetir={repetir}
-        aoVerCursos={() => navegar("/aluno/resultado")}
-      />
-    );
+    conteudo = <Conclusao respondidas={respondidas} aoVerCursos={() => navegar("/aluno/resultado")} />;
   } else {
     conteudo = (
       <div className="flex flex-1">
@@ -328,7 +286,7 @@ export default function Teste() {
                     ref={titulo}
                     tabIndex={-1}
                     id="enunciado"
-                    className="mb-2 text-[24px] font-bold leading-[1.3] tracking-tight outline-none lg:text-[26px]"
+                    className="mb-2 text-[20px] font-semibold leading-[1.4] outline-none lg:text-[24px]"
                   >
                     {item.texto}
                   </h1>
