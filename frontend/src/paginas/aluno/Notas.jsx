@@ -19,6 +19,8 @@ const COLUNAS = [DISCIPLINAS.slice(0, METADE), DISCIPLINAS.slice(METADE)];
 const idCampo = (d) => `nota-${d.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z]+/g, "-")}`;
 const valida = (v) => v !== "" && !validarNota(v);
 const TOQUE_DUPLO_MS = 350;
+const TEXTO_SEM_DIGITAR =
+  "Se não se sentir confortável a digitar, pode clicar duas vezes no campo. Abre-se uma lista com as notas de 10 a 20 para escolher a nota.";
 
 // separador: "sempre", "telemovel" (só quando as colunas se juntam) ou "nunca"
 function CampoNota({ disciplina, valor, mostrarErro, separador, aoEscrever, aoSair, aoAbrirLista }) {
@@ -128,7 +130,7 @@ export default function Notas() {
             {/* No computador esta explicação está na coluna da direita */}
             <p className="-mt-2 mb-5 flex items-start gap-2.5 text-[14px] font-medium leading-relaxed text-texto-suave md:-mt-4 md:mb-6 lg:hidden">
               <Pointer className="mt-0.5 h-5 w-5 shrink-0 text-primaria" strokeWidth={1.8} aria-hidden="true" />
-              Se não te sentires confortável a digitar, toca duas vezes no campo e escolhe a nota numa lista.
+              {TEXTO_SEM_DIGITAR}
             </p>
 
             <div className="rounded-[12px] border-[1.5px] border-borda bg-white px-4 py-1 shadow-sm md:px-8 md:py-4">
@@ -164,25 +166,8 @@ export default function Notas() {
           {/* Coluna lateral (só computador): informação */}
           <aside className="hidden flex-col gap-6 lg:col-span-4 lg:flex">
             <div className="rounded-[12px] border-[1.5px] border-borda bg-white p-6">
-              <h2 className="text-[18px] font-bold leading-7">Preencher sem digitar</h2>
-              <p className="mt-1 text-[14px] leading-relaxed text-texto-suave">
-                Se não te sentires confortável a digitar, podes escolher as notas numa lista.
-              </p>
-              <IlustracaoSemDigitar className="my-4" />
-              <ol className="flex flex-col gap-3 text-[14px] leading-snug">
-                {[
-                  "Clica duas vezes no campo da nota (no telemóvel, toca duas vezes).",
-                  "Abre-se uma lista com as notas de 10 a 20.",
-                  "Escolhe a nota do teu boletim e o campo fica preenchido.",
-                ].map((passo, i) => (
-                  <li key={i} className="flex gap-3">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primaria-clara text-[12px] font-bold text-primaria-escura">
-                      {i + 1}
-                    </span>
-                    <span className="pt-0.5">{passo}</span>
-                  </li>
-                ))}
-              </ol>
+              <IlustracaoSemDigitar className="mb-4" />
+              <p className="text-[14px] leading-relaxed text-texto-suave">{TEXTO_SEM_DIGITAR}</p>
             </div>
             <div className="rounded-[12px] border-[1.5px] border-borda bg-white p-5">
               <p className="mb-2 flex items-center gap-2 text-[12px] font-bold uppercase tracking-wide text-texto-suave">
