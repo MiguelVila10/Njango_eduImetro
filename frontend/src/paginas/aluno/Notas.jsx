@@ -9,8 +9,8 @@ import { useNavigate } from "react-router-dom";
 import { DISCIPLINAS } from "../../api/aluno";
 import CabecalhoPercurso from "../../componentes/CabecalhoPercurso";
 import EscolherNota from "../../componentes/EscolherNota";
-import IlustracaoSemDigitar from "../../componentes/IlustracaoSemDigitar";
 import { useNotas, validarNota } from "../../hooks/useNotas";
+import kialaNotas from "../../assets/personagens/kiala-notas.webp";
 import { sessaoAluno } from "../../sessao/sessaoAluno";
 
 const TOTAL = DISCIPLINAS.length;
@@ -166,7 +166,14 @@ export default function Notas() {
           {/* Coluna lateral (só computador): informação */}
           <aside className="hidden flex-col gap-6 lg:col-span-4 lg:flex">
             <div className="rounded-[12px] border-[1.5px] border-borda bg-white p-6">
-              <IlustracaoSemDigitar className="mb-4" />
+              <img
+                src={kialaNotas}
+                alt="O Kiala a preencher as notas no telemóvel"
+                width={640}
+                height={833}
+                loading="lazy"
+                className="mx-auto mb-4 w-full max-w-[260px]"
+              />
               <p className="text-[14px] leading-relaxed text-texto-suave">{TEXTO_SEM_DIGITAR}</p>
             </div>
             <div className="rounded-[12px] border-[1.5px] border-borda bg-white p-5">
