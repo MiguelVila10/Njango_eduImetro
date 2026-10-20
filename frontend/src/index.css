@@ -36,3 +36,34 @@ body {
   background: var(--color-primaria);
   color: #ffffff;
 }
+
+/* Ilustração "preencher sem digitar": toque duplo no 15 e a nota fica escolhida. */
+.isd-toque {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: isd-toque 4s ease-out infinite;
+}
+.isd-toque-2 { animation-delay: 0.3s; }
+.isd-escolhida { animation: isd-escolhida 4s ease-in-out infinite; }
+.isd-escolhida-txt { animation: isd-escolhida-txt 4s ease-in-out infinite; }
+
+@keyframes isd-toque {
+  0% { opacity: 0.9; transform: scale(0.6); }
+  14% { opacity: 0; transform: scale(1.9); }
+  100% { opacity: 0; transform: scale(1.9); }
+}
+@keyframes isd-escolhida {
+  0%, 12% { fill: #ffffff; stroke: #e6e9ef; }
+  20%, 88% { fill: #1f6fc0; stroke: #1f6fc0; }
+  96%, 100% { fill: #ffffff; stroke: #e6e9ef; }
+}
+@keyframes isd-escolhida-txt {
+  0%, 12% { fill: #252b42; }
+  20%, 88% { fill: #ffffff; }
+  96%, 100% { fill: #252b42; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .isd-toque { animation: none; }
+  .isd-escolhida, .isd-escolhida-txt { animation: none; }
+}
