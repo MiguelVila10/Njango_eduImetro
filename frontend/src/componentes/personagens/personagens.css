@@ -1,0 +1,30 @@
+/* Nzinga e Kiala: animações das personagens (portadas do protótipo aprovado). */
+.balao-pers{position:relative;background:#fff;border-radius:16px;padding:12px 16px;min-height:72px;width:100%;max-width:240px;font-size:15px;font-weight:600;line-height:1.45;box-shadow:0 6px 16px rgba(23,88,155,.12);display:flex;align-items:center;color:var(--color-texto)}
+.balao-pers::after{content:"";position:absolute;bottom:-9px;left:50%;margin-left:-9px;border:9px solid transparent;border-bottom:0;border-top-color:#fff}
+.balao-pers .digita{display:inline-flex;gap:5px}
+.balao-pers .digita i{width:8px;height:8px;border-radius:50%;background:var(--color-texto-suave);opacity:.4;animation:pers-pt 1s infinite}
+.balao-pers .digita i:nth-child(2){animation-delay:.15s}
+.balao-pers .digita i:nth-child(3){animation-delay:.3s}
+@keyframes pers-pt{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+.balao-pers .txt{display:block}
+.balao-pers.entra .txt{animation:pers-entra .32s cubic-bezier(.22,1,.36,1)}
+@keyframes pers-entra{from{opacity:.2;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+.cara-pers{position:relative;width:100%;max-width:230px;aspect-ratio:210/285;border-radius:18px 18px 0 0;overflow:hidden;background:#fff}
+.cara-pers img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity .45s cubic-bezier(.4,0,.2,1),transform .45s cubic-bezier(.4,0,.2,1);will-change:opacity,transform}
+.cara-pers.fala img{transition-duration:.11s,.11s}
+.cara-pers .respira{position:absolute;inset:0;transform-origin:50% 100%;animation:pers-respira 4.4s cubic-bezier(.45,.05,.55,.95) infinite}
+.cara-pers .balanco{position:absolute;inset:0;transform-origin:50% 90%;animation:pers-balanco 7.5s cubic-bezier(.45,.05,.55,.95) infinite}
+.cara-pers .reage{position:absolute;inset:0;transform-origin:50% 95%}
+.cara-pers.mexe .reage{animation:pers-reage .7s cubic-bezier(.22,1,.36,1)}
+.pers-k .respira{animation-delay:-1.9s}
+.pers-k .balanco{animation-delay:-3.1s;animation-duration:8.3s}
+@keyframes pers-respira{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-2.5px) scale(1.006)}}
+@keyframes pers-balanco{0%,100%{transform:rotate(0)}25%{transform:rotate(.6deg)}70%{transform:rotate(-.5deg)}}
+@keyframes pers-reage{0%{transform:translateY(0) rotate(0)}35%{transform:translateY(-5px) rotate(var(--inc,1deg))}100%{transform:translateY(0) rotate(0)}}
+
+@media (max-width:420px){.balao-pers{font-size:14px;min-height:64px;padding:10px 12px}}
+@media (prefers-reduced-motion:reduce){
+  .cara-pers .respira,.cara-pers .balanco,.cara-pers.mexe .reage,.balao-pers.entra .txt,.balao-pers .digita i{animation:none}
+  .cara-pers img{transition:none}
+}
