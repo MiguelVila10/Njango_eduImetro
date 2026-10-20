@@ -49,6 +49,21 @@ def cursos_mais_proximos(eliminacoes, arquetipo_aluno=None, limite=MAX_CURSOS_PR
     return proximos
 
 
+def cursos_quase_compativeis(aluno, total=3):
+    """
+    Quando menos de `total` cursos cumprem as notas mínimas, devolve os cursos
+    eliminados que ficaram mais perto, para completar a lista no ecrã do aluno
+    (só informativos: não se podem escolher, porque falham o filtro SE-ENTÃO).
+    """
+    em_falta = total - aluno.recomendacoes.count()
+    if em_falta <= 0 or not aluno.recomendacoes.exists():
+        return []
+    _, eliminacoes = filtrar_cursos(aluno)
+    contagem = Counter(r.arquetipo_escolhido for r in respostas_atuais(aluno))
+    arquetipo = contagem.most_common(1)[0][0] if contagem else None
+    return cursos_mais_proximos(eliminacoes, arquetipo, limite=em_falta)
+
+
 def gerar_recomendacoes(aluno, confianca=None):
     """
     Orquestra o motor de inferência completo (RF07, RF08, RF09, RF10) para

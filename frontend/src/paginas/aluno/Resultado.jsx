@@ -4,10 +4,11 @@
 // confirmação; a escolha é definitiva). Se nenhum curso cumprir as notas
 // mínimas, mostra os mais próximos e o que falta em cada disciplina.
 
-import { Building2, Info, LoaderCircle, RefreshCw, Sparkles, Users } from "lucide-react";
-import { useCallback, useState } from "react";
+import { Building2, Info, LoaderCircle, Lock, RefreshCw, Sparkles, Users } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 
+import { cursosQuaseCompativeis } from "../../api/aluno";
 import CabecalhoPercurso from "../../componentes/CabecalhoPercurso";
 import {
   AvisoVinteQuatroHoras, BOTAO_PRINCIPAL, BOTAO_SECUNDARIO, ConfirmarEscolha, razaoCurta,
@@ -73,7 +74,7 @@ function ComoForamEscolhidos({ total }) {
   return (
     <section className="mt-12 rounded-[16px] border-[1.5px] border-borda bg-white p-6 md:p-8" aria-labelledby="como-titulo">
       <h2 id="como-titulo" className="mb-1 text-[20px] font-bold md:text-[22px]">
-        Como foram escolhidos {total === 1 ? "este curso" : `estes ${total} cursos`}?
+        {total === 1 ? "Como foi escolhido este curso?" : `Como foram escolhidos estes ${total} cursos?`}
       </h2>
       <p className="mb-6 text-[15px] text-texto-suave">O Njango Edu junta as tuas notas e as tuas respostas em três passos.</p>
       <ol className="mb-6 grid gap-4 md:grid-cols-3">
@@ -92,6 +93,49 @@ function ComoForamEscolhidos({ total }) {
           a tua família e com os teus professores antes de tomares a decisão final.
         </p>
       </div>
+    </section>
+  );
+}
+
+// Menos de 3 cursos cumprem as notas mínimas: mostra os que ficaram mais
+// perto, com o que falta. Não se podem escolher (falham o filtro SE-ENTÃO).
+function QuaseLa({ validos, cursos }) {
+  if (!cursos.length) return null;
+  return (
+    <section className="mt-10" aria-labelledby="quase-titulo">
+      <h2 id="quase-titulo" className="mb-1 text-[20px] font-bold md:text-[22px]">Quase lá</h2>
+      <p className="mb-5 text-[15px] leading-relaxed text-texto-suave">
+        {validos === 1 ? "Só 1 curso cumpre" : `Só ${validos} cursos cumprem`} as notas mínimas com as tuas notas. Estes
+        ficaram perto: ainda não os podes escolher, mas vê o que falta em cada um.
+      </p>
+      <ul className="flex flex-col gap-4">
+        {cursos.map((c) => (
+          <li key={c.curso} className="rounded-[16px] border-[1.5px] border-dashed border-borda bg-white/70 p-5 md:p-6">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <h3 className="text-[18px] font-bold text-texto/80">
+                {c.curso_nome}
+                <span className="ml-2 inline-block whitespace-nowrap text-[14px] font-medium text-texto-suave">— {c.curso_instituicao}</span>
+              </h3>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-fundo px-3 py-1 text-[12px] font-semibold text-texto-suave ring-1 ring-borda">
+                <Lock className="h-3.5 w-3.5" aria-hidden="true" /> Ainda não podes escolher
+              </span>
+            </div>
+            <ul className="flex flex-col gap-2">
+              {c.faltas.map((f) => (
+                <li key={f.disciplina} className="flex flex-wrap items-center justify-between gap-2 rounded-[10px] bg-fundo px-4 py-2.5 text-[14px]">
+                  <span className="font-semibold">{f.disciplina}</span>
+                  <span className="text-texto-suave">
+                    tens <strong className="text-texto">{f.nota}</strong>, o curso pede <strong className="text-texto">{f.nota_min}</strong>
+                    <span className="ml-2 rounded-full bg-amber-50 px-2 py-0.5 text-[12px] font-semibold text-amber-800">
+                      {f.falta === 1 ? "falta 1 valor" : `faltam ${f.falta} valores`}
+                    </span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }
@@ -145,6 +189,16 @@ export default function Resultado() {
   const [aConfirmar, setAConfirmar] = useState(null);
   const [indeciso, setIndeciso] = useState(false);
   const fecharConfirmacao = useCallback(() => setAConfirmar(null), []);
+  const [quase, setQuase] = useState([]);
+
+  // Só quando há 1 ou 2 sugestões: pede os cursos que ficaram mais perto.
+  const nValidos = recomendacoes.length;
+  useEffect(() => {
+    if (nValidos === 0 || nValidos >= 3) return undefined;
+    let activo = true;
+    cursosQuaseCompativeis(alunoId).then((lista) => activo && setQuase(lista)).catch(() => {});
+    return () => { activo = false; };
+  }, [alunoId, nValidos]);
 
   if (escolhida) return <Navigate to="/aluno/curso-escolhido" replace />;
 
@@ -188,6 +242,8 @@ export default function Resultado() {
         <div className="flex flex-col gap-5">
           {recomendacoes.map((r) => <CartaoCurso key={r.id} rec={r} aoEscolher={setAConfirmar} />)}
         </div>
+
+        <QuaseLa validos={recomendacoes.length} cursos={quase} />
 
         <div className="mt-8 flex flex-col items-center text-center">
           {indeciso ? (

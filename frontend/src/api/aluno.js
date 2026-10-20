@@ -85,6 +85,14 @@ export function listarRecomendacoes() {
   return pedido("/recomendacoes/", { auth: "aluno" });
 }
 
+/**
+ * Quando há menos de 3 recomendações: os cursos que ficaram mais perto das
+ * notas mínimas, com o que falta. Só informativos (não se podem escolher).
+ */
+export function cursosQuaseCompativeis(alunoId) {
+  return pedido(`/recomendacoes/quase/${alunoId}/`, { auth: "aluno" });
+}
+
 /** A escolha é definitiva: escolher outra devolve 409. */
 export function escolherCurso(recomendacaoId) {
   return pedido(`/recomendacoes/${recomendacaoId}/escolher/`, { metodo: "POST", auth: "aluno" });

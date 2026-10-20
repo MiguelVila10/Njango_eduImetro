@@ -169,6 +169,27 @@ class GerarRecomendacoesViewTest(APITestCase):
             response.data[0]["notas_minimas"], [{"disciplina": "Matemática", "nota_min": 14, "tua_nota": 18}]
         )
 
+    def test_quase_compativeis_completa_a_lista_ate_3(self):
+        """Com só 1 curso válido, o ecrã recebe os 2 eliminados mais próximos (só informativos)."""
+        perto = Curso.objects.create(nome="Química Industrial", instituicao="IPIL", arquetipo_dominante="Analítico")
+        PreRequisitoCurso.objects.create(curso=perto, disciplina="Química", nota_min=17)
+        meio = Curso.objects.create(nome="Contabilidade", instituicao="IMEL", arquetipo_dominante="Estrategista")
+        PreRequisitoCurso.objects.create(curso=meio, disciplina="Português", nota_min=15)
+        longe = Curso.objects.create(nome="Teatro", instituicao="CEARTE", arquetipo_dominante="Criativo")
+        PreRequisitoCurso.objects.create(curso=longe, disciplina="Educação Visual", nota_min=19)
+
+        self.assertEqual(self.client.get(f"/api/recomendacoes/quase/{self.aluno.id}/").data, [])  # ainda sem sugestões
+        self.client.post(f"/api/recomendacoes/gerar/{self.aluno.id}/")
+        dados = self.client.get(f"/api/recomendacoes/quase/{self.aluno.id}/").data
+
+        self.assertEqual([c["curso_nome"] for c in dados], ["Química Industrial", "Contabilidade"])
+        self.assertEqual(dados[0]["faltas"][0]["falta"], 1)
+
+    def test_quase_compativeis_so_para_o_proprio_aluno(self):
+        outro = Aluno.objects.create(nome="Outro", idade=14, escola="Escola Teste")
+        resposta = self.client.get(f"/api/recomendacoes/quase/{outro.id}/")
+        self.assertEqual(resposta.status_code, status.HTTP_403_FORBIDDEN)
+
     def test_orientador_ve_alertas_e_confianca(self):
         self.client.post(f"/api/recomendacoes/gerar/{self.aluno.id}/")
         self.client.credentials()

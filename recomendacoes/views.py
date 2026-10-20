@@ -15,12 +15,13 @@ from alunos.sessao import (
     OrientadorLeAlunoEscreve,
     eh_o_proprio_aluno,
     filtrar_pelo_aluno,
+    pode_aceder_aluno,
 )
 from cat.models import RespostaCAT
 from cat.services import estado_cat
 from .models import Recomendacao
 from .serializers import RecomendacaoSerializer
-from .services import SemCursosCompativeis, gerar_recomendacoes
+from .services import SemCursosCompativeis, cursos_quase_compativeis, gerar_recomendacoes
 
 
 class SoPeloMotor(BasePermission):
@@ -104,6 +105,22 @@ class RecomendacaoViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(recomendacoes, many=True)
         return Response(serializer.data, status=drf_status.HTTP_200_OK)
+
+    @action(detail=False, methods=["get"], url_path="quase/(?P<aluno_id>[^/.]+)")
+    def quase(self, request, aluno_id=None):
+        """
+        GET /api/recomendacoes/quase/{aluno_id}/
+        Se o aluno tem menos de 3 recomendações, devolve os cursos que ficaram
+        mais perto de cumprir as notas mínimas (com o que falta em cada
+        disciplina) para completar o ecrã. Não se podem escolher.
+        """
+        if not str(aluno_id).isdigit() or not pode_aceder_aluno(request, aluno_id):
+            return Response({"erro": "Sem acesso aos dados deste aluno."}, status=drf_status.HTTP_403_FORBIDDEN)
+        try:
+            aluno = Aluno.objects.get(pk=aluno_id)
+        except Aluno.DoesNotExist:
+            return Response({"erro": "Aluno não encontrado."}, status=drf_status.HTTP_404_NOT_FOUND)
+        return Response(cursos_quase_compativeis(aluno), status=drf_status.HTTP_200_OK)
 
     @action(detail=True, methods=["post"])
     def escolher(self, request, pk=None):

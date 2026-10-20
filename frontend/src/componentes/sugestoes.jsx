@@ -20,7 +20,9 @@ function juntar(lista) {
  * bem e quanto as respostas ao teste apontam para o perfil do curso.
  */
 export function razaoCurta(rec) {
+  // Só as 3 disciplinas que aparecem no cartão, para a frase bater com o que o aluno vê.
   const fortes = (rec.disciplinas_chave ?? [])
+    .slice(0, 3)
     .filter((d) => d.tua_nota != null && d.tua_nota >= d.referencia - 1)
     .sort((a, b) => b.tua_nota - a.tua_nota)
     .slice(0, 2)
