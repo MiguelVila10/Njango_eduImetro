@@ -13,6 +13,10 @@ export const DISCIPLINAS = [
 export const NOTA_MIN = 10;
 export const NOTA_MAX = 20;
 
+// Máximo de perguntas do teste (cat/motor.py → MAX_PERGUNTAS). O teste pode
+// acabar antes, a partir da 5.ª pergunta, quando o perfil já está claro.
+export const MAX_PERGUNTAS = 15;
+
 /** Regista o aluno. Devolve { id, nome, idade, escola, token_sessao }. */
 export function registarAluno({ nome, idade, escola }) {
   return pedido("/alunos/", { metodo: "POST", corpo: { nome, idade: Number(idade), escola } });

@@ -33,8 +33,16 @@ export function useTeste(alunoId) {
     if (estado?.item) mostradaEm.current = performance.now();
   }, [estado?.item?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  /** opcao: um elemento de estado.item.opcoes ({ opcao, texto, posicao }). */
-  async function responder(opcao) {
+  /** Milissegundos desde que a pergunta actual apareceu no ecrã. */
+  const tempoDecorrido = useCallback(() => performance.now() - mostradaEm.current, []);
+
+  /**
+   * opcao: um elemento de estado.item.opcoes ({ opcao, texto, posicao }).
+   * tempoMs: tempo até o aluno decidir (por defeito, até agora). O ecrã do
+   * teste passa o momento em que a opção foi escolhida, sem contar o toque
+   * no botão "Seguinte".
+   */
+  async function responder(opcao, tempoMs = tempoDecorrido()) {
     if (!estado?.item || aEnviar) return;
     setAEnviar(true);
     setErro(null);
@@ -44,7 +52,7 @@ export function useTeste(alunoId) {
         itemId: estado.item.id,
         opcao: opcao.opcao,
         posicao: opcao.posicao,
-        tempoMs: performance.now() - mostradaEm.current,
+        tempoMs,
       });
       setEstado(await proximaPergunta(alunoId));
     } catch (e) {
@@ -67,5 +75,5 @@ export function useTeste(alunoId) {
     }
   }
 
-  return { estado, carregando, aEnviar, erro, responder, repetir, recarregar: carregar };
+  return { estado, carregando, aEnviar, erro, responder, repetir, recarregar: carregar, tempoDecorrido };
 }
