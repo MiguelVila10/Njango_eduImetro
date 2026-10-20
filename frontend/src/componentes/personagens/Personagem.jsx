@@ -1,11 +1,11 @@
-// Personagem animada (Nzinga ou Kiala): troca de expressão por esbatimento,
-// respiração e balanço suaves, balão que escreve letra a letra e boca que
-// mexe enquanto "fala". Portado do protótipo de animação aprovado.
+// Personagem animada (Nzinga ou Kiala): troca de expressão rápida e suave,
+// respiração e balanço, balão que escreve letra a letra e um leve movimento
+// da cabeça enquanto "fala". Baseado no protótipo de animação aprovado.
 //
 // Controla-se por ref:  ref.current.diz(texto, expressao, fala)
 //   texto: string, ou null para mostrar os três pontinhos "a pensar"
 //   expressao: CONTENTE | A_PENSAR | DUVIDA | SURPRESA | A_FALAR
-//   fala: true para mexer a boca enquanto o texto aparece
+//   fala: true para mostrar a expressão "a falar" enquanto o texto aparece
 
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 
@@ -24,19 +24,19 @@ const reduzirMovimento = () => window.matchMedia?.("(prefers-reduced-motion: red
 const Personagem = forwardRef(function Personagem({ id, nome }, ref) {
   const caraRef = useRef(null);
   const imgA = useRef(null);
-  const imgB = useRef(null);
   const balaoRef = useRef(null);
-  const estado = useRef({ visivel: 0, expressao: CONTENTE, texto: undefined, timers: [] });
+  const estado = useRef({ expressao: CONTENTE, texto: undefined, timers: [], troca: null });
 
   useEffect(() => {
-    const timers = estado.current.timers;
-    return () => timers.forEach(clearTimeout);
+    const s = estado.current;
+    return () => {
+      s.timers.forEach(clearTimeout);
+      clearTimeout(s.troca);
+    };
   }, []);
 
   useImperativeHandle(ref, () => {
     const s = estado.current;
-    const imgs = () => [imgA.current, imgB.current];
-
     function limpar() {
       s.timers.forEach(clearTimeout);
       s.timers = [];
@@ -45,27 +45,26 @@ const Personagem = forwardRef(function Personagem({ id, nome }, ref) {
     const depois = (fn, ms) => s.timers.push(setTimeout(fn, ms));
 
     function mudar(e, mexe) {
-      if (e === s.expressao || !caraRef.current) return;
+      const cara = caraRef.current;
+      const img = imgA.current;
+      if (e === s.expressao || !cara || !img) return;
       s.expressao = e;
-      const [a, b] = imgs();
-      const frente = s.visivel === 0 ? a : b;
-      const tras = s.visivel === 0 ? b : a;
       const chave = id + e;
-      tras.src = IMAGENS[chave];
       if (reduzirMovimento()) {
-        frente.src = tras.src;
-        frente.style.transform = posicao(chave);
+        img.src = IMAGENS[chave];
+        img.style.transform = posicao(chave);
         return;
       }
-      tras.style.transform = `${posicao(chave)} scale(1.01)`;
-      requestAnimationFrame(() => {
-        tras.style.opacity = 1;
-        tras.style.transform = posicao(chave);
-        frente.style.opacity = 0;
-      });
-      s.visivel = 1 - s.visivel;
+      // Encolhe ligeiramente, troca o desenho a meio e volta ao tamanho.
+      cara.classList.remove("a-trocar");
+      void cara.offsetWidth;
+      cara.classList.add("a-trocar");
+      clearTimeout(s.troca);
+      s.troca = setTimeout(() => {
+        img.src = IMAGENS[chave];
+        img.style.transform = posicao(chave);
+      }, 90);
       if (mexe) {
-        const cara = caraRef.current;
         cara.style.setProperty("--inc", `${(Math.random() < 0.5 ? -1 : 1) * aleatorio(0.6, 1.4)}deg`);
         cara.classList.remove("mexe");
         void cara.offsetWidth;
@@ -100,14 +99,10 @@ const Personagem = forwardRef(function Personagem({ id, nome }, ref) {
       }
       let i = 0;
       if (fala) {
+        // Uma só troca para "a falar" (sem abrir e fechar a boca a toda a
+        // hora, que com estes desenhos fazia a cabeça saltar).
+        mudar(A_FALAR, true);
         caraRef.current.classList.add("fala");
-        const boca = (aberta) => {
-          mudar(aberta ? A_FALAR : CONTENTE, false);
-          depois(() => {
-            if (caraRef.current?.classList.contains("fala")) boca(!aberta);
-          }, aberta ? aleatorio(150, 260) : aleatorio(110, 200));
-        };
-        boca(true);
       } else {
         mudar(e, true);
       }
@@ -137,8 +132,11 @@ const Personagem = forwardRef(function Personagem({ id, nome }, ref) {
         <div className="respira">
           <div className="balanco">
             <div className="reage">
-              <img ref={imgA} src={IMAGENS[`${id}0`]} style={{ transform: posicao(`${id}0`) }} alt={nome} />
-              <img ref={imgB} alt="" style={{ opacity: 0 }} />
+              <div className="troca">
+                <div className="fala-anim">
+                  <img ref={imgA} src={IMAGENS[`${id}0`]} style={{ transform: posicao(`${id}0`) }} alt={nome} />
+                </div>
+              </div>
             </div>
           </div>
         </div>
