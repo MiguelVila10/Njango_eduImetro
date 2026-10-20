@@ -162,15 +162,15 @@ export default function Inicio() {
           </div>
 
           <div className="relative mx-auto flex max-w-[1140px] flex-col items-center px-4 pb-[140px] pt-16 text-center sm:px-6 md:pb-[160px] md:pt-24">
-            <motion.p {...entradaHero(0)} className="mb-4 text-[13px] font-bold uppercase tracking-wide sm:text-[14px]">
-              Orientação vocacional para alunos da 9.ª classe
+            <motion.p {...entradaHero(0)} className="mb-4 max-w-[920px] text-balance text-[13px] font-bold uppercase leading-snug tracking-wide sm:text-[14px]">
+              Sistema de orientação vocacional para estudantes finalistas do I Ciclo do Ensino Secundário
             </motion.p>
             <motion.h1 {...entradaHero(1)} className="mb-6 max-w-[900px] text-[32px] font-extrabold uppercase leading-[1.15] tracking-tight sm:text-[44px] md:text-[56px]">
               Escolhe o teu curso com confiança
             </motion.h1>
             <motion.p {...entradaHero(2)} className="mb-8 max-w-[68ch] text-[16px] font-medium leading-[1.6] text-white/95 md:text-[18px]">
-              Ainda não sabes que curso técnico escolher? Vê quais combinam mais contigo, a partir das tuas notas e das
-              tuas respostas.
+              Ainda não sabes que curso técnico escolher? Vê quais combinam mais contigo, a partir das tuas notas e de
+              um CAT (teste adaptativo computorizado).
             </motion.p>
             <motion.div {...entradaHero(3)} className="flex w-full flex-col items-center gap-3 sm:w-auto">
               <Link

@@ -5,7 +5,7 @@ export default function Rodape() {
         <p className="text-[15px] font-semibold">
           <span className="font-extrabold">Njango</span>
           <span className="font-extrabold text-primaria">Edu</span>
-          <span className="font-medium text-texto-suave"> — Orientação vocacional para alunos da 9.ª classe em Luanda</span>
+          <span className="font-medium text-texto-suave"> — Sistema de orientação vocacional para estudantes finalistas do I Ciclo do Ensino Secundário, em Luanda</span>
         </p>
         <p className="text-[14px] font-medium text-texto-suave">Projecto de Fim de Curso · IMETRO</p>
         <p className="text-[14px] font-medium text-texto-suave">© {new Date().getFullYear()} Njango Edu</p>
