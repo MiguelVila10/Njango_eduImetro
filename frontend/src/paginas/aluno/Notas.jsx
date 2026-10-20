@@ -1,60 +1,92 @@
-// Notas da 9.ª classe, com a Nzinga e o Kiala a acompanhar.
-// As disciplinas aparecem agrupadas por área para o aluno encontrar mais
-// depressa no boletim. Notas baixas nunca são criticadas: as personagens
-// encorajam. Só um valor impossível (fora de 10-20) gera dúvida.
+// Notas da 9.ª classe: design do Stitch (computador) e do Figma (telemóvel).
+// No computador, a Nzinga e o Kiala acompanham na coluna da direita: perguntam
+// pela nota, ficam contentes ou surpreendidos com notas altas, encorajam com
+// notas baixas (nunca criticam) e só duvidam de valores impossíveis.
 
+import { AlertCircle, ArrowRight, Info, Lightbulb } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import Cabecalho from "../../componentes/Cabecalho";
-import Passos from "../../componentes/Passos";
+import { DISCIPLINAS } from "../../api/aluno";
+import CabecalhoPercurso from "../../componentes/CabecalhoPercurso";
 import Palco, { usePersonagens } from "../../componentes/personagens/Palco";
 import { A_PENSAR, CONTENTE, DUVIDA, SURPRESA } from "../../componentes/personagens/Personagem";
 import { useNotas, validarNota } from "../../hooks/useNotas";
 import { sessaoAluno } from "../../sessao/sessaoAluno";
 
-const AREAS = [
-  ["Ciências", ["Matemática", "Física", "Química", "Biologia"]],
-  ["Línguas e Humanidades", ["Português", "Língua Estrangeira", "História", "Geografia", "Educação Moral e Cívica"]],
-  ["Expressões", ["Educação Física", "Educação Visual", "Educação Laboral"]],
-];
-const TOTAL = AREAS.reduce((n, [, ds]) => n + ds.length, 0);
+const TOTAL = DISCIPLINAS.length;
+const METADE = Math.ceil(TOTAL / 2);
+const COLUNAS = [DISCIPLINAS.slice(0, METADE), DISCIPLINAS.slice(METADE)];
 const reduzirMovimento = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-
-// "a Matemática", "a Educação Física"… (forma natural em português de Angola)
-const aDisciplina = (d) => `a ${d}`;
+const idCampo = (d) => `nota-${d.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z]+/g, "-")}`;
+const valida = (v) => v !== "" && !validarNota(v);
 
 function reacao(disciplina, valor) {
   if (valor === "") return null;
-  if (validarNota(valor)) {
-    return [DUVIDA, "As notas vão de 10 a 20. Confirma no teu boletim.", "Hmm…"];
-  }
+  if (validarNota(valor)) return [DUVIDA, "As notas vão de 10 a 20. Confirma no teu boletim.", "Hmm…"];
   const n = Number(valor);
-  if (n >= 18) return [SURPRESA, `Uau, ${n} ${aDisciplina(disciplina)}!`, "Que máquina!"];
-  if (n >= 14) return [CONTENTE, `${n} ${aDisciplina(disciplina)}, muito bem!`, "Boa!"];
-  if (n >= 12) return [CONTENTE, `${n} ${aDisciplina(disciplina)}. Está bem!`, "Fixe!"];
+  if (n >= 18) return [SURPRESA, `Uau, ${n} a ${disciplina}!`, "Que máquina!"];
+  if (n >= 14) return [CONTENTE, `${n} a ${disciplina}, muito bem!`, "Boa!"];
+  if (n >= 12) return [CONTENTE, `${n} a ${disciplina}. Está bem!`, "Fixe!"];
   return [CONTENTE, "Tudo bem. As notas mostram só uma parte de ti.", "Força!"];
+}
+
+// separador: "sempre", "telemovel" (só quando as colunas se juntam) ou "nunca"
+function CampoNota({ disciplina, valor, mostrarErro, separador, aoFocar, aoEscrever, aoSair }) {
+  const id = idCampo(disciplina);
+  const erro = mostrarErro ? validarNota(valor) : null;
+  const linha = { sempre: "border-b border-borda", telemovel: "border-b border-borda md:border-b-0", nunca: "" }[separador];
+  return (
+    <div className={`py-3 md:py-4 ${linha}`}>
+      <div className="grid min-h-[52px] grid-cols-[minmax(0,1fr)_80px] items-center gap-4 md:grid-cols-[minmax(0,1fr)_96px]">
+        <label htmlFor={id} className="text-[16px] font-semibold leading-snug">{disciplina}</label>
+        <input
+          id={id}
+          type="text"
+          inputMode="numeric"
+          maxLength={2}
+          autoComplete="off"
+          value={valor}
+          onFocus={aoFocar}
+          onBlur={aoSair}
+          onChange={(e) => aoEscrever(e.target.value.replace(/\D/g, ""))}
+          aria-invalid={Boolean(erro)}
+          aria-describedby={erro ? `${id}-erro` : undefined}
+          className={`h-[52px] w-full rounded-[12px] border-[1.5px] bg-white text-center text-[20px] font-bold tabular-nums outline-none transition-[border-color,box-shadow] md:h-14 md:rounded-[8px] ${
+            erro
+              ? "border-2 border-[#C0392B] text-[#C0392B] ring-4 ring-[#C0392B]/10"
+              : "border-borda text-texto focus:border-2 focus:border-primaria focus:ring-4 focus:ring-primaria/15"
+          }`}
+        />
+      </div>
+      {erro && (
+        <p id={`${id}-erro`} className="mt-2 flex items-start gap-2 text-[14px] font-medium text-[#C0392B]">
+          <AlertCircle className="mt-0.5 h-[18px] w-[18px] shrink-0" aria-hidden="true" />
+          A nota tem de estar entre 10 e 20.
+        </p>
+      )}
+    </div>
+  );
 }
 
 export default function Notas() {
   const navegar = useNavigate();
   const { alunoId, nome } = sessaoAluno();
-  const { notas, erros, definirNota, guardar, carregando, aGuardar, erro } = useNotas(alunoId);
+  const { notas, definirNota, guardar, carregando, aGuardar, erro } = useNotas(alunoId);
   const { nzinga, kiala, falar } = usePersonagens();
   const temporizadores = useRef({});
   const [tocadas, setTocadas] = useState({});
 
-  const preenchidas = Object.values(notas).filter((v) => v !== "" && !validarNota(v)).length;
+  const preenchidas = Object.values(notas).filter(valida).length;
   const completo = preenchidas === TOTAL;
+  const percentagem = Math.round((preenchidas / TOTAL) * 100);
   const primeiro = (nome ?? "").trim().split(/\s+/)[0];
 
   useEffect(() => {
     const t = temporizadores.current;
     t.inicio = setTimeout(() => {
-      falar(
-        `Agora as tuas notas, ${primeiro}. Tens o boletim à mão?`, CONTENTE, true,
-        "Escreve a nota final de cada disciplina.", CONTENTE, true,
-      );
+      falar(`Agora as tuas notas, ${primeiro}. Tens o boletim à mão?`, CONTENTE, true,
+        "Escreve a nota final de cada disciplina.", CONTENTE, true);
     }, 400);
     return () => Object.values(t).forEach(clearTimeout);
   }, [falar, primeiro]);
@@ -62,7 +94,7 @@ export default function Notas() {
   function aoFocar(d) {
     clearTimeout(temporizadores.current.espera);
     temporizadores.current.espera = setTimeout(() => {
-      if (notas[d] === "") falar(`Quanto tiveste ${aDisciplina(d)}?`, A_PENSAR, false, null, A_PENSAR, false);
+      if (notas[d] === "") falar(`Quanto tiveste a ${d}?`, A_PENSAR, false, null, A_PENSAR, false);
     }, 140);
   }
 
@@ -72,27 +104,19 @@ export default function Notas() {
     temporizadores.current.espera = setTimeout(() => {
       const r = reacao(d, valor);
       if (!r) return;
-      const novas = { ...notas, [d]: valor };
-      const todas = Object.values(novas).filter((v) => v !== "" && !validarNota(v)).length === TOTAL;
-      if (todas) {
-        falar("Todas as notas estão aqui! Agora vem o teste.", CONTENTE, false, "Vamos a isso!", CONTENTE, false);
-      } else {
-        falar(r[1], r[0], false, r[2], r[0], false);
-      }
+      const todas = Object.values({ ...notas, [d]: valor }).filter(valida).length === TOTAL;
+      if (todas) falar("Todas as notas estão aqui! Agora vem o teste.", CONTENTE, false, "Vamos a isso!", CONTENTE, false);
+      else falar(r[1], r[0], false, r[2], r[0], false);
     }, reduzirMovimento() ? 0 : 450);
   }
 
-  async function submeter(e) {
-    e.preventDefault();
-    setTocadas(Object.fromEntries(AREAS.flatMap(([, ds]) => ds).map((d) => [d, true])));
-    if (!completo) {
-      falar(`Faltam ${TOTAL - preenchidas} notas.`, DUVIDA, false, "Quase lá!", DUVIDA, false);
-      return;
-    }
+  async function continuar() {
+    setTocadas(Object.fromEntries(DISCIPLINAS.map((d) => [d, true])));
+    if (!completo || aGuardar) return;
     clearTimeout(temporizadores.current.espera);
     if (await guardar()) {
       falar("Perfeito! Agora umas perguntas sobre ti.", CONTENTE, true, "Não há respostas erradas!", CONTENTE, true);
-      temporizadores.current.seguir = setTimeout(() => navegar("/aluno/teste"), reduzirMovimento() ? 300 : 2200);
+      temporizadores.current.seguir = setTimeout(() => navegar("/aluno/teste"), reduzirMovimento() ? 300 : 1800);
     } else {
       falar("Ups, não consegui guardar. Tenta outra vez.", DUVIDA, false, "Hmm…", DUVIDA, false);
     }
@@ -100,79 +124,115 @@ export default function Notas() {
 
   return (
     <div className="min-h-screen bg-fundo">
-      <Cabecalho />
-      <main className="mx-auto grid max-w-[1180px] grid-cols-1 gap-4 px-4 pb-10 pt-4 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] md:gap-6 md:pt-6">
-        <Palco nzinga={nzinga} kiala={kiala} />
+      <CabecalhoPercurso passo={2} voltarPara="/" detalhe={`${preenchidas} de ${TOTAL} notas preenchidas`} />
 
-        <form onSubmit={submeter} noValidate className="flex min-w-0 flex-col gap-5 rounded-[20px] bg-white p-6 shadow-[0_10px_28px_rgba(37,43,66,0.07)] md:p-8">
-          <Passos atual={2} />
-          <div>
-            <h1 className="text-[26px] font-bold leading-tight md:text-[30px]">As tuas notas</h1>
-            <p className="mt-1 text-texto-suave">Escreve a nota final de cada disciplina da 9.ª classe, de 10 a 20.</p>
-          </div>
+      <main className="mx-auto w-full max-w-[1380px] px-4 pb-36 pt-6 sm:px-6 md:pt-10 lg:px-12">
+        <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-12">
+          {/* Formulário */}
+          <section className="flex w-full min-w-0 flex-col lg:col-span-8">
+            <h1 className="mb-2 text-[28px] font-bold leading-9 tracking-tight md:text-[32px] md:leading-10">
+              As tuas notas da 9.ª classe
+            </h1>
+            <p className="mb-6 text-[16px] font-medium leading-[1.6] text-texto-suave md:text-[17px]">
+              Escreve a nota final de cada disciplina, de 10 a 20, tal como aparece no teu boletim.
+              <span className="hidden md:inline"> As notas mostram em que áreas tens mais facilidade.</span>
+            </p>
 
-          {/* Progresso */}
-          <div aria-live="polite">
-            <div className="mb-1.5 flex justify-between text-[14px] font-semibold">
-              <span>{preenchidas} de {TOTAL} notas</span>
-              {completo && <span className="text-emerald-700">Completo</span>}
+            <div className="mb-6 flex items-start gap-3.5 rounded-[8px] border border-primaria/20 bg-primaria-clara p-4 md:mb-8">
+              <Lightbulb className="mt-0.5 h-6 w-6 shrink-0 text-primaria-escura" strokeWidth={1.8} aria-hidden="true" />
+              <p className="text-[14px] font-medium leading-relaxed">
+                <span className="hidden md:inline">Tem o teu boletim à mão. </span>
+                Escreve as notas verdadeiras: assim, as sugestões ficam mais certas para ti.
+              </p>
             </div>
-            <div className="h-2 overflow-hidden rounded-full bg-fundo" role="progressbar" aria-valuemin={0} aria-valuemax={TOTAL} aria-valuenow={preenchidas} aria-label="Notas preenchidas">
-              <div className="h-full rounded-full bg-primaria transition-[width] duration-300 ease-out" style={{ width: `${(preenchidas / TOTAL) * 100}%` }} />
-            </div>
-          </div>
 
-          {carregando ? (
-            <p className="text-texto-suave" aria-live="polite">A carregar…</p>
-          ) : (
-            AREAS.map(([area, disciplinas]) => (
-              <fieldset key={area} className="min-w-0">
-                <legend className="mb-3 text-[13px] font-bold uppercase tracking-wider text-primaria">{area}</legend>
-                <div className="grid grid-cols-2 items-end gap-x-4 gap-y-3 sm:grid-cols-3">
-                  {disciplinas.map((d) => {
-                    const id = `nota-${d.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z]+/g, "-")}`;
-                    const valor = notas[d];
-                    const msg = (tocadas[d] || valor !== "" || erros[d]) && validarNota(valor);
-                    const certo = valor !== "" && !validarNota(valor);
-                    return (
-                      <div key={d} className="flex min-w-0 flex-col gap-1">
-                        <label htmlFor={id} className="text-[14px] font-semibold leading-tight">{d}</label>
-                        <input
-                          id={id}
-                          type="text"
-                          inputMode="numeric"
-                          maxLength={2}
-                          placeholder="10–20"
-                          value={valor}
-                          onFocus={() => aoFocar(d)}
-                          onBlur={() => setTocadas((t) => ({ ...t, [d]: true }))}
-                          onChange={(e) => aoEscrever(d, e.target.value.replace(/\D/g, ""))}
-                          aria-invalid={Boolean(msg)}
-                          aria-describedby={msg ? `${id}-erro` : undefined}
-                          className={`h-12 w-full rounded-[10px] border-[1.5px] bg-white px-3 text-center text-[18px] font-semibold tabular-nums outline-none transition-[border-color,box-shadow] ${
-                            msg ? "border-red-600 ring-4 ring-red-50" : certo ? "border-emerald-600" : "border-borda focus:border-primaria focus:ring-4 focus:ring-primaria/15"
-                          }`}
-                        />
-                        {msg && <p id={`${id}-erro`} className="text-[12px] font-medium text-red-700">{msg}</p>}
-                      </div>
-                    );
-                  })}
+            <div className="rounded-[12px] border-[1.5px] border-borda bg-white px-4 py-1 shadow-sm md:px-8 md:py-4">
+              {carregando ? (
+                <p className="py-6 text-texto-suave" aria-live="polite">A carregar as tuas notas…</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 md:gap-x-10">
+                  {COLUNAS.map((coluna, c) => (
+                    <div key={c} className="flex min-w-0 flex-col">
+                      {coluna.map((d, i) => {
+                        const fim = i === coluna.length - 1;
+                        return (
+                          <CampoNota
+                            key={d}
+                            disciplina={d}
+                            valor={notas[d] ?? ""}
+                            mostrarErro={(tocadas[d] || (notas[d] ?? "").length >= 2) && notas[d] !== ""}
+                            separador={!fim ? "sempre" : c === 0 ? "telemovel" : "nunca"}
+                            aoFocar={() => aoFocar(d)}
+                            aoSair={() => setTocadas((t) => ({ ...t, [d]: true }))}
+                            aoEscrever={(v) => aoEscrever(d, v)}
+                          />
+                        );
+                      })}
+                    </div>
+                  ))}
                 </div>
-              </fieldset>
-            ))
-          )}
+              )}
+            </div>
+            {erro && <p role="alert" className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-[14px] text-red-700">{erro.message}</p>}
+          </section>
 
-          {erro && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-[14px] text-red-700">{erro.message}</p>}
-
-          <button
-            type="submit"
-            disabled={aGuardar || carregando}
-            className="h-14 rounded-[10px] bg-primaria text-[16px] font-bold text-white transition-[background-color,transform] hover:bg-primaria-escura active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-borda disabled:text-texto-suave"
-          >
-            {aGuardar ? "A guardar…" : "Continuar para o teste"}
-          </button>
-        </form>
+          {/* Coluna lateral (só computador): personagens e informação */}
+          <aside className="hidden flex-col gap-6 lg:col-span-4 lg:flex">
+            <Palco nzinga={nzinga} kiala={kiala} />
+            <div className="rounded-[12px] border-[1.5px] border-borda bg-white p-5">
+              <p className="mb-2 flex items-center gap-2 text-[12px] font-bold uppercase tracking-wide text-texto-suave">
+                <Info className="h-[18px] w-[18px]" aria-hidden="true" /> Sistema angolano
+              </p>
+              <p className="text-[13px] leading-relaxed text-texto-suave">
+                Em Angola as notas vão de 0 a 20 valores, e 10 é a nota positiva. Por isso aqui escreves notas de 10 a 20.
+              </p>
+            </div>
+          </aside>
+        </div>
       </main>
+
+      {/* Barra fixa em baixo */}
+      <footer className="fixed inset-x-0 bottom-0 z-40 border-t-[1.5px] border-borda bg-white px-4 py-3 shadow-[0_-4px_16px_rgba(37,43,66,0.06)] sm:px-6 md:py-4 lg:px-12">
+        <div className="mx-auto flex max-w-[1380px] items-center justify-between gap-6">
+          <div className="hidden w-80 sm:block" aria-live="polite">
+            <div className="mb-2 flex items-center justify-between">
+              <span className={`text-[14px] font-semibold ${completo ? "text-emerald-700" : "text-texto-suave"}`}>
+                {preenchidas} de {TOTAL} notas preenchidas
+              </span>
+              <span className="text-[12px] font-medium tabular-nums text-texto-suave">{percentagem}%</span>
+            </div>
+            <div
+              className="h-1.5 w-full overflow-hidden rounded-full bg-borda"
+              role="progressbar" aria-label="Notas preenchidas"
+              aria-valuemin={0} aria-valuemax={TOTAL} aria-valuenow={preenchidas}
+            >
+              <div
+                className={`h-full rounded-full transition-[width] duration-300 ease-out ${completo ? "bg-emerald-700" : "bg-primaria"}`}
+                style={{ width: `${percentagem}%` }}
+              />
+            </div>
+          </div>
+          <p className="sr-only sm:hidden" aria-live="polite">{preenchidas} de {TOTAL} notas preenchidas</p>
+          <div className="flex w-full items-center justify-end gap-4 sm:w-auto">
+            <button
+              type="button"
+              onClick={() => navegar("/")}
+              className="hidden h-14 items-center rounded-[8px] border-[1.5px] border-primaria px-8 text-[16px] font-semibold text-primaria transition-colors hover:bg-primaria-clara sm:flex"
+            >
+              Voltar
+            </button>
+            <button
+              type="button"
+              onClick={continuar}
+              disabled={!completo || aGuardar}
+              className="flex h-14 w-full items-center justify-center gap-2 rounded-[14px] bg-primaria px-8 text-[16px] font-semibold text-white transition-[background-color,transform] hover:bg-primaria-escura active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-borda disabled:text-texto-suave sm:w-auto sm:rounded-[8px]"
+            >
+              {aGuardar ? "A guardar…" : "Continuar para o teste"}
+              {completo && !aGuardar && <ArrowRight className="h-[18px] w-[18px]" aria-hidden="true" />}
+            </button>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
