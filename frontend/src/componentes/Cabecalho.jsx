@@ -6,7 +6,6 @@ import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-import { sessaoAluno } from "../sessao/sessaoAluno";
 
 export function Logotipo({ className = "" }) {
   return (
@@ -18,11 +17,9 @@ export function Logotipo({ className = "" }) {
 }
 
 /** Para onde leva o botão principal: continua o teste se já houver sessão. */
+// "Começar" leva sempre ao registo, o primeiro passo do percurso.
 export function destinoComecar() {
-  const sessao = sessaoAluno();
-  return sessao
-    ? { para: "/aluno/notas", texto: "Continuar o teste" }
-    : { para: "/registo", texto: "Começar" };
+  return { para: "/registo", texto: "Começar" };
 }
 
 export default function Cabecalho() {

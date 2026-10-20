@@ -147,7 +147,7 @@ export default function Inicio() {
   const [perguntaAberta, setPerguntaAberta] = useState(0);
   const { cursos, escolas } = useCatalogo();
   const comecar = destinoComecar();
-  const textoBotao = comecar.para === "/registo" ? "Começar agora" : comecar.texto;
+  const textoBotao = "Começar agora";
 
   return (
     <div className="min-h-screen bg-white">

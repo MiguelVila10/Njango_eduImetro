@@ -1,38 +1,23 @@
 // Notas da 9.ª classe: design do Stitch (computador) e do Figma (telemóvel).
-// No computador, a Nzinga e o Kiala acompanham na coluna da direita: perguntam
-// pela nota, ficam contentes ou surpreendidos com notas altas, encorajam com
-// notas baixas (nunca criticam) e só duvidam de valores impossíveis.
+// Sem personagens: a Nzinga e o Kiala aparecem só no registo.
 
 import { AlertCircle, ArrowRight, Info, Lightbulb } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { DISCIPLINAS } from "../../api/aluno";
 import CabecalhoPercurso from "../../componentes/CabecalhoPercurso";
-import Palco, { usePersonagens } from "../../componentes/personagens/Palco";
-import { A_PENSAR, CONTENTE, DUVIDA, SURPRESA } from "../../componentes/personagens/Personagem";
 import { useNotas, validarNota } from "../../hooks/useNotas";
 import { sessaoAluno } from "../../sessao/sessaoAluno";
 
 const TOTAL = DISCIPLINAS.length;
 const METADE = Math.ceil(TOTAL / 2);
 const COLUNAS = [DISCIPLINAS.slice(0, METADE), DISCIPLINAS.slice(METADE)];
-const reduzirMovimento = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 const idCampo = (d) => `nota-${d.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z]+/g, "-")}`;
 const valida = (v) => v !== "" && !validarNota(v);
 
-function reacao(disciplina, valor) {
-  if (valor === "") return null;
-  if (validarNota(valor)) return [DUVIDA, "As notas vão de 10 a 20. Confirma no teu boletim.", "Hmm…"];
-  const n = Number(valor);
-  if (n >= 18) return [SURPRESA, `Uau, ${n} a ${disciplina}!`, "Que máquina!"];
-  if (n >= 14) return [CONTENTE, `${n} a ${disciplina}, muito bem!`, "Boa!"];
-  if (n >= 12) return [CONTENTE, `${n} a ${disciplina}. Está bem!`, "Fixe!"];
-  return [CONTENTE, "Tudo bem. As notas mostram só uma parte de ti.", "Força!"];
-}
-
 // separador: "sempre", "telemovel" (só quando as colunas se juntam) ou "nunca"
-function CampoNota({ disciplina, valor, mostrarErro, separador, aoFocar, aoEscrever, aoSair }) {
+function CampoNota({ disciplina, valor, mostrarErro, separador, aoEscrever, aoSair }) {
   const id = idCampo(disciplina);
   const erro = mostrarErro ? validarNota(valor) : null;
   const linha = { sempre: "border-b border-borda", telemovel: "border-b border-borda md:border-b-0", nunca: "" }[separador];
@@ -47,7 +32,6 @@ function CampoNota({ disciplina, valor, mostrarErro, separador, aoFocar, aoEscre
           maxLength={2}
           autoComplete="off"
           value={valor}
-          onFocus={aoFocar}
           onBlur={aoSair}
           onChange={(e) => aoEscrever(e.target.value.replace(/\D/g, ""))}
           aria-invalid={Boolean(erro)}
@@ -71,55 +55,17 @@ function CampoNota({ disciplina, valor, mostrarErro, separador, aoFocar, aoEscre
 
 export default function Notas() {
   const navegar = useNavigate();
-  const { alunoId, nome } = sessaoAluno();
+  const { alunoId } = sessaoAluno();
   const { notas, definirNota, guardar, carregando, aGuardar, erro } = useNotas(alunoId);
-  const { nzinga, kiala, falar } = usePersonagens();
-  const temporizadores = useRef({});
   const [tocadas, setTocadas] = useState({});
 
   const preenchidas = Object.values(notas).filter(valida).length;
   const completo = preenchidas === TOTAL;
   const percentagem = Math.round((preenchidas / TOTAL) * 100);
-  const primeiro = (nome ?? "").trim().split(/\s+/)[0];
-
-  useEffect(() => {
-    const t = temporizadores.current;
-    t.inicio = setTimeout(() => {
-      falar(`Agora as tuas notas, ${primeiro}. Tens o boletim à mão?`, CONTENTE, true,
-        "Escreve a nota final de cada disciplina.", CONTENTE, true);
-    }, 400);
-    return () => Object.values(t).forEach(clearTimeout);
-  }, [falar, primeiro]);
-
-  function aoFocar(d) {
-    clearTimeout(temporizadores.current.espera);
-    temporizadores.current.espera = setTimeout(() => {
-      if (notas[d] === "") falar(`Quanto tiveste a ${d}?`, A_PENSAR, false, null, A_PENSAR, false);
-    }, 140);
-  }
-
-  function aoEscrever(d, valor) {
-    definirNota(d, valor);
-    clearTimeout(temporizadores.current.espera);
-    temporizadores.current.espera = setTimeout(() => {
-      const r = reacao(d, valor);
-      if (!r) return;
-      const todas = Object.values({ ...notas, [d]: valor }).filter(valida).length === TOTAL;
-      if (todas) falar("Todas as notas estão aqui! Agora vem o teste.", CONTENTE, false, "Vamos a isso!", CONTENTE, false);
-      else falar(r[1], r[0], false, r[2], r[0], false);
-    }, reduzirMovimento() ? 0 : 450);
-  }
-
   async function continuar() {
     setTocadas(Object.fromEntries(DISCIPLINAS.map((d) => [d, true])));
     if (!completo || aGuardar) return;
-    clearTimeout(temporizadores.current.espera);
-    if (await guardar()) {
-      falar("Perfeito! Agora umas perguntas sobre ti.", CONTENTE, true, "Não há respostas erradas!", CONTENTE, true);
-      temporizadores.current.seguir = setTimeout(() => navegar("/aluno/teste"), reduzirMovimento() ? 300 : 1800);
-    } else {
-      falar("Ups, não consegui guardar. Tenta outra vez.", DUVIDA, false, "Hmm…", DUVIDA, false);
-    }
+    if (await guardar()) navegar("/aluno/teste");
   }
 
   return (
@@ -162,9 +108,8 @@ export default function Notas() {
                             valor={notas[d] ?? ""}
                             mostrarErro={(tocadas[d] || (notas[d] ?? "").length >= 2) && notas[d] !== ""}
                             separador={!fim ? "sempre" : c === 0 ? "telemovel" : "nunca"}
-                            aoFocar={() => aoFocar(d)}
                             aoSair={() => setTocadas((t) => ({ ...t, [d]: true }))}
-                            aoEscrever={(v) => aoEscrever(d, v)}
+                            aoEscrever={(v) => definirNota(d, v)}
                           />
                         );
                       })}
@@ -176,9 +121,8 @@ export default function Notas() {
             {erro && <p role="alert" className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-[14px] text-red-700">{erro.message}</p>}
           </section>
 
-          {/* Coluna lateral (só computador): personagens e informação */}
-          <aside className="hidden flex-col gap-6 lg:col-span-4 lg:flex">
-            <Palco nzinga={nzinga} kiala={kiala} />
+          {/* Coluna lateral (só computador): informação */}
+          <aside className="hidden flex-col gap-6 lg:sticky lg:top-28 lg:col-span-4 lg:flex">
             <div className="rounded-[12px] border-[1.5px] border-borda bg-white p-5">
               <p className="mb-2 flex items-center gap-2 text-[12px] font-bold uppercase tracking-wide text-texto-suave">
                 <Info className="h-[18px] w-[18px]" aria-hidden="true" /> Sistema angolano
