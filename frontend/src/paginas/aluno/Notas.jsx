@@ -1,12 +1,14 @@
 // Notas da 9.ª classe: design do Stitch (computador) e do Figma (telemóvel).
 // Sem personagens: a Nzinga e o Kiala aparecem só no registo.
+// Quem não gosta de escrever toca duas vezes numa caixa e escolhe a nota.
 
-import { AlertCircle, ArrowRight, Info, Lightbulb } from "lucide-react";
-import { useState } from "react";
+import { AlertCircle, ArrowRight, Info, Lightbulb, Pointer } from "lucide-react";
+import { useCallback, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { DISCIPLINAS } from "../../api/aluno";
 import CabecalhoPercurso from "../../componentes/CabecalhoPercurso";
+import EscolherNota from "../../componentes/EscolherNota";
 import { useNotas, validarNota } from "../../hooks/useNotas";
 import { sessaoAluno } from "../../sessao/sessaoAluno";
 
@@ -15,10 +17,26 @@ const METADE = Math.ceil(TOTAL / 2);
 const COLUNAS = [DISCIPLINAS.slice(0, METADE), DISCIPLINAS.slice(METADE)];
 const idCampo = (d) => `nota-${d.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z]+/g, "-")}`;
 const valida = (v) => v !== "" && !validarNota(v);
+const TOQUE_DUPLO_MS = 350;
 
 // separador: "sempre", "telemovel" (só quando as colunas se juntam) ou "nunca"
-function CampoNota({ disciplina, valor, mostrarErro, separador, aoEscrever, aoSair }) {
+function CampoNota({ disciplina, valor, mostrarErro, separador, aoEscrever, aoSair, aoAbrirLista }) {
   const id = idCampo(disciplina);
+  const ultimoToque = useRef(0);
+
+  // Toque duplo (dedo) ou duplo clique (rato) abre a lista de notas.
+  function aoLargar(e) {
+    const agora = e.timeStamp;
+    if (agora - ultimoToque.current < TOQUE_DUPLO_MS) {
+      ultimoToque.current = 0;
+      e.preventDefault();
+      e.currentTarget.blur(); // fecha o teclado do telemóvel
+      aoAbrirLista();
+    } else {
+      ultimoToque.current = agora;
+    }
+  }
+
   const erro = mostrarErro ? validarNota(valor) : null;
   const linha = { sempre: "border-b border-borda", telemovel: "border-b border-borda md:border-b-0", nunca: "" }[separador];
   return (
@@ -33,10 +51,15 @@ function CampoNota({ disciplina, valor, mostrarErro, separador, aoEscrever, aoSa
           autoComplete="off"
           value={valor}
           onBlur={aoSair}
+          onPointerUp={aoLargar}
+          onKeyDown={(e) => {
+            if (e.altKey && e.key === "ArrowDown") { e.preventDefault(); aoAbrirLista(); }
+          }}
+          title="Toca duas vezes para escolher a nota"
           onChange={(e) => aoEscrever(e.target.value.replace(/\D/g, ""))}
           aria-invalid={Boolean(erro)}
           aria-describedby={erro ? `${id}-erro` : undefined}
-          className={`h-[52px] w-full rounded-[12px] border-[1.5px] bg-white text-center text-[20px] font-bold tabular-nums outline-none transition-[border-color,box-shadow] md:h-14 md:rounded-[8px] ${
+          className={`h-[52px] w-full rounded-[12px] border-[1.5px] touch-manipulation text-center text-[20px] font-bold tabular-nums outline-none transition-[border-color,box-shadow,background-color] ${valor === "" ? "bg-primaria-clara/60" : "bg-white"} md:h-14 md:rounded-[8px] ${
             erro
               ? "border-2 border-[#C0392B] text-[#C0392B] ring-4 ring-[#C0392B]/10"
               : "border-borda text-texto focus:border-2 focus:border-primaria focus:ring-4 focus:ring-primaria/15"
@@ -58,10 +81,19 @@ export default function Notas() {
   const { alunoId } = sessaoAluno();
   const { notas, definirNota, guardar, carregando, aGuardar, erro } = useNotas(alunoId);
   const [tocadas, setTocadas] = useState({});
+  const [aEscolher, setAEscolher] = useState(null);
+  const fecharLista = useCallback(() => setAEscolher(null), []);
+
+  function escolher(nota) {
+    definirNota(aEscolher, nota);
+    setTocadas((t) => ({ ...t, [aEscolher]: true }));
+    setAEscolher(null);
+  }
 
   const preenchidas = Object.values(notas).filter(valida).length;
   const completo = preenchidas === TOTAL;
   const percentagem = Math.round((preenchidas / TOTAL) * 100);
+
   async function continuar() {
     setTocadas(Object.fromEntries(DISCIPLINAS.map((d) => [d, true])));
     if (!completo || aGuardar) return;
@@ -92,6 +124,11 @@ export default function Notas() {
               </p>
             </div>
 
+            <p className="-mt-2 mb-5 flex items-center gap-2.5 text-[14px] font-medium text-texto-suave md:-mt-4 md:mb-6">
+              <Pointer className="h-5 w-5 shrink-0 text-primaria" strokeWidth={1.8} aria-hidden="true" />
+              Não gostas de escrever? Toca duas vezes numa caixa e escolhe a nota.
+            </p>
+
             <div className="rounded-[12px] border-[1.5px] border-borda bg-white px-4 py-1 shadow-sm md:px-8 md:py-4">
               {carregando ? (
                 <p className="py-6 text-texto-suave" aria-live="polite">A carregar as tuas notas…</p>
@@ -110,6 +147,7 @@ export default function Notas() {
                             separador={!fim ? "sempre" : c === 0 ? "telemovel" : "nunca"}
                             aoSair={() => setTocadas((t) => ({ ...t, [d]: true }))}
                             aoEscrever={(v) => definirNota(d, v)}
+                            aoAbrirLista={() => setAEscolher(d)}
                           />
                         );
                       })}
@@ -134,6 +172,13 @@ export default function Notas() {
           </aside>
         </div>
       </main>
+
+      <EscolherNota
+        disciplina={aEscolher}
+        valor={aEscolher ? notas[aEscolher] : ""}
+        aoEscolher={escolher}
+        aoFechar={fecharLista}
+      />
 
       {/* Barra fixa em baixo */}
       <footer className="fixed inset-x-0 bottom-0 z-40 border-t-[1.5px] border-borda bg-white px-4 py-3 shadow-[0_-4px_16px_rgba(37,43,66,0.06)] sm:px-6 md:py-4 lg:px-12">
