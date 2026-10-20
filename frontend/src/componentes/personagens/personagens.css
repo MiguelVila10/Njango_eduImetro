@@ -26,8 +26,10 @@
 .cara-pers .balanco{position:absolute;inset:0;transform-origin:50% 90%;animation:pers-balanco 7.5s cubic-bezier(.45,.05,.55,.95) infinite}
 .cara-pers .reage{position:absolute;inset:0;transform-origin:50% 95%}
 .cara-pers.mexe .reage{animation:pers-reage .7s cubic-bezier(.22,1,.36,1)}
-.pers-k .respira{animation-delay:-1.9s}
-.pers-k .balanco{animation-delay:-3.1s;animation-duration:8.3s}
+/* As duas personagens respiram e balançam ao mesmo ritmo (sincronizadas);
+   o Kiala inclina para o lado contrário, para ficarem frente a frente. */
+.pers-k .balanco{animation-name:pers-balanco-k}
+@keyframes pers-balanco-k{0%,100%{transform:rotate(0)}25%{transform:rotate(-.6deg)}70%{transform:rotate(.5deg)}}
 @keyframes pers-respira{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-2.5px) scale(1.006)}}
 @keyframes pers-balanco{0%,100%{transform:rotate(0)}25%{transform:rotate(.6deg)}70%{transform:rotate(-.5deg)}}
 @keyframes pers-reage{0%{transform:translateY(0) rotate(0)}35%{transform:translateY(-5px) rotate(var(--inc,1deg))}100%{transform:translateY(0) rotate(0)}}

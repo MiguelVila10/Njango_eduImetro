@@ -65,7 +65,8 @@ const Personagem = forwardRef(function Personagem({ id, nome }, ref) {
         img.style.transform = posicao(chave);
       }, 90);
       if (mexe) {
-        cara.style.setProperty("--inc", `${(Math.random() < 0.5 ? -1 : 1) * aleatorio(0.6, 1.4)}deg`);
+        // Inclinação fixa e espelhada: as duas reagem ao mesmo tempo e de forma igual.
+        cara.style.setProperty("--inc", id === "k" ? "-1deg" : "1deg");
         cara.classList.remove("mexe");
         void cara.offsetWidth;
         cara.classList.add("mexe");

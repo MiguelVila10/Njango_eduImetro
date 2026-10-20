@@ -13,7 +13,6 @@ import { precarregar } from "../../componentes/personagens/imagens";
 import { iniciarSessaoAluno } from "../../sessao/sessaoAluno";
 
 const reduzirMovimento = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-const aleatorio = (a, b) => a + Math.random() * (b - a);
 const primeiroNome = (nome) => nome.trim().split(/\s+/)[0];
 
 // Cada validação devolve null (vazio), [CONTENTE, frase] ou [erro, frase].
@@ -68,14 +67,11 @@ export default function Registo() {
   const resultados = Object.fromEntries(Object.keys(CAMPOS).map((c) => [c, CAMPOS[c].validar(valores[c])]));
   const tudoCerto = Object.values(resultados).every(estaCerto);
 
-  // Fala a dois: a Nzinga primeiro, o Kiala responde um pouco depois.
+  // Fala a dois: as duas personagens reagem ao mesmo tempo (sincronizadas).
   function falarADois(textoN, expN, falaN, textoK, expK, falaK) {
-    nzinga.current?.diz(textoN, expN, falaN);
     clearTimeout(temporizadores.current.kiala);
-    temporizadores.current.kiala = setTimeout(
-      () => kiala.current?.diz(textoK, expK, falaK),
-      reduzirMovimento() ? 0 : aleatorio(260, 420),
-    );
+    nzinga.current?.diz(textoN, expN, falaN);
+    kiala.current?.diz(textoK, expK, falaK);
   }
 
   function reagir(campo, focou, novosValores = valores) {
