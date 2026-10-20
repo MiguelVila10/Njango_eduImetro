@@ -43,7 +43,10 @@ class RecomendacaoViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return filtrar_pelo_aluno(
-            self.request, Recomendacao.objects.select_related("curso")
+            self.request,
+            Recomendacao.objects.select_related("curso", "aluno").prefetch_related(
+                "curso__vetores_ideais", "curso__prerequisitos", "aluno__notas"
+            ),
         )
 
     def get_permissions(self):

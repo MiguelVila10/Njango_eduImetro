@@ -9,7 +9,7 @@ import { sessaoAluno } from "../sessao/sessaoAluno";
 
 export const PASSOS = ["Os teus dados", "Notas", "Teste", "Sugestões"];
 
-export default function CabecalhoPercurso({ passo, voltarPara = "/", detalhe = null }) {
+export default function CabecalhoPercurso({ passo, voltarPara = "/", detalhe = null, concluido = false }) {
   const navegar = useNavigate();
   const sessao = sessaoAluno();
 
@@ -25,8 +25,8 @@ export default function CabecalhoPercurso({ passo, voltarPara = "/", detalhe = n
           <ol className="flex items-center gap-2">
             {PASSOS.map((nome, i) => {
               const n = i + 1;
-              const feito = n < passo;
-              const atual = n === passo;
+              const feito = n < passo || (concluido && n === passo);
+              const atual = n === passo && !concluido;
               return (
                 <li key={nome} className="flex items-center gap-2" aria-current={atual ? "step" : undefined}>
                   {i > 0 && <span aria-hidden="true" className="h-px w-8 bg-borda" />}
@@ -81,12 +81,12 @@ export default function CabecalhoPercurso({ passo, voltarPara = "/", detalhe = n
             {PASSOS.map((nome, i) => (
               <span
                 key={nome}
-                className={`h-[5px] rounded-full ${i + 1 < passo ? "bg-emerald-700" : i + 1 === passo ? "bg-primaria" : "bg-borda"}`}
+                className={`h-[5px] rounded-full ${i + 1 < passo || (concluido && i + 1 === passo) ? "bg-emerald-700" : i + 1 === passo ? "bg-primaria" : "bg-borda"}`}
               />
             ))}
           </div>
           <span className="whitespace-nowrap text-[12px] font-bold text-primaria-escura">
-            {passo} de 4 · {PASSOS[passo - 1]}
+            {concluido ? "Percurso concluído" : `${passo} de 4 · ${PASSOS[passo - 1]}`}
           </span>
         </div>
         {detalhe && <p className="-mt-1 px-5 pb-3 text-[13px] font-semibold text-texto-suave">{detalhe}</p>}

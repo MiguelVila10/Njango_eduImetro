@@ -165,6 +165,9 @@ class GerarRecomendacoesViewTest(APITestCase):
         # Justificação para o ecrã "porque este curso".
         chave = response.data[0]["disciplinas_chave"]
         self.assertEqual(chave[0], {"disciplina": "Matemática", "tua_nota": 18, "referencia": 18})
+        self.assertEqual(
+            response.data[0]["notas_minimas"], [{"disciplina": "Matemática", "nota_min": 14, "tua_nota": 18}]
+        )
 
     def test_orientador_ve_alertas_e_confianca(self):
         self.client.post(f"/api/recomendacoes/gerar/{self.aluno.id}/")

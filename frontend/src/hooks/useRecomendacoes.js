@@ -68,5 +68,5 @@ export function useRecomendacoes(alunoId) {
     }
   }
 
-  return { recomendacoes, cursosProximos, escolhida, carregando, aEscolher, erro, escolher };
+  return { recomendacoes, cursosProximos, escolhida, carregando, aEscolher, erro, escolher, recarregar: carregar };
 }

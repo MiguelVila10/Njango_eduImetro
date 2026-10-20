@@ -18,13 +18,14 @@ class RecomendacaoSerializer(serializers.ModelSerializer):
     curso_arquetipo = serializers.CharField(source="curso.arquetipo_dominante", read_only=True)
     curso_descricao = serializers.CharField(source="curso.descricao", read_only=True)
     disciplinas_chave = serializers.SerializerMethodField()
+    notas_minimas = serializers.SerializerMethodField()
 
     class Meta:
         model = Recomendacao
         fields = [
             "id", "aluno", "curso", "curso_nome", "curso_instituicao", "curso_arquetipo",
             "curso_descricao", "score_academico", "score_psicografico", "score_final", "rank",
-            "escolhida_pelo_aluno", "disciplinas_chave", "alertas_vieses", "confianca_cat",
+            "escolhida_pelo_aluno", "disciplinas_chave", "notas_minimas", "alertas_vieses", "confianca_cat",
         ]
         read_only_fields = ["id"]
 
@@ -43,6 +44,17 @@ class RecomendacaoSerializer(serializers.ModelSerializer):
                 "referencia": v.peso_ideal,
             }
             for v in vetores[:4]
+        ]
+
+    def get_notas_minimas(self, rec):
+        """
+        Pré-requisitos do curso (filtro SE-ENTÃO) com a nota do aluno ao lado,
+        para o ecrã do curso explicar porque o curso entrou na lista.
+        """
+        notas = {n.disciplina: n.nota for n in rec.aluno.notas.all()}
+        return [
+            {"disciplina": p.disciplina, "nota_min": p.nota_min, "tua_nota": notas.get(p.disciplina)}
+            for p in sorted(rec.curso.prerequisitos.all(), key=lambda p: (-p.nota_min, p.disciplina))
         ]
 
     def to_representation(self, instance):
