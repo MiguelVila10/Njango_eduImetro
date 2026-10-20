@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Brush, CheckCircle, ChevronDown, Goal, GraduationCap, HeartHandshake,
+  ArrowRight, Brush, CheckCircle, ChevronDown, Goal, GraduationCap, HeartHandshake,
   Briefcase, Cpu, Factory, Lightbulb, ListChecks, Microscope, NotebookPen, Palette,
   Stethoscope, Users,
 } from "lucide-react";
@@ -154,35 +154,50 @@ export default function Inicio() {
       <Cabecalho />
 
       <main>
-        {/* Hero */}
+        {/* Hero: texto à esquerda, foto visível à direita (no telemóvel, tudo numa coluna) */}
         <section className="relative overflow-hidden bg-noite text-white">
           <div className="absolute inset-0">
             <SlideFundo fotos={FOTOS_HERO} />
-            <div className="absolute inset-0 bg-gradient-to-b from-noite/85 via-noite/70 to-noite/85" />
+            <div className="absolute inset-0 bg-gradient-to-b from-noite/90 via-noite/80 to-noite/90 md:bg-gradient-to-r md:from-noite/95 md:via-noite/75 md:to-noite/20" />
           </div>
 
-          <div className="relative mx-auto flex max-w-[1140px] flex-col items-center px-4 pb-[140px] pt-16 text-center sm:px-6 md:pb-[160px] md:pt-24">
-            <motion.p {...entradaHero(0)} className="mb-6 max-w-[920px] text-balance rounded-[14px] bg-white/12 px-4 py-2 sm:rounded-full sm:py-1.5 text-[13px] font-semibold leading-snug text-white ring-1 ring-white/25 backdrop-blur-sm sm:text-[14px]">
-              Sistema de orientação vocacional para estudantes finalistas do I Ciclo do Ensino Secundário
-            </motion.p>
-            <motion.h1 {...entradaHero(1)} className="mb-5 max-w-[860px] text-balance text-[34px] font-bold leading-[1.12] tracking-[-0.02em] sm:text-[46px] md:text-[58px]">
-              Escolhe o teu curso com confiança
-            </motion.h1>
-            <motion.p {...entradaHero(2)} className="mb-8 max-w-[740px] text-pretty text-[16px] font-normal leading-[1.65] text-white/90 md:text-[19px]">
-              Ainda não sabes que curso técnico escolher? Com as tuas notas e um teste adaptativo computorizado (CAT),
-              descobre os cursos que mais combinam contigo.
-            </motion.p>
-            <motion.div {...entradaHero(3)} className="flex w-full flex-col items-center gap-3 sm:w-auto">
-              <Link
-                to={comecar.para}
-                className="inline-flex h-[52px] w-full items-center justify-center rounded-md bg-primaria px-9 text-[17px] font-bold text-white shadow-lg transition-all hover:bg-primaria-escura hover:shadow-xl active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primaria/40 sm:w-auto"
-              >
-                {textoBotao}
-              </Link>
-              <p className="text-[14px] font-medium text-white/85">Sem criar conta. Só precisas do teu boletim de notas.</p>
-            </motion.div>
+          <div className="relative mx-auto max-w-[1140px] px-4 pb-[130px] pt-14 sm:px-6 md:pb-[170px] md:pt-24">
+            <div className="max-w-[620px]">
+              <motion.p {...entradaHero(0)} className="mb-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] font-semibold text-white/85 sm:text-[14px]">
+                <span className="h-2 w-2 rounded-full bg-samakaka-amarelo" aria-hidden="true" />
+                Sistema de orientação vocacional
+                <span className="hidden text-white/50 sm:inline" aria-hidden="true">·</span>
+                <span className="basis-full pl-4 sm:basis-auto sm:pl-0">Finalistas do I Ciclo do Ensino Secundário</span>
+              </motion.p>
+              <motion.h1 {...entradaHero(1)} className="mb-5 text-balance font-titulo text-[34px] font-extrabold leading-[1.1] tracking-[-0.015em] sm:text-[48px] md:text-[60px]">
+                Descobre o curso técnico certo para ti.
+              </motion.h1>
+              <motion.p {...entradaHero(2)} className="mb-8 max-w-[52ch] text-[16px] leading-[1.65] text-white/85 md:text-[18px]">
+                Juntamos as tuas notas e um teste adaptativo (CAT) para te sugerir os cursos que mais combinam contigo.
+              </motion.p>
+              <motion.div {...entradaHero(3)} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-5">
+                <Link
+                  to={comecar.para}
+                  className="inline-flex h-[54px] items-center justify-center gap-2 rounded-[10px] bg-primaria px-8 text-[17px] font-bold text-white shadow-lg transition-all hover:bg-primaria-escura hover:shadow-xl active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primaria/40"
+                >
+                  {textoBotao} <ArrowRight className="h-5 w-5" aria-hidden="true" />
+                </Link>
+                <p className="text-[14px] text-white/75">Sem criar conta. Só precisas do teu boletim.</p>
+              </motion.div>
+              <motion.ul {...entradaHero(4)} className="mt-10 grid max-w-[520px] grid-cols-3 gap-4 border-t border-white/15 pt-6">
+                {[
+                  ["12", "notas do boletim"],
+                  ["5 a 18", "perguntas no teste"],
+                  ["Até 3", "cursos sugeridos"],
+                ].map(([numero, texto]) => (
+                  <li key={texto}>
+                    <p className="font-titulo text-[22px] font-bold leading-tight md:text-[26px]">{numero}</p>
+                    <p className="text-[13px] leading-snug text-white/70">{texto}</p>
+                  </li>
+                ))}
+              </motion.ul>
+            </div>
           </div>
-
         </section>
 
         {/* Como funciona */}

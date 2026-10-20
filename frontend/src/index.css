@@ -4,6 +4,8 @@
    nomes nas classes (bg-primaria, text-texto-suave…) em vez de cores soltas. */
 @theme {
   --font-sans: "Montserrat", system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* Letra dos títulos grandes da página inicial (mais estreita e legível que a Montserrat em tamanho grande). */
+  --font-titulo: "Plus Jakarta Sans", "Montserrat", system-ui, sans-serif;
 
   --color-primaria: #1f6fc0;
   --color-primaria-escura: #17589b;
