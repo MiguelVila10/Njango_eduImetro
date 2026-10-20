@@ -106,56 +106,62 @@ function ColunaLateral({ respondidas, atual }) {
 
 // Ecrã final (design "Teste concluído"): progresso a 100%, ilustração com o
 // visto, mensagem e botão para as sugestões. Não se propõe repetir o teste.
-function Conclusao({ respondidas, aoVerCursos }) {
-  // Telemóvel: tudo numa coluna. Computador (lg): ilustração grande à esquerda e texto à direita.
+function Ilustracao({ className = "" }) {
   return (
-    <div className="mx-auto flex w-full max-w-[480px] flex-1 flex-col px-4 pb-32 pt-6 sm:px-6 md:pb-16 md:pt-12 lg:max-w-[1120px] lg:flex-row lg:items-center lg:gap-16 lg:px-12 lg:pb-20 lg:pt-16">
-      <div className="mb-5 px-1 lg:hidden">
+    <div className={`relative flex items-center justify-center overflow-hidden rounded-[16px] border-[1.5px] border-borda bg-white ${className}`}>
+      <div aria-hidden="true" className="fundo-cruzes absolute inset-0" />
+      <span aria-hidden="true" className="absolute left-[12%] top-[22%] h-2 w-2 rounded-full bg-samakaka-amarelo" />
+      <span aria-hidden="true" className="absolute right-[10%] top-[30%] h-2.5 w-2.5 rounded-full bg-primaria-escura" />
+      <span aria-hidden="true" className="absolute bottom-[24%] left-[22%] h-3 w-3 rounded-full bg-primaria" />
+      <span aria-hidden="true" className="absolute bottom-[28%] right-[20%] h-2 w-2 rounded-full bg-samakaka-amarelo" />
+      <motion.span
+        initial={{ scale: 0.6, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 260, damping: 18, delay: 0.1 }}
+        className="relative flex h-[88px] w-[88px] items-center justify-center rounded-full bg-primaria-clara"
+      >
+        <span className="flex h-[68px] w-[68px] items-center justify-center rounded-full bg-primaria text-white shadow-[0_6px_16px_rgba(31,111,192,0.35)]">
+          <Check className="h-8 w-8" strokeWidth={3} aria-hidden="true" />
+        </span>
+      </motion.span>
+    </div>
+  );
+}
+
+// Telemóvel: progresso, ilustração e texto numa coluna.
+// Computador: progresso e informação a toda a largura; a ilustração fica por baixo, numa faixa baixa.
+function Conclusao({ respondidas, aoVerCursos }) {
+  return (
+    <div className="mx-auto flex w-full max-w-[480px] flex-1 flex-col px-4 pb-32 pt-6 sm:px-6 md:pb-16 md:pt-12 lg:max-w-[1040px] lg:px-12 lg:pb-20 lg:pt-14">
+      <div className="mb-5 px-1 lg:mb-10 lg:px-0">
         <BarraConcluida />
       </div>
 
-      <div className="relative mb-8 flex h-[220px] shrink-0 items-center justify-center overflow-hidden rounded-[16px] border-[1.5px] border-borda bg-white lg:mb-0 lg:h-[440px] lg:w-[500px] lg:rounded-[24px]">
-        <div aria-hidden="true" className="fundo-cruzes absolute inset-0" />
-        <span aria-hidden="true" className="absolute left-[12%] top-[18%] h-2 w-2 rounded-full bg-samakaka-amarelo lg:h-3 lg:w-3" />
-        <span aria-hidden="true" className="absolute right-[10%] top-[28%] h-2.5 w-2.5 rounded-full bg-primaria-escura lg:h-3.5 lg:w-3.5" />
-        <span aria-hidden="true" className="absolute bottom-[22%] left-[19%] h-3 w-3 rounded-full bg-primaria lg:h-4 lg:w-4" />
-        <span aria-hidden="true" className="absolute bottom-[30%] right-[17%] h-2 w-2 rounded-full bg-samakaka-amarelo lg:h-3 lg:w-3" />
-        <motion.span
-          initial={{ scale: 0.6, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 260, damping: 18, delay: 0.1 }}
-          className="relative flex h-[88px] w-[88px] items-center justify-center rounded-full bg-primaria-clara lg:h-[148px] lg:w-[148px]"
-        >
-          <span className="flex h-[68px] w-[68px] items-center justify-center rounded-full bg-primaria text-white shadow-[0_6px_16px_rgba(31,111,192,0.35)] lg:h-[112px] lg:w-[112px]">
-            <Check className="h-8 w-8 lg:h-14 lg:w-14" strokeWidth={3} aria-hidden="true" />
-          </span>
-        </motion.span>
-      </div>
+      <Ilustracao className="mb-8 h-[220px] lg:hidden" />
 
-      <div className="flex flex-1 flex-col">
-        <div className="mb-8 hidden lg:block">
-          <BarraConcluida />
-        </div>
+      <section className="lg:rounded-[20px] lg:border-[1.5px] lg:border-borda lg:bg-white lg:p-12">
         <h1 className="mb-3 text-center text-[28px] font-bold leading-tight lg:mb-4 lg:text-left lg:text-[44px]">Teste concluído!</h1>
-        <p className="mx-auto mb-6 max-w-[34ch] text-center text-[16px] leading-relaxed text-texto-suave lg:mx-0 lg:mb-8 lg:max-w-[44ch] lg:text-left lg:text-[19px]">
+        <p className="mx-auto mb-6 max-w-[34ch] text-center text-[16px] leading-relaxed text-texto-suave lg:mx-0 lg:mb-8 lg:max-w-none lg:text-left lg:text-[19px]">
           Obrigado pelas tuas respostas. Vamos descobrir os cursos técnicos que mais combinam contigo.
         </p>
 
-        <div className="mb-8 flex items-start gap-3 rounded-[12px] border border-borda bg-fundo p-4 lg:bg-white lg:p-5">
-          <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-primaria lg:h-6 lg:w-6" aria-hidden="true" />
+        <div className="mb-8 flex items-start gap-3 rounded-[12px] border border-borda bg-fundo p-4 lg:items-center lg:p-5">
+          <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-primaria lg:mt-0 lg:h-6 lg:w-6" aria-hidden="true" />
           <p className="text-[14px] leading-relaxed lg:text-[16px]">
             Respondeste a <strong className="font-semibold text-primaria">{respondidas} perguntas</strong>. A seguir,
             juntamos as tuas notas e as tuas respostas para te sugerir até 3 cursos.
           </p>
         </div>
 
-        {/* Telemóvel: botão fixo em baixo; computador: logo a seguir ao texto */}
+        {/* Telemóvel: botão fixo em baixo; computador: no fim do cartão */}
         <div className="fixed inset-x-0 bottom-0 z-40 border-t-[1.5px] border-borda bg-white px-4 py-3 sm:px-6 md:static md:border-0 md:bg-transparent md:p-0">
           <button type="button" onClick={aoVerCursos} className={`${BOTAO_PRINCIPAL} w-full lg:h-14 lg:w-auto lg:px-10 lg:text-[17px]`}>
             Ver os cursos sugeridos <ArrowRight className="h-[18px] w-[18px]" aria-hidden="true" />
           </button>
         </div>
-      </div>
+      </section>
+
+      <Ilustracao className="mt-6 hidden h-[160px] lg:flex" />
     </div>
   );
 }
@@ -163,11 +169,11 @@ function Conclusao({ respondidas, aoVerCursos }) {
 function BarraConcluida() {
   return (
     <>
-      <div className="mb-2 flex items-center justify-between text-[12px] font-bold uppercase tracking-wide lg:text-[13px]">
+      <div className="mb-2 flex items-center justify-between text-[12px] font-bold uppercase tracking-wide lg:mb-3 lg:text-[14px]">
         <span className="text-texto-suave">Progresso do teste</span>
         <span className="text-primaria">100%</span>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-primaria-clara lg:h-2.5" aria-hidden="true">
+      <div className="h-2 overflow-hidden rounded-full bg-primaria-clara lg:h-3" aria-hidden="true">
         <div className="barra-concluida h-full w-full rounded-full bg-primaria" />
       </div>
     </>

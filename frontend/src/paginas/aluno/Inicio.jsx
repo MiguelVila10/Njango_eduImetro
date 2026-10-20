@@ -162,15 +162,15 @@ export default function Inicio() {
           </div>
 
           <div className="relative mx-auto flex max-w-[1140px] flex-col items-center px-4 pb-[140px] pt-16 text-center sm:px-6 md:pb-[160px] md:pt-24">
-            <motion.p {...entradaHero(0)} className="mb-4 max-w-[920px] text-balance text-[13px] font-bold uppercase leading-snug tracking-wide sm:text-[14px]">
+            <motion.p {...entradaHero(0)} className="mb-6 max-w-[920px] text-balance rounded-[14px] bg-white/12 px-4 py-2 sm:rounded-full sm:py-1.5 text-[13px] font-semibold leading-snug text-white ring-1 ring-white/25 backdrop-blur-sm sm:text-[14px]">
               Sistema de orientação vocacional para estudantes finalistas do I Ciclo do Ensino Secundário
             </motion.p>
-            <motion.h1 {...entradaHero(1)} className="mb-6 max-w-[900px] text-[32px] font-extrabold uppercase leading-[1.15] tracking-tight sm:text-[44px] md:text-[56px]">
+            <motion.h1 {...entradaHero(1)} className="mb-5 max-w-[860px] text-balance text-[34px] font-bold leading-[1.12] tracking-[-0.02em] sm:text-[46px] md:text-[58px]">
               Escolhe o teu curso com confiança
             </motion.h1>
-            <motion.p {...entradaHero(2)} className="mb-8 max-w-[68ch] text-[16px] font-medium leading-[1.6] text-white/95 md:text-[18px]">
-              Ainda não sabes que curso técnico escolher? Vê quais combinam mais contigo, a partir das tuas notas e de
-              um CAT (teste adaptativo computorizado).
+            <motion.p {...entradaHero(2)} className="mb-8 max-w-[740px] text-pretty text-[16px] font-normal leading-[1.65] text-white/90 md:text-[19px]">
+              Ainda não sabes que curso técnico escolher? Com as tuas notas e um teste adaptativo computorizado (CAT),
+              descobre os cursos que mais combinam contigo.
             </motion.p>
             <motion.div {...entradaHero(3)} className="flex w-full flex-col items-center gap-3 sm:w-auto">
               <Link
