@@ -147,9 +147,9 @@ export default function Registo() {
   return (
     <div className="min-h-screen bg-fundo">
       <Cabecalho />
-      <main className="mx-auto grid max-w-[1180px] grid-cols-1 gap-6 px-4 pb-10 pt-6 sm:px-5 md:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
+      <main className="mx-auto grid max-w-[1180px] grid-cols-1 gap-4 px-4 pb-10 pt-4 md:gap-6 md:pt-6 sm:px-5 md:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
         {/* Palco das personagens */}
-        <section aria-label="Personagens Nzinga e Kiala" className="relative flex min-w-0 flex-col justify-center overflow-hidden rounded-[20px] bg-primaria-clara px-4 pb-6 pt-6 sm:px-5 md:pb-9 md:pt-7">
+        <section aria-label="Personagens Nzinga e Kiala" className="relative flex min-w-0 flex-col justify-center overflow-hidden rounded-[20px] bg-primaria-clara px-3 pb-1 pt-4 sm:px-5 md:pb-9 md:pt-7">
           <div className="grid grid-cols-2 items-end gap-2.5 sm:gap-4">
             <Personagem ref={nzinga} id="n" nome="Nzinga" />
             <Personagem ref={kiala} id="k" nome="Kiala" />

@@ -23,7 +23,12 @@
 @keyframes pers-balanco{0%,100%{transform:rotate(0)}25%{transform:rotate(.6deg)}70%{transform:rotate(-.5deg)}}
 @keyframes pers-reage{0%{transform:translateY(0) rotate(0)}35%{transform:translateY(-5px) rotate(var(--inc,1deg))}100%{transform:translateY(0) rotate(0)}}
 
-@media (max-width:420px){.balao-pers{font-size:14px;min-height:64px;padding:10px 12px}}
+/* Telemóvel: personagens pequenas, para o formulário caber no ecrã. */
+@media (max-width:767px){
+  .cara-pers{max-width:108px;border-radius:14px 14px 0 0}
+  .balao-pers{max-width:168px;min-height:52px;padding:8px 10px;font-size:13px;line-height:1.35;border-radius:12px}
+  .balao-pers::after{bottom:-7px;margin-left:-7px;border-width:7px;border-bottom:0}
+}
 @media (prefers-reduced-motion:reduce){
   .cara-pers .respira,.cara-pers .balanco,.cara-pers.mexe .reage,.balao-pers.entra .txt,.balao-pers .digita i{animation:none}
   .cara-pers img{transition:none}

@@ -131,7 +131,7 @@ const Personagem = forwardRef(function Personagem({ id, nome }, ref) {
   }, [id]);
 
   return (
-    <div className={`flex min-w-0 flex-col items-center gap-3 pers-${id}`}>
+    <div className={`flex min-w-0 flex-col items-center gap-2 md:gap-3 pers-${id}`}>
       <div ref={balaoRef} className="balao-pers" aria-live="polite" />
       <div ref={caraRef} className="cara-pers">
         <div className="respira">
@@ -143,7 +143,7 @@ const Personagem = forwardRef(function Personagem({ id, nome }, ref) {
           </div>
         </div>
       </div>
-      <p className="-mt-1.5 pb-5 text-[13px] font-bold uppercase tracking-[0.06em] text-primaria-escura">{nome}</p>
+      <p className="-mt-1.5 pb-2 text-[11px] font-bold uppercase tracking-[0.06em] text-primaria-escura md:pb-5 md:text-[13px]">{nome}</p>
     </div>
   );
 });

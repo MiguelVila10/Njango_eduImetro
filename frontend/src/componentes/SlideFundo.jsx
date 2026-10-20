@@ -5,12 +5,15 @@
 //
 // - A primeira foto carrega logo; a seguinte é pré-carregada antes da troca.
 // - Pára quando o separador não está visível (poupa bateria e dados).
-// - Com "reduzir movimento" activo, fica só a primeira foto, parada.
+// - Com "reduzir movimento" activo (no Windows: "Efeitos de animação"
+//   desligados) continua a trocar, mais devagar: o esbatimento não é
+//   movimento, por isso não incomoda quem pediu menos animação.
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useEffect, useState } from "react";
 
 const DURACAO_MS = 6500;
+const DURACAO_REDUZIDA_MS = 9000;
 
 function escolherSrc(foto) {
   // O mesmo critério do srcSet, para o pré-carregamento usar o ficheiro certo.
@@ -22,7 +25,7 @@ export default function SlideFundo({ fotos }) {
   const [atual, setAtual] = useState(0);
 
   useEffect(() => {
-    if (reduzir || fotos.length < 2) return undefined;
+    if (fotos.length < 2) return undefined;
     let temporizador;
 
     function agendar() {
@@ -34,7 +37,7 @@ export default function SlideFundo({ fotos }) {
         img.src = escolherSrc(fotos[seguinte]);
         // Só troca quando a próxima foto já está carregada.
         img.decode().catch(() => {}).finally(() => setAtual(seguinte));
-      }, DURACAO_MS);
+      }, reduzir ? DURACAO_REDUZIDA_MS : DURACAO_MS);
     }
 
     agendar();
