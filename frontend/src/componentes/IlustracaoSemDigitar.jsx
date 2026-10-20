@@ -1,11 +1,10 @@
-// O Kiala com um telemóvel na mão, a escolher a nota na lista de 10 a 20.
-// É o desenho do avatar com a mão e o telemóvel desenhados por cima em SVG.
-// O toque duplo no "15" repete-se devagar; com movimento reduzido fica parado.
+// Imagem provisória: o Kiala com um telemóvel na mão, a preencher as notas.
+// Será trocada pela imagem final do aluno.
 
 import kiala from "../assets/personagens/k0.webp";
 
-const NOTAS = Array.from({ length: 11 }, (_, i) => 10 + i);
-const ESCOLHIDA = 15;
+// Linhas do formulário no ecrã do telemóvel: disciplina e nota (a última por preencher).
+const LINHAS = [["Português", "14"], ["Matemática", "16"], ["Física", "15"], ["Química", "13"], ["Biologia", ""]];
 
 export default function IlustracaoSemDigitar({ className = "" }) {
   return (
@@ -27,29 +26,18 @@ export default function IlustracaoSemDigitar({ className = "" }) {
           <rect x="246" y="330" width="112" height="196" rx="18" fill="#252B42" />
           <rect x="253" y="342" width="98" height="172" rx="12" fill="#fff" />
           <rect x="285" y="335" width="34" height="5" rx="2.5" fill="#3A4160" />
-          <text x="262" y="364" fontSize="9.5" fontWeight="700" fill="#252B42">Nota de Física</text>
-          <g fontSize="11" fontWeight="700" textAnchor="middle">
-            {NOTAS.map((n, i) => {
-              const x = 262 + (i % 3) * 28;
-              const y = 374 + Math.floor(i / 3) * 30;
-              const sel = n === ESCOLHIDA;
-              return (
-                <g key={n}>
-                  <rect
-                    x={x} y={y} width="24" height="24" rx="5"
-                    className={sel ? "isd-escolhida" : undefined}
-                    fill={sel ? "#1F6FC0" : "#fff"}
-                    stroke={sel ? "#1F6FC0" : "#E6E9EF"}
-                    strokeWidth="1.3"
-                  />
-                  <text x={x + 12} y={y + 16} fill={sel ? "#fff" : "#252B42"} className={sel ? "isd-escolhida-txt" : undefined}>{n}</text>
-                </g>
-              );
-            })}
-          </g>
-          {/* toque duplo no 15 */}
-          <circle cx="330" cy="416" r="10" className="isd-toque" fill="none" stroke="#1F6FC0" strokeWidth="2" />
-          <circle cx="330" cy="416" r="10" className="isd-toque isd-toque-2" fill="none" stroke="#1F6FC0" strokeWidth="2" />
+          {/* ecrã: o aluno a preencher as notas */}
+          <text x="262" y="364" fontSize="9.5" fontWeight="700" fill="#252B42">As tuas notas</text>
+          {LINHAS.map(([disciplina, nota], i) => {
+            const y = 376 + i * 26;
+            return (
+              <g key={disciplina}>
+                <rect x="262" y={y + 7} width={[44, 50, 30, 38, 42][i]} height="6" rx="3" fill="#C9CFDB" />
+                <rect x="318" y={y} width="24" height="20" rx="5" fill={nota ? "#fff" : "#E3F0FC"} stroke={nota ? "#E6E9EF" : "#1F6FC0"} strokeWidth="1.3" />
+                {nota && <text x="330" y={y + 14} fontSize="10.5" fontWeight="700" textAnchor="middle" fill="#252B42">{nota}</text>}
+              </g>
+            );
+          })}
           {/* dedos (lado esquerdo) e polegar (lado direito) */}
           <g fill="#B86A40" stroke="#8E4A2A" strokeWidth="1.2">
             <rect x="238" y="452" width="22" height="15" rx="7.5" />
