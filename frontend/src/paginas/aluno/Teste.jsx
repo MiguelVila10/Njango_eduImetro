@@ -154,7 +154,7 @@ function Conclusao({ respondidas, aoVerCursos }) {
         </div>
 
         {/* Telemóvel: botão fixo em baixo; computador: no fim do cartão */}
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t-[1.5px] border-borda bg-white px-4 py-3 sm:px-6 md:static md:border-0 md:bg-transparent md:p-0">
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t-[1.5px] border-borda bg-white px-4 py-3 sm:px-6 md:static md:border-0 md:bg-transparent md:p-0 lg:flex lg:justify-center">
           <button type="button" onClick={aoVerCursos} className={`${BOTAO_PRINCIPAL} w-full lg:h-14 lg:w-auto lg:px-10 lg:text-[17px]`}>
             Ver os cursos sugeridos <ArrowRight className="h-[18px] w-[18px]" aria-hidden="true" />
           </button>
