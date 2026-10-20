@@ -13,9 +13,12 @@ export const DISCIPLINAS = [
 export const NOTA_MIN = 10;
 export const NOTA_MAX = 20;
 
-// Máximo de perguntas do teste (cat/motor.py → MAX_PERGUNTAS). O teste pode
-// acabar antes, a partir da 5.ª pergunta, quando o perfil já está claro.
-export const MAX_PERGUNTAS = 15;
+// Máximo de perguntas que o aluno pode ver no teste: até 15 escolhidas pelo
+// CAT (cat/motor.py → MAX_PERGUNTAS) mais as 3 perguntas de verificação de
+// coerência, que fecham os pares abertos antes de terminar (cat/services.py).
+// O teste pode acabar antes, a partir da 5.ª pergunta, quando o perfil já está claro.
+export const MIN_PERGUNTAS = 5;
+export const MAX_PERGUNTAS = 18;
 
 /** Regista o aluno. Devolve { id, nome, idade, escola, token_sessao }. */
 export function registarAluno({ nome, idade, escola }) {

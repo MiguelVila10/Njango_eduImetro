@@ -11,6 +11,7 @@ export function useTeste(alunoId) {
   const [aEnviar, setAEnviar] = useState(false);
   const [erro, setErro] = useState(null);
   const mostradaEm = useRef(0); // quando a pergunta actual apareceu
+  const guardada = useRef(null); // id da última pergunta cuja resposta o servidor aceitou
 
   const carregar = useCallback(async () => {
     setCarregando(true);
@@ -47,13 +48,18 @@ export function useTeste(alunoId) {
     setAEnviar(true);
     setErro(null);
     try {
-      await responderPergunta({
-        alunoId,
-        itemId: estado.item.id,
-        opcao: opcao.opcao,
-        posicao: opcao.posicao,
-        tempoMs,
-      });
+      // Se a resposta já foi guardada e só falhou o pedido da pergunta
+      // seguinte, "tentar de novo" não volta a enviar a mesma resposta.
+      if (guardada.current !== estado.item.id) {
+        await responderPergunta({
+          alunoId,
+          itemId: estado.item.id,
+          opcao: opcao.opcao,
+          posicao: opcao.posicao,
+          tempoMs,
+        });
+        guardada.current = estado.item.id;
+      }
       setEstado(await proximaPergunta(alunoId));
     } catch (e) {
       setErro(e);
@@ -67,6 +73,7 @@ export function useTeste(alunoId) {
     setAEnviar(true);
     setErro(null);
     try {
+      guardada.current = null; // na 2.ª tentativa as perguntas podem repetir-se
       setEstado(await repetirTeste(alunoId));
     } catch (e) {
       setErro(e);
