@@ -90,3 +90,26 @@ class VetorIdealCursoViewSetTest(APITestCase):
         data = {"curso": self.curso.id, "disciplina": "Matemática", "peso_ideal": 16}
         response = self.client.post("/api/vetores-ideais/", data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+class DescricoesCursosTest(TestCase):
+    """O seed preenche a explicação de cada curso sem apagar o que o orientador escreveu."""
+
+    def test_seed_preenche_todas_as_descricoes(self):
+        from django.core.management import call_command
+        from io import StringIO
+
+        call_command("seed_cursos", stdout=StringIO())
+        self.assertEqual(Curso.objects.count(), 20)
+        self.assertFalse(Curso.objects.filter(descricao="").exists())
+
+    def test_seed_nao_substitui_texto_do_orientador(self):
+        from django.core.management import call_command
+        from io import StringIO
+
+        call_command("seed_cursos", stdout=StringIO())
+        curso = Curso.objects.get(nome="Técnico de Informática", instituicao="ITEL")
+        curso.descricao = "Texto escrito pelo orientador."
+        curso.save()
+        call_command("seed_cursos", stdout=StringIO())
+        curso.refresh_from_db()
+        self.assertEqual(curso.descricao, "Texto escrito pelo orientador.")

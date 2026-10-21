@@ -1,5 +1,6 @@
-// Imagem ilustrativa de cada curso, feita com ícones (não há fotografias dos
-// cursos na base de dados). O ícone escolhe-se pelas palavras do nome do curso.
+// Imagem ilustrativa de cada curso. Se existir uma ilustração em
+// src/assets/cursos/<nome-do-curso>.webp (ver LEIA-ME.md nessa pasta), usa-a;
+// se não, mostra um ícone escolhido pelas palavras do nome do curso.
 
 import {
   Activity, Banknote, BookOpen, Briefcase, Calculator, Clapperboard, Cpu, FlaskConical, GraduationCap,
@@ -28,6 +29,22 @@ const REGRAS = [
   [/educa|ensino/i, BookOpen],
 ];
 
+// Ilustrações disponíveis, por nome de ficheiro (sem extensão).
+const IMAGENS = Object.fromEntries(
+  Object.entries(import.meta.glob("../assets/cursos/*.{webp,png,jpg,jpeg}", { eager: true, import: "default" })).map(
+    ([caminho, url]) => [caminho.split("/").pop().replace(/\.[^.]+$/, ""), url],
+  ),
+);
+
+/** "Técnico de Informática" → "tecnico-de-informatica" */
+export function slugCurso(nome = "") {
+  return nome.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+export function imagemDoCurso(nome) {
+  return IMAGENS[slugCurso(nome)] ?? null;
+}
+
 export function iconeDoCurso(nome = "") {
   return REGRAS.find(([re]) => re.test(nome))?.[1] ?? GraduationCap;
 }
@@ -45,6 +62,14 @@ export function IconeCurso({ nome, className = "" }) {
 /** Painel grande com o ícone do curso sobre um fundo azul com formas (cabeçalho do curso). */
 export function IlustracaoCurso({ nome, className = "" }) {
   const Icone = iconeDoCurso(nome);
+  const imagem = imagemDoCurso(nome);
+  if (imagem) {
+    return (
+      <div className={`relative overflow-hidden rounded-[18px] bg-primaria-clara ${className}`} aria-hidden="true">
+        <img src={imagem} alt="" className="absolute inset-0 h-full w-full object-cover" />
+      </div>
+    );
+  }
   return (
     <div
       className={`relative overflow-hidden rounded-[18px] bg-gradient-to-br from-primaria to-primaria-escura ${className}`}

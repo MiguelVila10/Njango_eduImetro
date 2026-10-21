@@ -3,6 +3,7 @@
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
+from cursos.descricoes import DESCRICOES
 from cursos.models import Curso, PreRequisitoCurso, VetorIdealCurso
 
 
@@ -78,6 +79,12 @@ class Command(BaseCommand):
                 instituicao=instituicao,
                 defaults={"arquetipo_dominante": arquetipo},
             )
+
+            # Explicação do curso para o aluno: só se ainda não tiver uma
+            # (não substitui o que o orientador escreveu no Admin).
+            if not curso.descricao and (curso.nome, instituicao) in DESCRICOES:
+                curso.descricao = DESCRICOES[(curso.nome, instituicao)]
+                curso.save(update_fields=["descricao"])
 
             PreRequisitoCurso.objects.filter(curso=curso).delete()
             VetorIdealCurso.objects.filter(curso=curso).delete()
