@@ -65,8 +65,8 @@ export function IlustracaoCurso({ nome, className = "" }) {
   const imagem = imagemDoCurso(nome);
   if (imagem) {
     return (
-      <div className={`relative overflow-hidden rounded-[18px] bg-primaria-clara ${className}`} aria-hidden="true">
-        <img src={imagem} alt="" className="absolute inset-0 h-full w-full object-cover" />
+      <div className={`relative overflow-hidden rounded-[18px] bg-[#e5f1fc] ${className}`} aria-hidden="true">
+        <img src={imagem} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-contain p-2" />
       </div>
     );
   }

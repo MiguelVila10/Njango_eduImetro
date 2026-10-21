@@ -144,7 +144,7 @@ export default function DetalheCurso() {
     conteudo = (
       <div className="mx-auto w-full max-w-[880px]">
         {/* Cabeçalho com imagem do curso */}
-        <section className="mb-10 grid overflow-hidden rounded-[20px] bg-primaria-clara md:grid-cols-[1fr_300px]">
+        <section className="mb-10 grid overflow-hidden rounded-[20px] bg-primaria-clara md:grid-cols-[1fr_400px]">
           <div className="order-2 px-6 py-7 md:order-1 md:px-10 md:py-10">
             <div className="mb-4 flex flex-wrap gap-2">
               {eEscolhido && (
@@ -163,7 +163,7 @@ export default function DetalheCurso() {
               {rec.curso_descricao || `Para saberes o que se aprende neste curso, informa-te junto do ${rec.curso_instituicao}.`}
             </p>
           </div>
-          <IlustracaoCurso nome={rec.curso_nome} className="order-1 h-[170px] rounded-none md:order-2 md:h-full md:min-h-[260px]" />
+          <IlustracaoCurso nome={rec.curso_nome} className="order-1 h-[230px] rounded-none md:order-2 md:h-full md:min-h-[300px]" />
         </section>
 
         {/* Porque te sugerimos: resumo em 3 cartões */}
