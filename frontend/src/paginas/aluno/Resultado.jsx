@@ -11,7 +11,7 @@ import { Link, Navigate, useNavigate } from "react-router-dom";
 import { cursosQuaseCompativeis, listarNotas } from "../../api/aluno";
 import CabecalhoPercurso from "../../componentes/CabecalhoPercurso";
 import { IconeCurso } from "../../componentes/cursoVisual";
-import { PanoramaPerfil } from "../../componentes/explicacao";
+import { PanoramaPerfil, resumoSugestao } from "../../componentes/explicacao";
 import {
   AvisoVinteQuatroHoras, BOTAO_PRINCIPAL, BOTAO_SECUNDARIO, Compatibilidade, ConfirmarEscolha, percentagem,
 } from "../../componentes/sugestoes";
@@ -46,6 +46,7 @@ function CartaoCurso({ rec, aoEscolher }) {
               {rec.curso_nome}
               <span className="ml-2 inline-block whitespace-nowrap text-[14px] font-medium text-texto-suave">— {rec.curso_instituicao}</span>
             </h2>
+            <p className="mt-2 text-[15px] leading-relaxed text-texto-suave">{resumoSugestao(rec)}</p>
             <dl className="mt-3 flex flex-wrap gap-2 text-[13px]">
               <div className="flex items-center gap-1.5 rounded-[8px] bg-fundo px-2.5 py-1 ring-1 ring-borda">
                 <dt className="text-texto-suave">Notas</dt>

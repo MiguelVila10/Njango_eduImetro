@@ -150,3 +150,93 @@ export function PanoramaPerfil({ perfil, notas }) {
     </section>
   );
 }
+
+// ---------------------------------------------------------------------------
+// "O que isto quer dizer": leitura simples dos números, para um aluno de 15
+// anos perceber cada passo sem precisar de saber como o motor funciona.
+
+export function leituraNotasMinimas(rec) {
+  const req = (rec.notas_minimas ?? []).filter((r) => r.tua_nota != null);
+  if (!req.length) {
+    return "Este curso não exige uma nota mínima numa disciplina específica, por isso qualquer aluno com as notas da 9.ª classe pode ser considerado.";
+  }
+  const disciplinas = juntar(req.map((r) => r.disciplina));
+  const iguais = new Set(req.map((r) => r.nota_min)).size === 1;
+  const pede = iguais ? `pelo menos ${req[0].nota_min} a ${disciplinas}` : `uma nota mínima a ${disciplinas}`;
+  const folga = req.every((r) => r.tua_nota > r.nota_min);
+  return (
+    `Para entrar neste curso, a escola pede ${pede}. ` +
+    (folga ? "As tuas notas são mais altas do que isso em todas, " : "As tuas notas chegam ao mínimo em todas, ") +
+    "por isso o curso pode ser uma opção para ti. Se tivesses menos do que o mínimo numa delas, o curso nem aparecia na lista."
+  );
+}
+
+export function leituraNotasIdeais(rec) {
+  const p = pct(rec.score_academico);
+  const chave = (rec.disciplinas_chave ?? []).filter((d) => d.tua_nota != null);
+  const noNivel = chave.filter((d) => d.tua_nota >= d.referencia).map((d) => d.disciplina);
+  const abaixo = chave.filter((d) => d.tua_nota < d.referencia);
+  const quanto = p >= 85 ? "muito parecidas" : p >= 70 ? "parecidas" : "parecidas só em parte";
+  let texto = `${p}% quer dizer que as tuas notas são ${quanto} com as de um aluno que se dá bem neste curso.`;
+  if (noNivel.length) texto += ` Já estás no nível em ${juntar(noNivel)}.`;
+  if (abaixo.length) {
+    const perto = abaixo.every((d) => d.referencia - d.tua_nota <= 2);
+    texto += ` Em ${juntar(abaixo.map((d) => d.disciplina))} estás ${perto ? "perto" : "um pouco abaixo"}: se melhorares, vais sentir-te mais à vontade no curso.`;
+  }
+  return texto;
+}
+
+export function leituraTeste(rec) {
+  const perfil = rec.perfil_aluno;
+  const arq = rec.curso_arquetipo;
+  if (!perfil?.total) return `Este curso é para quem gosta de ${PERFIS[arq]}.`;
+  const doCurso = perfil.arquetipos.find((a) => a.arquetipo === arq) ?? { respostas: 0, percentagem: 0 };
+  const topo = perfil.arquetipos[0];
+  let texto =
+    "No teste escolheste, em cada situação, o que preferias fazer. Cada resposta mostra um tipo de interesse (um perfil). " +
+    `Este curso é do perfil ${arq}: para quem gosta de ${PERFIS[arq]}. `;
+  if (topo.arquetipo === arq) {
+    texto += `Foi o perfil que escolheste mais vezes (${pct(doCurso.percentagem)}%), por isso o curso combina muito com o que gostas de fazer.`;
+  } else if (doCurso.percentagem >= 0.25) {
+    texto += `Escolheste mais vezes o perfil ${topo.arquetipo}, mas o perfil deste curso também aparece bastante nas tuas respostas (${pct(doCurso.percentagem)}%).`;
+  } else {
+    texto += `Escolheste mais vezes o perfil ${topo.arquetipo}. O perfil deste curso apareceu pouco (${pct(doCurso.percentagem)}%), por isso o curso combina contigo sobretudo pelas notas.`;
+  }
+  return texto;
+}
+
+export function leituraSoma(rec, primeira) {
+  const a = pct(rec.score_academico);
+  const t = pct(rec.score_psicografico);
+  const f = pct(rec.score_final);
+  let texto =
+    `Para calcular a compatibilidade, as notas contam mais (60%) do que o teste (40%). As tuas notas deram ${a}% e o teste deu ${t}%. ` +
+    `Juntando os dois, este curso combina ${f}% contigo. Quanto maior a percentagem, mais o curso combina com as tuas notas e com o que gostas de fazer.`;
+  if (primeira && primeira.id !== rec.id) {
+    texto += ` Ficou atrás de ${primeira.curso_nome} (${pct(primeira.score_final)}%), mas continua a ser uma boa opção.`;
+  } else {
+    texto += " É a sugestão que mais combina contigo.";
+  }
+  return texto;
+}
+
+/** Uma frase simples para o cartão da sugestão (o detalhe fica no ecrã do curso). */
+export function resumoSugestao(rec) {
+  const req = (rec.notas_minimas ?? []).filter((r) => r.tua_nota != null);
+  const minimos = req.length
+    ? `Tens as notas mínimas em ${juntar(req.map((r) => r.disciplina))}`
+    : "O curso não pede notas mínimas específicas";
+  const p = pct(rec.score_academico);
+  const quanto = p >= 85 ? "muito parecidas" : p >= 70 ? "parecidas" : "parecidas em parte";
+  const perfil = rec.perfil_aluno;
+  const arq = rec.curso_arquetipo;
+  const doCurso = perfil?.arquetipos?.find((a) => a.arquetipo === arq);
+  let teste = "";
+  if (doCurso && perfil.total) {
+    const t = pct(doCurso.percentagem);
+    if (perfil.arquetipos[0].arquetipo === arq) teste = ` e o perfil ${arq} foi o que mais escolheste no teste (${t}%)`;
+    else if (doCurso.percentagem >= 0.25) teste = ` e o perfil ${arq} aparece bastante nas tuas respostas ao teste (${t}%)`;
+    else teste = `; no teste, o perfil ${arq} apareceu pouco (${t}%)`;
+  }
+  return `${minimos}, as tuas notas são ${quanto} com as do curso (${p}%)${teste}.`;
+}

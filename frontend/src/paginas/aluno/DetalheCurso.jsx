@@ -5,13 +5,15 @@
 //   3. Teste (perfil): como as respostas se repartem e qual é o perfil do curso.
 // Depois, a soma dos dois em blocos (60% notas + 40% teste = compatibilidade).
 
-import { Check, CircleAlert, Equal, Info, Plus } from "lucide-react";
+import { Check, CircleAlert, Equal, Info, Lightbulb, Plus } from "lucide-react";
 import { useCallback, useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 
 import CabecalhoPercurso from "../../componentes/CabecalhoPercurso";
 import { IlustracaoCurso } from "../../componentes/cursoVisual";
-import { PERFIS } from "../../componentes/explicacao";
+import {
+  PERFIS, leituraNotasIdeais, leituraNotasMinimas, leituraSoma, leituraTeste,
+} from "../../componentes/explicacao";
 import {
   AvisoVinteQuatroHoras, BOTAO_PRINCIPAL, BOTAO_SECUNDARIO, Compatibilidade, ConfirmarEscolha, percentagem,
   proximosPassos,
@@ -19,7 +21,19 @@ import {
 import { useRecomendacoes } from "../../hooks/useRecomendacoes";
 import { sessaoAluno } from "../../sessao/sessaoAluno";
 
-function Passo({ numero, titulo, resumo, children }) {
+function OQueQuerDizer({ children }) {
+  return (
+    <div className="mt-4 flex items-start gap-3 rounded-[12px] bg-amber-50/70 px-4 py-3 ring-1 ring-amber-100">
+      <Lightbulb className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" aria-hidden="true" />
+      <p className="text-[14px] leading-relaxed text-texto md:text-[15px]">
+        <strong className="font-semibold">O que isto quer dizer: </strong>
+        {children}
+      </p>
+    </div>
+  );
+}
+
+function Passo({ numero, titulo, resumo, leitura, children }) {
   return (
     <li className="relative flex gap-4 md:gap-6">
       <div className="flex flex-col items-center">
@@ -32,6 +46,7 @@ function Passo({ numero, titulo, resumo, children }) {
         <h3 className="text-[17px] font-bold md:text-[18px]">{titulo}</h3>
         <p className="mb-4 mt-1 text-[14px] text-texto-suave md:text-[15px]">{resumo}</p>
         {children}
+        {leitura && <OQueQuerDizer>{leitura}</OQueQuerDizer>}
       </div>
     </li>
   );
@@ -84,7 +99,6 @@ export default function DetalheCurso() {
     const chave = rec.disciplinas_chave ?? [];
     const perfil = rec.perfil_aluno;
     const doCurso = perfil?.arquetipos?.find((a) => a.arquetipo === rec.curso_arquetipo);
-    const topo = perfil?.arquetipos?.[0];
     const primeira = recomendacoes.find((r) => r.rank === 1);
 
     conteudo = (
@@ -121,6 +135,7 @@ export default function DetalheCurso() {
             <Passo
               numero={1}
               titulo="Tens as notas mínimas"
+              leitura={leituraNotasMinimas(rec)}
               resumo={minimos.length ? "O curso pede uma nota mínima nestas disciplinas. Tu cumpres todas." : "Este curso não pede nota mínima em disciplinas específicas."}
             >
               {minimos.length > 0 && (
@@ -146,6 +161,7 @@ export default function DetalheCurso() {
             <Passo
               numero={2}
               titulo="As tuas notas parecem-se com as ideais"
+              leitura={leituraNotasIdeais(rec)}
               resumo={`Comparámos as tuas 12 notas com as notas ideais do curso: são ${percentagem(rec.score_academico)}% parecidas.`}
             >
               <div className="mb-3 flex flex-wrap gap-4 text-[12px] text-texto-suave">
@@ -179,6 +195,7 @@ export default function DetalheCurso() {
             <Passo
               numero={3}
               titulo="Combina com as tuas respostas"
+              leitura={leituraTeste(rec)}
               resumo={
                 doCurso
                   ? `${doCurso.respostas} de ${perfil.total} respostas tuas foram do perfil ${rec.curso_arquetipo}, o perfil deste curso.`
@@ -204,10 +221,6 @@ export default function DetalheCurso() {
                       );
                     })}
                   </ul>
-                  <p className="mt-4 rounded-[10px] bg-primaria-clara/60 px-4 py-3 text-[14px] leading-relaxed text-primaria-escura">
-                    <strong>Perfil {rec.curso_arquetipo}:</strong> quem gosta de {PERFIS[rec.curso_arquetipo]}.
-                    {topo && topo.arquetipo !== rec.curso_arquetipo && ` O teu perfil mais forte foi ${topo.arquetipo}.`}
-                  </p>
                 </>
               )}
             </Passo>
@@ -226,21 +239,17 @@ export default function DetalheCurso() {
               <Compatibilidade rec={rec} tamanho={96} />
             </div>
           </div>
-          <p className="mt-5 text-center text-[14px] text-texto-suave">
-            {rec.rank === 1 || !primeira
-              ? "É a sugestão com maior compatibilidade."
-              : `Ficou em ${rec.rank}.º lugar, atrás de ${primeira.curso_nome} (${percentagem(primeira.score_final)}%).`}
-          </p>
+          <OQueQuerDizer>{leituraSoma(rec, primeira)}</OQueQuerDizer>
         </section>
 
         {/* Próximos passos */}
         <section className="mt-8 rounded-[16px] border-[1.5px] border-borda bg-white p-6 md:p-8" aria-labelledby="passos-titulo">
           <h2 id="passos-titulo" className="mb-5 text-[20px] font-bold">Próximos passos</h2>
-          <ol className="mb-5 grid gap-3 md:grid-cols-3">
+          <ol className="mb-5 flex flex-col gap-3.5">
             {proximosPassos(rec).map((p, i) => (
-              <li key={i} className="rounded-[12px] bg-fundo p-4 text-[14px] leading-snug ring-1 ring-borda">
-                <span className="mb-2 flex h-7 w-7 items-center justify-center rounded-full bg-primaria-clara text-[13px] font-bold text-primaria-escura">{i + 1}</span>
-                {p}
+              <li key={i} className="flex gap-3 text-[15px] leading-snug">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primaria-clara text-[13px] font-bold text-primaria-escura">{i + 1}</span>
+                <span className="pt-1">{p}</span>
               </li>
             ))}
           </ol>
