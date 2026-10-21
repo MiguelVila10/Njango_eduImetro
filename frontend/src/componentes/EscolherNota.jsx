@@ -80,7 +80,7 @@ export default function EscolherNota({ disciplina, valor, aoEscolher, aoFechar }
                 <X className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
-            <p className="mb-4 text-[14px] text-texto-suave">Toca na nota que aparece no teu boletim.</p>
+            <p className="mb-4 text-[14px] text-texto-suave">Toca na nota que aparece no teu certificado.</p>
 
             <div className="grid grid-cols-4 gap-2.5">
               {NOTAS.map((n) => {

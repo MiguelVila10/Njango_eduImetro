@@ -6,8 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { registarAluno } from "../../api/aluno";
-import Cabecalho from "../../componentes/Cabecalho";
-import Passos from "../../componentes/Passos";
+import CabecalhoPercurso from "../../componentes/CabecalhoPercurso";
 import Palco, { usePersonagens } from "../../componentes/personagens/Palco";
 import { A_PENSAR, CONTENTE, DUVIDA, SURPRESA } from "../../componentes/personagens/Personagem";
 import { iniciarSessaoAluno } from "../../sessao/sessaoAluno";
@@ -133,13 +132,12 @@ export default function Registo() {
 
   return (
     <div className="min-h-screen bg-fundo">
-      <Cabecalho />
+      <CabecalhoPercurso passo={1} voltarPara="/" />
       <main className="mx-auto grid max-w-[1180px] grid-cols-1 gap-4 px-4 pb-10 pt-4 md:gap-6 md:pt-6 sm:px-5 md:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
         <Palco nzinga={nzinga} kiala={kiala} />
 
         {/* Formulário */}
         <form onSubmit={submeter} noValidate className="flex min-w-0 flex-col gap-5 rounded-[20px] bg-white p-6 shadow-[0_10px_28px_rgba(37,43,66,0.07)] md:p-8">
-          <Passos atual={1} />
           <div>
             <h1 className="text-[26px] font-bold leading-tight md:text-[30px]">Vamos começar</h1>
             <p className="mt-1 text-texto-suave">Conta-nos só um pouco sobre ti. Não precisas de criar conta nem palavra-passe.</p>

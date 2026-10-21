@@ -182,7 +182,7 @@ export default function Inicio() {
                 >
                   {textoBotao} <ArrowRight className="h-5 w-5" aria-hidden="true" />
                 </Link>
-                <p className="text-[14px] text-white/75">Sem criar conta. Só precisas do teu boletim.</p>
+                <p className="text-[14px] text-white/75">Sem criar conta. Só precisas do teu certificado.</p>
               </motion.div>
               <motion.ul {...entradaHero(4)} className="mt-10 grid max-w-[600px] grid-cols-[1.6fr_1fr_1fr] gap-4 border-t border-white/15 pt-6">
                 {[
@@ -328,7 +328,7 @@ export default function Inicio() {
           <Revelar className="mx-auto flex max-w-[1140px] flex-col items-center px-4 text-center sm:px-6">
             <h2 className="mb-2 text-[24px] font-bold tracking-tight md:text-[28px]">Pronto para descobrir o teu caminho?</h2>
             <p className="mb-5 max-w-[65ch] text-[16px] font-medium leading-[1.6] text-white/95">
-              Tem o teu boletim à mão e começa quando quiseres.
+              Tem o teu certificado à mão e começa quando quiseres.
             </p>
             <Link
               to={comecar.para}

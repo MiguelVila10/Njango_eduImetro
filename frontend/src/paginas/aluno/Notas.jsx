@@ -115,14 +115,14 @@ export default function Notas() {
               As tuas notas da 9.ª classe
             </h1>
             <p className="mb-6 text-[16px] font-medium leading-[1.6] text-texto-suave md:text-[17px]">
-              Escreve a nota final de cada disciplina, de 10 a 20, tal como aparece no teu boletim.
+              Escreve a nota final de cada disciplina, de 10 a 20, tal como aparece no teu certificado.
               <span className="hidden md:inline"> As notas mostram em que áreas tens mais facilidade.</span>
             </p>
 
             <div className="mb-6 flex items-start gap-3.5 rounded-[8px] border border-primaria/20 bg-primaria-clara p-4 md:mb-8">
               <Lightbulb className="mt-0.5 h-6 w-6 shrink-0 text-primaria-escura" strokeWidth={1.8} aria-hidden="true" />
               <p className="text-[14px] font-medium leading-relaxed">
-                <span className="hidden md:inline">Tem o teu boletim à mão. </span>
+                <span className="hidden md:inline">Tem o teu certificado à mão. </span>
                 Escreve as notas verdadeiras: assim, as sugestões ficam mais certas para ti.
               </p>
             </div>
