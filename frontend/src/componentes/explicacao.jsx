@@ -89,49 +89,6 @@ export function explicarCalculo(rec) {
   return `60% × ${pct(rec.score_academico)}% (notas) + 40% × ${pct(rec.score_psicografico)}% (respostas) ≈ ${pct(rec.score_final)}% de compatibilidade.`;
 }
 
-export function explicarPosicao(rec, todas) {
-  if (rec.rank === 1 || todas.length < 2) {
-    return todas.length > 1 ? "É a sugestão com maior compatibilidade." : "É a única sugestão que cumpre as notas mínimas.";
-  }
-  const primeira = todas.find((r) => r.rank === 1);
-  const diff = pct(primeira.score_final) - pct(rec.score_final);
-  if (diff <= 0) return `Ficou praticamente empatada com ${primeira.curso_nome} (${pct(primeira.score_final)}%).`;
-  return `Ficou em ${rec.rank}.º lugar, ${diff} ${diff === 1 ? "ponto" : "pontos"} abaixo de ${primeira.curso_nome} (${pct(primeira.score_final)}%).`;
-}
-
-/** Bloco "Porque te sugerimos este curso" com as duas partes e o cálculo. */
-export function ExplicacaoCurso({ rec, todas = [], compacto = false }) {
-  const caixa = compacto ? "rounded-[12px] bg-fundo p-4 ring-1 ring-borda" : "rounded-[14px] border-[1.5px] border-borda bg-white p-5 md:p-6";
-  const texto = compacto ? "text-[14px]" : "text-[15px]";
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="grid gap-3 md:grid-cols-2">
-        {[
-          [NotebookPen, compacto ? "Pelas tuas notas" : "1. Pelas tuas notas", rec.score_academico, "vale 60%", explicarNotas(rec)],
-          [ListChecks, compacto ? "Pelas tuas respostas ao teste" : "2. Pelas tuas respostas ao teste", rec.score_psicografico, "vale 40%", explicarTeste(rec)],
-        ].map(([Icone, titulo, valor, peso, paragrafos]) => (
-          <section key={titulo} className={caixa}>
-            <div className="mb-2 flex items-center justify-between gap-2">
-              <h3 className="flex items-center gap-2 text-[15px] font-bold">
-                <Icone className="h-[18px] w-[18px] text-primaria" aria-hidden="true" /> {titulo}
-              </h3>
-              <span className="whitespace-nowrap rounded-full bg-primaria-clara px-2.5 py-0.5 text-[12px] font-bold text-primaria-escura">
-                {pct(valor)}% <span className="font-medium">· {peso}</span>
-              </span>
-            </div>
-            <div className={`flex flex-col gap-1.5 leading-relaxed text-texto-suave ${texto}`}>
-              {paragrafos.map((p) => <p key={p}>{p}</p>)}
-            </div>
-          </section>
-        ))}
-      </div>
-      <p className={`rounded-[10px] bg-primaria-clara/60 px-4 py-2.5 font-medium text-primaria-escura ${compacto ? "text-[13px]" : "text-[14px]"}`}>
-        {explicarCalculo(rec)} {todas.length ? explicarPosicao(rec, todas) : ""}
-      </p>
-    </div>
-  );
-}
-
 /** Panorama do aluno nos dois processos (topo das sugestões). */
 export function PanoramaPerfil({ perfil, notas }) {
   const lista = Object.entries(notas ?? {}).sort((a, b) => b[1] - a[1]);

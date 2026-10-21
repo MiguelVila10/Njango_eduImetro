@@ -4,25 +4,26 @@
 // confirmação; a escolha é definitiva). Se nenhum curso cumprir as notas
 // mínimas, mostra os mais próximos e o que falta em cada disciplina.
 
-import { Building2, Info, LoaderCircle, Lock, RefreshCw, Sparkles, Users } from "lucide-react";
+import { ArrowRight, Building2, Info, LoaderCircle, Lock, RefreshCw, Sparkles, Users } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 
 import { cursosQuaseCompativeis, listarNotas } from "../../api/aluno";
 import CabecalhoPercurso from "../../componentes/CabecalhoPercurso";
-import { ExplicacaoCurso, PanoramaPerfil } from "../../componentes/explicacao";
+import { IconeCurso } from "../../componentes/cursoVisual";
+import { PanoramaPerfil } from "../../componentes/explicacao";
 import {
-  AvisoVinteQuatroHoras, BOTAO_PRINCIPAL, BOTAO_SECUNDARIO, Compatibilidade, ConfirmarEscolha,
+  AvisoVinteQuatroHoras, BOTAO_PRINCIPAL, BOTAO_SECUNDARIO, Compatibilidade, ConfirmarEscolha, percentagem,
 } from "../../componentes/sugestoes";
 import { useRecomendacoes } from "../../hooks/useRecomendacoes";
 import { sessaoAluno } from "../../sessao/sessaoAluno";
 
-function CartaoCurso({ rec, todas, aoEscolher }) {
+function CartaoCurso({ rec, aoEscolher }) {
   const primeiro = rec.rank === 1;
   return (
     <article
       aria-labelledby={`curso-${rec.id}`}
-      className={`rounded-[16px] border-[1.5px] bg-white p-6 md:p-8 ${primeiro ? "border-primaria/40 shadow-[0_10px_28px_rgba(31,111,192,0.10)]" : "border-borda"}`}
+      className={`rounded-[16px] border-[1.5px] bg-white p-6 md:p-7 ${primeiro ? "border-primaria/40 shadow-[0_10px_28px_rgba(31,111,192,0.10)]" : "border-borda"}`}
     >
       {primeiro && (
         <p className="mb-4 inline-flex items-center gap-1.5 rounded-[8px] bg-primaria-clara px-3 py-1.5 text-[13px] font-bold text-primaria-escura">
@@ -31,29 +32,39 @@ function CartaoCurso({ rec, todas, aoEscolher }) {
       )}
       <div className="flex flex-col gap-5 md:flex-row md:items-center md:gap-8">
         <div className="flex flex-1 gap-4">
-          <span
-            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[15px] font-bold ${primeiro ? "bg-primaria-clara text-primaria" : "bg-fundo text-texto ring-1 ring-borda"}`}
-            aria-label={`${rec.rank}.ª sugestão`}
-          >
-            {rec.rank}.º
-          </span>
+          <div className="relative shrink-0">
+            <IconeCurso nome={rec.curso_nome} className="h-14 w-14" />
+            <span
+              className={`absolute -right-2 -top-2 flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-[11px] font-bold ring-2 ring-white ${primeiro ? "bg-primaria text-white" : "bg-texto text-white"}`}
+              aria-label={`${rec.rank}.ª sugestão`}
+            >
+              {rec.rank}.º
+            </span>
+          </div>
           <div className="min-w-0 flex-1">
             <h2 id={`curso-${rec.id}`} className="text-[20px] font-bold leading-snug md:text-[22px]">
               {rec.curso_nome}
               <span className="ml-2 inline-block whitespace-nowrap text-[14px] font-medium text-texto-suave">— {rec.curso_instituicao}</span>
             </h2>
-            {rec.disciplinas_chave?.length > 0 && (
-              <ul className="mt-3 flex flex-wrap gap-2" aria-label="Disciplinas que mais contam">
-                {rec.disciplinas_chave.slice(0, 3).map((d) => (
-                  <li key={d.disciplina} className="rounded-[8px] bg-fundo px-2.5 py-1 text-[13px] ring-1 ring-borda">
-                    {d.disciplina}
-                    {d.tua_nota != null && <span className="ml-1 font-bold tabular-nums">({d.tua_nota})</span>}
-                  </li>
-                ))}
-              </ul>
-            )}
-            <Link to={`/aluno/curso/${rec.id}`} className="mt-3 inline-block text-[15px] font-semibold text-primaria underline underline-offset-2 hover:text-primaria-escura">
-              Ver o curso
+            <dl className="mt-3 flex flex-wrap gap-2 text-[13px]">
+              <div className="flex items-center gap-1.5 rounded-[8px] bg-fundo px-2.5 py-1 ring-1 ring-borda">
+                <dt className="text-texto-suave">Notas</dt>
+                <dd className="font-bold tabular-nums">{percentagem(rec.score_academico)}%</dd>
+              </div>
+              <div className="flex items-center gap-1.5 rounded-[8px] bg-fundo px-2.5 py-1 ring-1 ring-borda">
+                <dt className="text-texto-suave">Teste</dt>
+                <dd className="font-bold tabular-nums">{percentagem(rec.score_psicografico)}%</dd>
+              </div>
+              <div className="flex items-center gap-1.5 rounded-[8px] bg-fundo px-2.5 py-1 ring-1 ring-borda">
+                <dt className="text-texto-suave">Perfil</dt>
+                <dd className="font-bold">{rec.curso_arquetipo}</dd>
+              </div>
+            </dl>
+            <Link
+              to={`/aluno/curso/${rec.id}`}
+              className="mt-3 inline-flex items-center gap-1.5 text-[15px] font-semibold text-primaria hover:text-primaria-escura"
+            >
+              Ver o curso e porque foi sugerido <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
           </div>
         </div>
@@ -63,10 +74,6 @@ function CartaoCurso({ rec, todas, aoEscolher }) {
             Escolher este curso
           </button>
         </div>
-      </div>
-      <div className="mt-5 border-t border-borda pt-5">
-        <p className="mb-3 text-[13px] font-bold uppercase tracking-wide text-texto-suave">Porque te sugerimos este curso</p>
-        <ExplicacaoCurso rec={rec} todas={todas} compacto />
       </div>
     </article>
   );
@@ -262,7 +269,7 @@ export default function Resultado() {
         <PanoramaPerfil perfil={recomendacoes[0]?.perfil_aluno} notas={notas} />
 
         <div className="flex flex-col gap-5">
-          {recomendacoes.map((r) => <CartaoCurso key={r.id} rec={r} todas={recomendacoes} aoEscolher={setAConfirmar} />)}
+          {recomendacoes.map((r) => <CartaoCurso key={r.id} rec={r} aoEscolher={setAConfirmar} />)}
         </div>
 
         <QuaseLa validos={recomendacoes.length} cursos={quase} />
