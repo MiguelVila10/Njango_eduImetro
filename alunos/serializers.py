@@ -1,5 +1,24 @@
+import re
+
 from rest_framework import serializers
 from .models import Aluno, NotaDisciplina
+
+# Nome: só letras (com acentos), separadas por espaço, hífen ou apóstrofo.
+# Ex.: "Ana Kiluange", "João-Pedro", "N'Gola". Recusa "***", "///", "a1".
+NOME_VALIDO = re.compile(r"^[^\W\d_]+(?:[ '’-][^\W\d_]+)*$")
+# Escola: letras, números e a pontuação habitual nos nomes de escolas.
+# Ex.: "Escola do I Ciclo n.º 1234", "Colégio S. José (Cazenga)".
+ESCOLA_CARACTERES = re.compile(r"^[^\W_](?:[^\W_]|[ .,ºª°'’/()\-])*$")
+SIMBOLOS_SEGUIDOS = re.compile(r"[^\w\s]{3,}")
+IDADE_MIN, IDADE_MAX = 10, 25
+
+
+def _normalizar_espacos(valor):
+    return re.sub(r"\s+", " ", valor or "").strip()
+
+
+def _letras(valor):
+    return sum(1 for c in valor if c.isalpha())
 
 
 class AlunoSerializer(serializers.ModelSerializer):
@@ -12,9 +31,27 @@ class AlunoSerializer(serializers.ModelSerializer):
         fields = ["id", "nome", "idade", "escola"]
         read_only_fields = ["id"]
 
+    def validate_nome(self, value):
+        nome = _normalizar_espacos(value)
+        if not NOME_VALIDO.match(nome):
+            raise serializers.ValidationError("O nome só pode ter letras, espaços, hífen ou apóstrofo.")
+        if _letras(nome) < 2:
+            raise serializers.ValidationError("O nome é muito curto.")
+        if len(nome) > 60:
+            raise serializers.ValidationError("O nome é muito longo (máximo 60 caracteres).")
+        return nome
+
+    def validate_escola(self, value):
+        escola = _normalizar_espacos(value)
+        if not ESCOLA_CARACTERES.match(escola) or SIMBOLOS_SEGUIDOS.search(escola) or _letras(escola) < 3:
+            raise serializers.ValidationError("Escreve o nome da escola com letras (podes usar números, como n.º 1234).")
+        if len(escola) > 120:
+            raise serializers.ValidationError("O nome da escola é muito longo (máximo 120 caracteres).")
+        return escola
+
     def validate_idade(self, value):
-        if value <= 0:
-            raise serializers.ValidationError("A idade deve ser um valor positivo.")
+        if not IDADE_MIN <= value <= IDADE_MAX:
+            raise serializers.ValidationError(f"A idade tem de estar entre {IDADE_MIN} e {IDADE_MAX} anos.")
         return value
 
 class NotaDisciplinaSerializer(serializers.ModelSerializer):

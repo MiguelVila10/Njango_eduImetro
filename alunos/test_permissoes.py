@@ -51,7 +51,7 @@ class SessaoDoAlunoTest(APITestCase):
         self.outro = Aluno.objects.create(nome="Outro", idade=15, escola="X")
 
     def test_qualquer_um_pode_iniciar_o_teste_e_recebe_token(self):
-        resposta = self.client.post("/api/alunos/", {"nome": "Ana", "idade": 15, "escola": "E"}, format="json")
+        resposta = self.client.post("/api/alunos/", {"nome": "Ana", "idade": 15, "escola": "Escola n.º 1"}, format="json")
         self.assertEqual(resposta.status_code, status.HTTP_201_CREATED)
         self.assertIn("token_sessao", resposta.data)
 

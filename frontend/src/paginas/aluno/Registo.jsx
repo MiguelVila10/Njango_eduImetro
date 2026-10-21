@@ -14,15 +14,23 @@ import { iniciarSessaoAluno } from "../../sessao/sessaoAluno";
 const reduzirMovimento = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 const primeiroNome = (nome) => nome.trim().split(/\s+/)[0];
 
+// As mesmas regras do servidor (alunos/serializers.py):
+// nome só com letras, separadas por espaço, hífen ou apóstrofo (ex.: "N'Gola", "João-Pedro");
+// escola com letras, números e a pontuação habitual (ex.: "Escola do I Ciclo n.º 1234").
+const NOME_VALIDO = /^\p{L}+(?:[ '’-]\p{L}+)*$/u;
+const ESCOLA_VALIDA = /^[\p{L}\p{N}](?:[\p{L}\p{N}]|[ .,ºª°'’/()-])*$/u;
+const contarLetras = (v) => (v.match(/\p{L}/gu) ?? []).length;
+
 // Cada validação devolve null (vazio), [CONTENTE, frase] ou [erro, frase].
 const CAMPOS = {
   nome: {
     pergunta: "Como te chamas?",
     validar(v) {
-      v = v.trim();
+      v = v.trim().replace(/\s+/g, " ");
       if (!v) return null;
       if (/[0-9]/.test(v)) return [DUVIDA, "Um nome não leva números. Escreve só letras."];
-      if (v.length < 2) return [DUVIDA, "Esse nome é muito curto. Escreve o teu nome completo."];
+      if (!NOME_VALIDO.test(v)) return [DUVIDA, "Um nome só leva letras. Tira os símbolos (como * / @ #)."];
+      if (contarLetras(v) < 2) return [DUVIDA, "Esse nome é muito curto. Escreve o teu nome completo."];
       if (v.length > 60) return [SURPRESA, "Uau, que nome tão grande! Escreve só o primeiro e o último."];
       return [CONTENTE, `Prazer, ${primeiroNome(v)}!`];
     },
@@ -44,7 +52,11 @@ const CAMPOS = {
     validar(v) {
       v = v.trim();
       if (!v) return null;
-      if (v.length < 3) return [DUVIDA, "Escreve o nome completo da tua escola."];
+      if (!ESCOLA_VALIDA.test(v) || /[^\p{L}\p{N}\s]{3,}/u.test(v)) {
+        return [DUVIDA, "Escreve o nome da escola com letras. Podes usar números, como n.º 1234."];
+      }
+      if (contarLetras(v) < 3) return [DUVIDA, "Escreve o nome completo da tua escola."];
+      if (v.length > 120) return [SURPRESA, "Esse nome é muito grande! Escreve só o nome principal da escola."];
       return [CONTENTE, "Fixe! Já falta pouco."];
     },
   },
