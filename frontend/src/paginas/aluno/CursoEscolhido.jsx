@@ -7,7 +7,7 @@ import { Link, Navigate } from "react-router-dom";
 
 import CabecalhoPercurso from "../../componentes/CabecalhoPercurso";
 import {
-  AvisoVinteQuatroHoras, BOTAO_PRINCIPAL, BOTAO_SECUNDARIO, proximosPassos, razaoCurta,
+  AvisoVinteQuatroHoras, BOTAO_PRINCIPAL, BOTAO_SECUNDARIO, Compatibilidade, proximosPassos, razaoCurta,
 } from "../../componentes/sugestoes";
 import { useRecomendacoes } from "../../hooks/useRecomendacoes";
 import { sessaoAluno } from "../../sessao/sessaoAluno";
@@ -41,6 +41,7 @@ function CartaoSugestao({ rec }) {
             Ver o curso
           </Link>
         </div>
+        <Compatibilidade rec={rec} tamanho={68} className="shrink-0" />
       </div>
     </article>
   );

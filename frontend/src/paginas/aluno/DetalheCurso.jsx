@@ -9,7 +9,7 @@ import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 
 import CabecalhoPercurso from "../../componentes/CabecalhoPercurso";
 import {
-  AvisoVinteQuatroHoras, BOTAO_PRINCIPAL, BOTAO_SECUNDARIO, ConfirmarEscolha, proximosPassos,
+  AvisoVinteQuatroHoras, BOTAO_PRINCIPAL, BOTAO_SECUNDARIO, Compatibilidade, ConfirmarEscolha, proximosPassos,
 } from "../../componentes/sugestoes";
 import { useRecomendacoes } from "../../hooks/useRecomendacoes";
 import { sessaoAluno } from "../../sessao/sessaoAluno";
@@ -101,7 +101,8 @@ export default function DetalheCurso() {
     conteudo = (
       <div className="mx-auto w-full max-w-[880px]">
         {/* Cabeçalho do curso */}
-        <section className="mb-8 rounded-[20px] bg-primaria-clara px-6 py-8 md:px-10 md:py-10">
+        <section className="mb-8 flex flex-col gap-6 rounded-[20px] bg-primaria-clara px-6 py-8 md:flex-row md:items-center md:justify-between md:px-10 md:py-10">
+          <div>
           <div className="mb-4 flex flex-wrap gap-2">
             {eEscolhido && (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-[13px] font-semibold text-emerald-700">
@@ -115,6 +116,10 @@ export default function DetalheCurso() {
           <span className="inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-[13px] font-semibold text-primaria-escura ring-1 ring-borda">
             <span className="h-2 w-2 rounded-full bg-primaria" aria-hidden="true" /> Perfil do curso: {rec.curso_arquetipo}
           </span>
+          </div>
+          <div className="shrink-0 self-center rounded-[16px] bg-white px-6 py-5 md:self-auto">
+            <Compatibilidade rec={rec} tamanho={120} detalhe />
+          </div>
         </section>
 
         {/* Sobre o curso */}
@@ -154,7 +159,8 @@ export default function DetalheCurso() {
             />
           </ol>
           <p className="mt-4 rounded-[12px] border-[1.5px] border-borda bg-white px-5 py-4 text-center text-[15px] font-semibold text-primaria">
-            Juntando estes três pontos, {rec.curso_nome} ficou em {rec.rank}.º lugar nas tuas sugestões.
+            Juntando estes três pontos, {rec.curso_nome} tem {Math.round((rec.score_final ?? 0) * 100)}% de compatibilidade contigo e
+            ficou em {rec.rank}.º lugar nas tuas sugestões.
           </p>
         </section>
 

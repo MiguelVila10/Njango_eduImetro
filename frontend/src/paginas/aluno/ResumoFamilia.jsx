@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 
 import { listarNotas, obterAluno } from "../../api/aluno";
-import { razaoCurta } from "../../componentes/sugestoes";
+import { Compatibilidade, percentagem, razaoCurta } from "../../componentes/sugestoes";
 import { useRecomendacoes } from "../../hooks/useRecomendacoes";
 import { sessaoAluno } from "../../sessao/sessaoAluno";
 
@@ -151,7 +151,8 @@ export default function ResumoFamilia() {
           </section>
 
           {/* Curso principal */}
-          <section className="mb-6 rounded-[10px] border-[1.5px] border-borda p-5 print:mb-3 print:p-3">
+          <section className="mb-6 flex flex-col gap-4 rounded-[10px] border-[1.5px] border-borda p-5 sm:flex-row sm:items-center print:mb-3 print:flex-row print:items-center print:p-3">
+            <div className="flex-1">
             <p className="mb-2 inline-block rounded-full bg-primaria px-3 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white print:border print:border-texto print:bg-transparent print:text-texto">
               {escolhida ? "Curso escolhido" : "1.ª sugestão"}
             </p>
@@ -160,6 +161,8 @@ export default function ResumoFamilia() {
             <p className="text-[14px] leading-relaxed print:text-[11px]">
               <strong>Porque foi sugerido: </strong>{porqueComNumeros(principal)}
             </p>
+            </div>
+            <Compatibilidade rec={principal} tamanho={96} detalhe className="shrink-0 self-center" />
           </section>
 
           {/* Tabela */}
@@ -178,7 +181,7 @@ export default function ResumoFamilia() {
                       {recomendacoes.map((r) => (
                         <th key={r.id} scope="col" className="border-b border-borda px-3 py-2 text-center font-semibold leading-tight print:px-2 print:py-1">
                           Mín. {r.curso_instituicao}
-                          <span className="block text-[11px] font-normal text-texto-suave print:text-[8px]">{r.curso_nome.replace(/^Técnico de /, "")}</span>
+                          <span className="block text-[11px] font-normal text-texto-suave print:text-[8px]">{r.curso_nome.replace(/^Técnico de /, "")} · {percentagem(r.score_final)}%</span>
                         </th>
                       ))}
                       <th scope="col" className="border-b border-borda px-3 py-2 text-center font-semibold print:px-2 print:py-1">
@@ -217,7 +220,12 @@ export default function ResumoFamilia() {
               <div className="grid gap-3 sm:grid-cols-2 print:grid-cols-2">
                 {outras.map((r) => (
                   <div key={r.id} className="rounded-[10px] bg-fundo p-4 print:border print:border-borda print:bg-transparent print:p-2.5">
-                    <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-primaria-escura print:text-texto-suave">{r.rank}.ª sugestão</p>
+                    <p className="mb-1 flex items-center justify-between gap-2 text-[11px] font-bold uppercase tracking-wide text-primaria-escura print:text-texto-suave">
+                      {r.rank}.ª sugestão
+                      <span className="rounded-full bg-primaria-clara px-2 py-0.5 text-[12px] normal-case tracking-normal text-primaria-escura print:bg-transparent print:p-0 print:text-[10px]">
+                        {percentagem(r.score_final)}% compatível
+                      </span>
+                    </p>
                     <p className="text-[16px] font-bold leading-snug print:text-[12px]">{r.curso_nome}</p>
                     <p className="mb-1.5 text-[13px] font-semibold text-primaria print:text-[10px] print:text-texto">{r.curso_instituicao}</p>
                     <p className="text-[13px] leading-snug text-texto-suave print:text-[10px]">{razaoCurta(r, TERCEIRA)}</p>
@@ -258,7 +266,8 @@ export default function ResumoFamilia() {
           <footer className="border-t border-borda pt-3 text-[11px] leading-relaxed text-texto-suave print:text-[8.5px]">
             Este resumo foi produzido pelo Njango Edu, um sistema de apoio à orientação vocacional, a partir das notas
             indicadas pelo aluno e das respostas ao teste. É uma ajuda à decisão da família e não substitui a inscrição
-            oficial nem as regras de acesso de cada instituição.
+            oficial nem as regras de acesso de cada instituição. A compatibilidade junta as notas (60%) e as respostas ao
+            teste (40%).
           </footer>
         </article>
       </main>

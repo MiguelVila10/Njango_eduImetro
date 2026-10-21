@@ -128,3 +128,43 @@ export function ConfirmarEscolha({ rec, aEscolher, erro, aoConfirmar, aoFechar }
     </AnimatePresence>
   );
 }
+
+/** 0.873 → 87 */
+export const percentagem = (v) => Math.round((v ?? 0) * 100);
+
+/**
+ * Compatibilidade do curso (score final do motor: 60% notas + 40% respostas)
+ * num anel com a percentagem ao centro. Com `detalhe`, mostra também as duas
+ * partes por baixo.
+ */
+export function Compatibilidade({ rec, tamanho = 76, detalhe = false, className = "" }) {
+  const p = percentagem(rec.score_final);
+  const r = 15.5;
+  const perimetro = 2 * Math.PI * r;
+  const grande = tamanho >= 110;
+  return (
+    <div className={`flex flex-col items-center ${className}`}>
+      <div className="relative" style={{ width: tamanho, height: tamanho }} role="img" aria-label={`${p}% de compatibilidade`}>
+        <svg viewBox="0 0 36 36" className="h-full w-full -rotate-90" aria-hidden="true">
+          <circle cx="18" cy="18" r={r} fill="none" stroke="var(--color-primaria-clara)" strokeWidth="3.2" />
+          <circle
+            cx="18" cy="18" r={r} fill="none" stroke="var(--color-primaria)" strokeWidth="3.2" strokeLinecap="round"
+            strokeDasharray={`${(p / 100) * perimetro} ${perimetro}`}
+          />
+        </svg>
+        <span className={`absolute inset-0 flex items-center justify-center font-bold tabular-nums text-primaria-escura ${grande ? "text-[30px]" : "text-[19px]"}`}>
+          {p}%
+        </span>
+      </div>
+      <span className={`mt-1.5 font-bold uppercase tracking-wide text-primaria ${grande ? "text-[12px]" : "text-[10.5px]"}`}>Compatível</span>
+      {detalhe && (
+        <dl className="mt-3 grid w-full min-w-[170px] grid-cols-[1fr_auto] gap-x-3 gap-y-1 text-[13px]">
+          <dt className="text-texto-suave">Notas (60%)</dt>
+          <dd className="text-right font-semibold tabular-nums">{percentagem(rec.score_academico)}%</dd>
+          <dt className="text-texto-suave">Respostas (40%)</dt>
+          <dd className="text-right font-semibold tabular-nums">{percentagem(rec.score_psicografico)}%</dd>
+        </dl>
+      )}
+    </div>
+  );
+}

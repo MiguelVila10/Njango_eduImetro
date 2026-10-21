@@ -11,7 +11,7 @@ import { Link, Navigate, useNavigate } from "react-router-dom";
 import { cursosQuaseCompativeis } from "../../api/aluno";
 import CabecalhoPercurso from "../../componentes/CabecalhoPercurso";
 import {
-  AvisoVinteQuatroHoras, BOTAO_PRINCIPAL, BOTAO_SECUNDARIO, ConfirmarEscolha, razaoCurta,
+  AvisoVinteQuatroHoras, BOTAO_PRINCIPAL, BOTAO_SECUNDARIO, Compatibilidade, ConfirmarEscolha, razaoCurta,
 } from "../../componentes/sugestoes";
 import { useRecomendacoes } from "../../hooks/useRecomendacoes";
 import { sessaoAluno } from "../../sessao/sessaoAluno";
@@ -57,9 +57,12 @@ function CartaoCurso({ rec, aoEscolher }) {
             </Link>
           </div>
         </div>
-        <button type="button" onClick={() => aoEscolher(rec)} className={`${BOTAO_PRINCIPAL} w-full md:w-auto md:px-8`}>
-          Escolher este curso
-        </button>
+        <div className="flex items-center gap-5 md:flex-col md:gap-4">
+          <Compatibilidade rec={rec} />
+          <button type="button" onClick={() => aoEscolher(rec)} className={`${BOTAO_PRINCIPAL} flex-1 md:w-auto md:flex-none md:px-8`}>
+            Escolher este curso
+          </button>
+        </div>
       </div>
     </article>
   );
@@ -237,6 +240,10 @@ export default function Resultado() {
         <h1 className="mb-2 text-[28px] font-bold leading-tight md:text-[34px]">Qual destes cursos queres escolher?</h1>
         <p className="mb-8 text-[16px] leading-relaxed text-texto-suave md:text-[17px]">
           Escolhe o curso que mais te interessa. A tua escolha fica registada para o orientador te poder acompanhar.
+        </p>
+        <p className="-mt-5 mb-8 flex items-start gap-2 text-[14px] text-texto-suave">
+          <Info className="mt-0.5 h-4 w-4 shrink-0 text-primaria" aria-hidden="true" />
+          A percentagem de compatibilidade junta as tuas notas (60%) e as tuas respostas ao teste (40%).
         </p>
 
         <div className="flex flex-col gap-5">
