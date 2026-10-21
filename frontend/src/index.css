@@ -50,3 +50,24 @@ body {
 .barra-concluida {
   background-image: repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.22) 0 6px, transparent 6px 12px);
 }
+
+/* Impressão do resumo para a família: folha A4, cores fiéis quando a impressora é a cores. */
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+  html,
+  body {
+    background: #fff !important;
+  }
+  .folha-a4 {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .folha-a4 section,
+  .folha-a4 table,
+  .folha-a4 li {
+    break-inside: avoid;
+  }
+}

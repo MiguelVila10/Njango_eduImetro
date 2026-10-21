@@ -19,7 +19,7 @@ function juntar(lista) {
  * Frase curta para o cartão: as disciplinas importantes em que o aluno está
  * bem e quanto as respostas ao teste apontam para o perfil do curso.
  */
-export function razaoCurta(rec) {
+export function razaoCurta(rec, { terceiraPessoa = false } = {}) {
   // Só as 3 disciplinas que aparecem no cartão, para a frase bater com o que o aluno vê.
   const fortes = (rec.disciplinas_chave ?? [])
     .slice(0, 3)
@@ -29,8 +29,9 @@ export function razaoCurta(rec) {
     .map((d) => d.disciplina);
   const notas = fortes.length ? `Boas notas em ${juntar(fortes)}` : "As tuas notas estão perto do que o curso pede";
   const p = rec.score_psicografico ?? 0;
-  if (p >= 0.4) return `${notas}, e combina com as tuas respostas ao teste.`;
-  if (p >= 0.2) return `${notas}, e combina em parte com as tuas respostas ao teste.`;
+  const respostas = terceiraPessoa ? "as respostas do aluno ao teste" : "as tuas respostas ao teste";
+  if (p >= 0.4) return `${notas}, e combina com ${respostas}.`;
+  if (p >= 0.2) return `${notas}, e combina em parte com ${respostas}.`;
   return `${notas}.`;
 }
 

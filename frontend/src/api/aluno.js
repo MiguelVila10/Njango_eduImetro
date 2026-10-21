@@ -25,6 +25,11 @@ export function registarAluno({ nome, idade, escola }) {
   return pedido("/alunos/", { metodo: "POST", corpo: { nome, idade: Number(idade), escola } });
 }
 
+/** Dados do registo do aluno da sessão: { id, nome, idade, escola }. */
+export function obterAluno(alunoId) {
+  return pedido(`/alunos/${alunoId}/`, { auth: "aluno" });
+}
+
 /** Notas já gravadas do aluno da sessão: [{ id, aluno, disciplina, nota }]. */
 export function listarNotas() {
   return pedido("/notas-disciplina/", { auth: "aluno" });

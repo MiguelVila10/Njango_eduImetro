@@ -1,6 +1,6 @@
 // Escolha registada (design Figma, Frame C): faixa verde de confirmação, as
 // sugestões com a escolhida em destaque, próximos passos e o aviso das 24 horas.
-// Pode ser impresso ou guardado em PDF para o aluno levar à escola.
+// O botão "Resumo para a família" abre a folha A4 para imprimir ou guardar em PDF.
 
 import { Check, ChevronRight, Printer } from "lucide-react";
 import { Link, Navigate } from "react-router-dom";
@@ -95,9 +95,9 @@ export default function CursoEscolhido() {
         <div className="mt-8 flex flex-col items-center justify-between gap-5 md:flex-row">
           <AvisoVinteQuatroHoras />
           <div className="flex w-full flex-col-reverse gap-3 sm:w-auto sm:flex-row print:hidden">
-            <button type="button" onClick={() => window.print()} className={BOTAO_SECUNDARIO}>
-              <Printer className="h-[18px] w-[18px]" aria-hidden="true" /> Guardar ou imprimir
-            </button>
+            <Link to="/aluno/resumo" className={BOTAO_SECUNDARIO}>
+              <Printer className="h-[18px] w-[18px]" aria-hidden="true" /> Resumo para a família
+            </Link>
             <Link to="/" className={BOTAO_PRINCIPAL}>Voltar ao início</Link>
           </div>
         </div>

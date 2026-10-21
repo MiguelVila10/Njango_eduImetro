@@ -255,6 +255,7 @@ export default function Resultado() {
               </p>
               <div className="flex flex-col justify-center gap-3 sm:flex-row">
                 <button type="button" onClick={() => setIndeciso(false)} className={BOTAO_SECUNDARIO}>Ver os cursos outra vez</button>
+                <Link to="/aluno/resumo" className={BOTAO_SECUNDARIO}>Resumo para a família</Link>
                 <Link to="/" className={BOTAO_PRINCIPAL}>Voltar ao início</Link>
               </div>
             </div>

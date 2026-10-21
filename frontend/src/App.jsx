@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { OuvirSessaoExpirada, RotaAluno, RotaOrientador } from "./rotas/Protecoes";
 
 import CursoEscolhido from "./paginas/aluno/CursoEscolhido";
+import ResumoFamilia from "./paginas/aluno/ResumoFamilia";
 import DetalheCurso from "./paginas/aluno/DetalheCurso";
 import Inicio from "./paginas/aluno/Inicio";
 import Notas from "./paginas/aluno/Notas";
@@ -34,6 +35,7 @@ export default function App() {
           <Route path="resultado" element={<Resultado />} />
           <Route path="curso/:id" element={<DetalheCurso />} />
           <Route path="curso-escolhido" element={<CursoEscolhido />} />
+          <Route path="resumo" element={<ResumoFamilia />} />
         </Route>
 
         {/* Orientador */}
