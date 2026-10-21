@@ -30,7 +30,7 @@ const FOTOS_HERO = [
 
 const PASSOS = [
   { icone: NotebookPen, titulo: "Indica as tuas notas",
-    texto: "Escreve as notas finais das 12 disciplinas da 9.ª classe. Elas mostram em que áreas tens mais facilidade." },
+    texto: "Escreve as notas finais das 12 disciplinas que constam no certificado de conclusão do I Ciclo do Ensino Secundário. Elas mostram em que áreas tens mais facilidade." },
   { icone: ListChecks, titulo: "Responde ao teste",
     texto: "Escolhe o que farias em várias situações do dia-a-dia. As perguntas mudam conforme as tuas respostas." },
   { icone: GraduationCap, titulo: "Descobre os teus cursos",
@@ -184,9 +184,9 @@ export default function Inicio() {
                 </Link>
                 <p className="text-[14px] text-white/75">Sem criar conta. Só precisas do teu boletim.</p>
               </motion.div>
-              <motion.ul {...entradaHero(4)} className="mt-10 grid max-w-[520px] grid-cols-3 gap-4 border-t border-white/15 pt-6">
+              <motion.ul {...entradaHero(4)} className="mt-10 grid max-w-[600px] grid-cols-[1.6fr_1fr_1fr] gap-4 border-t border-white/15 pt-6">
                 {[
-                  ["12", "notas do boletim"],
+                  ["12", "médias finais do certificado de conclusão do I Ciclo do Ensino Secundário"],
                   ["5 a 18", "perguntas no teste"],
                   ["Até 3", "cursos sugeridos"],
                 ].map(([numero, texto]) => (

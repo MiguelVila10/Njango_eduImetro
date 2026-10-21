@@ -3,18 +3,15 @@
 // sistema tem (notas, notas mínimas dos cursos, sugestões); não tem códigos de
 // validação nem selos oficiais, porque o documento não é oficial.
 
-import { ArrowLeft, Printer, Share2 } from "lucide-react";
+import { ArrowLeft, Check, Printer, Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 
 import { listarNotas, obterAluno } from "../../api/aluno";
-import { explicarCalculo, explicarNotas, explicarTeste } from "../../componentes/explicacao";
-import { Compatibilidade, percentagem, razaoCurta } from "../../componentes/sugestoes";
+import { IconeCurso } from "../../componentes/cursoVisual";
+import { Compatibilidade, percentagem } from "../../componentes/sugestoes";
 import { useRecomendacoes } from "../../hooks/useRecomendacoes";
 import { sessaoAluno } from "../../sessao/sessaoAluno";
-
-// O resumo é lido pela família: fala do aluno na 3.ª pessoa.
-const TERCEIRA = { terceiraPessoa: true, terceira: true };
 
 const hoje = () => new Date().toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit", year: "numeric" });
 
@@ -64,6 +61,8 @@ export default function ResumoFamilia() {
     notas[d] ?? recomendacoes.flatMap((r) => r.notas_minimas ?? []).find((m) => m.disciplina === d)?.tua_nota;
 
   const chave = (principal.disciplinas_chave ?? []).slice(0, 3).map((d) => d.disciplina);
+  const minimosPrincipal = (principal.notas_minimas ?? []).filter((m) => m.tua_nota != null);
+  const topoPerfil = principal.perfil_aluno?.arquetipos?.[0];
   const lista = [
     ["Diálogo em casa", "Conversar em família sobre esta escolha e sobre as outras opções."],
     ["Informação", `Informar-se sobre as datas de inscrição no ${principal.curso_instituicao}.`],
@@ -143,21 +142,64 @@ export default function ResumoFamilia() {
             </div>
           </section>
 
-          {/* Curso principal */}
-          <section className="mb-6 flex flex-col gap-4 rounded-[10px] border-[1.5px] border-borda p-5 sm:flex-row sm:items-center print:mb-3 print:flex-row print:items-center print:p-3">
-            <div className="flex-1">
-            <p className="mb-2 inline-block rounded-full bg-primaria px-3 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white print:border print:border-texto print:bg-transparent print:text-texto">
-              {escolhida ? "Curso escolhido" : "1.ª sugestão"}
-            </p>
-            <h1 className="text-[24px] font-bold leading-tight print:text-[17px]">{principal.curso_nome}</h1>
-            <p className="mb-3 text-[15px] font-semibold text-primaria print:mb-2 print:text-[12px] print:text-texto">{principal.curso_instituicao}</p>
-            <div className="flex flex-col gap-1.5 text-[14px] leading-relaxed print:gap-0.5 print:text-[9.5px] print:leading-snug">
-              <p><strong>Pelas notas: </strong>{explicarNotas(principal, TERCEIRA).join(" ")}</p>
-              <p><strong>Pelo teste: </strong>{explicarTeste(principal, TERCEIRA).join(" ")}</p>
-              <p className="text-texto-suave">{explicarCalculo(principal)}</p>
+          {/* Curso principal: cabeçalho e os 3 pontos da sugestão, em blocos */}
+          <section className="mb-6 rounded-[12px] border-[1.5px] border-borda print:mb-3">
+            <div className="flex items-center gap-4 border-b border-borda p-5 print:gap-3 print:p-3">
+              <IconeCurso nome={principal.curso_nome} className="h-14 w-14 shrink-0 print:h-10 print:w-10" />
+              <div className="min-w-0 flex-1">
+                <p className="mb-1 inline-block rounded-full bg-primaria px-3 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white print:border print:border-texto print:bg-transparent print:px-2 print:text-[8px] print:text-texto">
+                  {escolhida ? "Curso escolhido" : "1.ª sugestão"}
+                </p>
+                <h1 className="text-[22px] font-bold leading-tight print:text-[15px]">{principal.curso_nome}</h1>
+                <p className="text-[14px] font-semibold text-primaria print:text-[10px] print:text-texto">{principal.curso_instituicao}</p>
+                {principal.curso_descricao && (
+                  <p className="mt-1 text-[13px] leading-snug text-texto-suave print:text-[9px]">{principal.curso_descricao}</p>
+                )}
+              </div>
+              <Compatibilidade rec={principal} tamanho={84} className="shrink-0" />
             </div>
+
+            <div className="p-5 print:p-3">
+              <h2 className="mb-3 text-[13px] font-bold uppercase tracking-wide text-texto-suave print:mb-2 print:text-[9px]">Porque foi sugerido</h2>
+              <ol className="grid gap-3 sm:grid-cols-3 print:grid-cols-3 print:gap-2">
+                <li className="rounded-[10px] bg-fundo p-3 print:border print:border-borda print:bg-transparent print:p-2">
+                  <p className="mb-1.5 text-[12px] font-bold text-primaria-escura print:text-[9px]">1. Notas mínimas</p>
+                  {minimosPrincipal.length ? (
+                    <>
+                      <p className="mb-1.5 flex items-center gap-1 text-[14px] font-bold text-emerald-700 print:text-[10.5px]">
+                        <Check className="h-4 w-4" strokeWidth={3} aria-hidden="true" /> Cumpre todas
+                      </p>
+                      <ul className="text-[12px] leading-snug text-texto-suave print:text-[9px]">
+                        {minimosPrincipal.map((m) => (
+                          <li key={m.disciplina}>{m.disciplina}: <strong className="text-texto">{m.tua_nota}</strong> (mín. {m.nota_min})</li>
+                        ))}
+                      </ul>
+                    </>
+                  ) : (
+                    <p className="text-[12px] text-texto-suave print:text-[9px]">O curso não pede notas mínimas específicas.</p>
+                  )}
+                </li>
+                <li className="rounded-[10px] bg-fundo p-3 print:border print:border-borda print:bg-transparent print:p-2">
+                  <p className="mb-1 text-[12px] font-bold text-primaria-escura print:text-[9px]">2. Notas parecidas com as ideais</p>
+                  <p className="text-[26px] font-bold leading-tight tabular-nums text-primaria-escura print:text-[17px]">{percentagem(principal.score_academico)}%</p>
+                  <p className="text-[12px] leading-snug text-texto-suave print:text-[9px]">
+                    As 12 notas do aluno comparadas com as notas ideais do curso.
+                  </p>
+                </li>
+                <li className="rounded-[10px] bg-fundo p-3 print:border print:border-borda print:bg-transparent print:p-2">
+                  <p className="mb-1 text-[12px] font-bold text-primaria-escura print:text-[9px]">3. Respostas ao teste</p>
+                  <p className="text-[26px] font-bold leading-tight tabular-nums text-primaria-escura print:text-[17px]">{percentagem(principal.score_psicografico)}%</p>
+                  <p className="text-[12px] leading-snug text-texto-suave print:text-[9px]">
+                    das respostas no perfil {principal.curso_arquetipo}, o perfil do curso.
+                    {topoPerfil && topoPerfil.arquetipo !== principal.curso_arquetipo && ` Perfil mais forte: ${topoPerfil.arquetipo}.`}
+                  </p>
+                </li>
+              </ol>
+              <p className="mt-3 rounded-[8px] bg-primaria-clara/60 px-3 py-2 text-center text-[13px] font-semibold text-primaria-escura print:mt-2 print:bg-transparent print:p-0 print:text-[9.5px]">
+                Notas {percentagem(principal.score_academico)}% × 60% + Teste {percentagem(principal.score_psicografico)}% × 40% ≈{" "}
+                {percentagem(principal.score_final)}% de compatibilidade
+              </p>
             </div>
-            <Compatibilidade rec={principal} tamanho={96} detalhe className="shrink-0 self-center" />
           </section>
 
           {/* Tabela */}
@@ -223,7 +265,10 @@ export default function ResumoFamilia() {
                     </p>
                     <p className="text-[16px] font-bold leading-snug print:text-[12px]">{r.curso_nome}</p>
                     <p className="mb-1.5 text-[13px] font-semibold text-primaria print:text-[10px] print:text-texto">{r.curso_instituicao}</p>
-                    <p className="text-[13px] leading-snug text-texto-suave print:text-[10px]">{razaoCurta(r, TERCEIRA)}</p>
+                    <p className="text-[12px] text-texto-suave print:text-[9px]">
+                      Notas <strong className="text-texto">{percentagem(r.score_academico)}%</strong> · Teste{" "}
+                      <strong className="text-texto">{percentagem(r.score_psicografico)}%</strong> · Perfil {r.curso_arquetipo}
+                    </p>
                   </div>
                 ))}
               </div>
