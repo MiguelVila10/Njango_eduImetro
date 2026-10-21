@@ -1,8 +1,12 @@
 # recomendacoes/serializers.py
 
+from collections import Counter
+
 from rest_framework import serializers
 
 from alunos.sessao import eh_orientador
+from cat.models import respostas_atuais
+from cat.motor import ARQUETIPOS
 from .models import Recomendacao
 
 # Dados internos do motor que só o orientador vê. O aluno não deve ver
@@ -19,13 +23,15 @@ class RecomendacaoSerializer(serializers.ModelSerializer):
     curso_descricao = serializers.CharField(source="curso.descricao", read_only=True)
     disciplinas_chave = serializers.SerializerMethodField()
     notas_minimas = serializers.SerializerMethodField()
+    perfil_aluno = serializers.SerializerMethodField()
 
     class Meta:
         model = Recomendacao
         fields = [
             "id", "aluno", "curso", "curso_nome", "curso_instituicao", "curso_arquetipo",
             "curso_descricao", "score_academico", "score_psicografico", "score_final", "rank",
-            "escolhida_pelo_aluno", "disciplinas_chave", "notas_minimas", "alertas_vieses", "confianca_cat",
+            "escolhida_pelo_aluno", "disciplinas_chave", "notas_minimas", "perfil_aluno",
+            "alertas_vieses", "confianca_cat",
         ]
         read_only_fields = ["id"]
 
@@ -56,6 +62,29 @@ class RecomendacaoSerializer(serializers.ModelSerializer):
             {"disciplina": p.disciplina, "nota_min": p.nota_min, "tua_nota": notas.get(p.disciplina)}
             for p in sorted(rec.curso.prerequisitos.all(), key=lambda p: (-p.nota_min, p.disciplina))
         ]
+
+    def get_perfil_aluno(self, rec):
+        """
+        Como as respostas do aluno ao teste (tentativa actual) se repartem pelos
+        4 perfis. Serve para o ecrã explicar a parte "respostas" do score
+        (score_psicografico = respostas do perfil do curso / total).
+        """
+        cache = self.context.setdefault("_perfil_por_aluno", {})
+        if rec.aluno_id not in cache:
+            contagem = Counter(respostas_atuais(rec.aluno).values_list("arquetipo_escolhido", flat=True))
+            total = sum(contagem.values())
+            cache[rec.aluno_id] = {
+                "total": total,
+                "arquetipos": sorted(
+                    (
+                        {"arquetipo": a, "respostas": contagem.get(a, 0),
+                         "percentagem": round(contagem.get(a, 0) / total, 4) if total else 0}
+                        for a in ARQUETIPOS
+                    ),
+                    key=lambda x: -x["respostas"],
+                ),
+            }
+        return cache[rec.aluno_id]
 
     def to_representation(self, instance):
         dados = super().to_representation(instance)

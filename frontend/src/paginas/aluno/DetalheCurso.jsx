@@ -8,6 +8,7 @@ import { useCallback, useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 
 import CabecalhoPercurso from "../../componentes/CabecalhoPercurso";
+import { ExplicacaoCurso } from "../../componentes/explicacao";
 import {
   AvisoVinteQuatroHoras, BOTAO_PRINCIPAL, BOTAO_SECUNDARIO, Compatibilidade, ConfirmarEscolha, proximosPassos,
 } from "../../componentes/sugestoes";
@@ -15,49 +16,6 @@ import { useRecomendacoes } from "../../hooks/useRecomendacoes";
 import { sessaoAluno } from "../../sessao/sessaoAluno";
 
 const NOTA_TOPO = 20;
-
-function juntar(lista) {
-  if (lista.length <= 1) return lista.join("");
-  return `${lista.slice(0, -1).join(", ")} e ${lista[lista.length - 1]}`;
-}
-
-function textoNotasMinimas(rec) {
-  const req = rec.notas_minimas ?? [];
-  if (!req.length) return "Este curso não pede notas mínimas em disciplinas específicas, por isso entrou na tua lista.";
-  const pede = juntar(req.map((r) => `${r.nota_min} a ${r.disciplina}`));
-  const tens = juntar(req.map((r) => String(r.tua_nota ?? "—")));
-  return `Este curso pede pelo menos ${pede}. Tu tens ${tens}. Por isso, o curso entrou na tua lista.`;
-}
-
-function textoNotasParecidas(score) {
-  const quanto = score >= 0.85 ? "muito parecidas" : score >= 0.7 ? "parecidas" : "parecidas em algumas disciplinas";
-  return `Comparámos as tuas 12 notas com as notas ideais para este curso. As tuas são ${quanto}, sobretudo nas disciplinas que mais contam.`;
-}
-
-function textoRespostas(rec) {
-  const em10 = Math.round((rec.score_psicografico ?? 0) * 10);
-  if (em10 >= 2) {
-    return `No teste, ${em10} em cada 10 respostas tuas apontaram para o perfil ${rec.curso_arquetipo}, que é o perfil deste curso.`;
-  }
-  return `Este curso entrou sobretudo pelas tuas notas: no teste, poucas respostas apontaram para o perfil ${rec.curso_arquetipo}.`;
-}
-
-function Passo({ numero, titulo, texto, ok = true }) {
-  return (
-    <li className="flex flex-col rounded-[14px] border-[1.5px] border-borda bg-white p-5">
-      <div className="mb-4 flex items-center justify-between">
-        <span className={`flex h-8 w-8 items-center justify-center rounded-full ${ok ? "bg-emerald-50 text-emerald-700" : "bg-fundo text-texto-suave"}`}>
-          {ok ? <Check className="h-4 w-4" strokeWidth={3} aria-hidden="true" /> : <Info className="h-4 w-4" aria-hidden="true" />}
-        </span>
-        <span className="rounded-full bg-primaria-clara px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-primaria-escura">
-          Passo {numero}
-        </span>
-      </div>
-      <h3 className="mb-2 text-[16px] font-bold leading-snug">{titulo}</h3>
-      <p className="text-[14px] leading-relaxed text-texto-suave">{texto}</p>
-    </li>
-  );
-}
 
 function BarraNota({ rotulo, valor, cor }) {
   return (
@@ -148,20 +106,7 @@ export default function DetalheCurso() {
         {/* Porque te sugerimos */}
         <section className="mt-12" aria-labelledby="porque-titulo">
           <h2 id="porque-titulo" className="mb-5 text-[22px] font-bold md:text-[24px]">Porque te sugerimos este curso</h2>
-          <ol className="grid gap-4 md:grid-cols-3">
-            <Passo numero={1} titulo="Tens as notas mínimas" texto={textoNotasMinimas(rec)} />
-            <Passo numero={2} titulo="As tuas notas combinam com o curso" texto={textoNotasParecidas(rec.score_academico)} />
-            <Passo
-              numero={3}
-              titulo="Combina com as tuas respostas"
-              texto={textoRespostas(rec)}
-              ok={Math.round((rec.score_psicografico ?? 0) * 10) >= 2}
-            />
-          </ol>
-          <p className="mt-4 rounded-[12px] border-[1.5px] border-borda bg-white px-5 py-4 text-center text-[15px] font-semibold text-primaria">
-            Juntando estes três pontos, {rec.curso_nome} tem {Math.round((rec.score_final ?? 0) * 100)}% de compatibilidade contigo e
-            ficou em {rec.rank}.º lugar nas tuas sugestões.
-          </p>
+          <ExplicacaoCurso rec={rec} todas={recomendacoes} />
         </section>
 
         {/* As tuas notas e o que o curso pede */}

@@ -168,6 +168,10 @@ class GerarRecomendacoesViewTest(APITestCase):
         self.assertEqual(
             response.data[0]["notas_minimas"], [{"disciplina": "Matemática", "nota_min": 14, "tua_nota": 18}]
         )
+        perfil = response.data[0]["perfil_aluno"]
+        self.assertEqual(perfil["total"], 1)
+        self.assertEqual(perfil["arquetipos"][0], {"arquetipo": "Analítico", "respostas": 1, "percentagem": 1.0})
+        self.assertEqual(len(perfil["arquetipos"]), 4)
 
     def test_quase_compativeis_completa_a_lista_ate_3(self):
         """Com só 1 curso válido, o ecrã recebe os 2 eliminados mais próximos (só informativos)."""

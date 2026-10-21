@@ -8,15 +8,16 @@ import { Building2, Info, LoaderCircle, Lock, RefreshCw, Sparkles, Users } from 
 import { useCallback, useEffect, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 
-import { cursosQuaseCompativeis } from "../../api/aluno";
+import { cursosQuaseCompativeis, listarNotas } from "../../api/aluno";
 import CabecalhoPercurso from "../../componentes/CabecalhoPercurso";
+import { ExplicacaoCurso, PanoramaPerfil } from "../../componentes/explicacao";
 import {
-  AvisoVinteQuatroHoras, BOTAO_PRINCIPAL, BOTAO_SECUNDARIO, Compatibilidade, ConfirmarEscolha, razaoCurta,
+  AvisoVinteQuatroHoras, BOTAO_PRINCIPAL, BOTAO_SECUNDARIO, Compatibilidade, ConfirmarEscolha,
 } from "../../componentes/sugestoes";
 import { useRecomendacoes } from "../../hooks/useRecomendacoes";
 import { sessaoAluno } from "../../sessao/sessaoAluno";
 
-function CartaoCurso({ rec, aoEscolher }) {
+function CartaoCurso({ rec, todas, aoEscolher }) {
   const primeiro = rec.rank === 1;
   return (
     <article
@@ -41,7 +42,6 @@ function CartaoCurso({ rec, aoEscolher }) {
               {rec.curso_nome}
               <span className="ml-2 inline-block whitespace-nowrap text-[14px] font-medium text-texto-suave">— {rec.curso_instituicao}</span>
             </h2>
-            <p className="mt-1.5 text-[15px] leading-relaxed text-texto-suave md:text-[16px]">{razaoCurta(rec)}</p>
             {rec.disciplinas_chave?.length > 0 && (
               <ul className="mt-3 flex flex-wrap gap-2" aria-label="Disciplinas que mais contam">
                 {rec.disciplinas_chave.slice(0, 3).map((d) => (
@@ -63,6 +63,10 @@ function CartaoCurso({ rec, aoEscolher }) {
             Escolher este curso
           </button>
         </div>
+      </div>
+      <div className="mt-5 border-t border-borda pt-5">
+        <p className="mb-3 text-[13px] font-bold uppercase tracking-wide text-texto-suave">Porque te sugerimos este curso</p>
+        <ExplicacaoCurso rec={rec} todas={todas} compacto />
       </div>
     </article>
   );
@@ -193,6 +197,15 @@ export default function Resultado() {
   const [indeciso, setIndeciso] = useState(false);
   const fecharConfirmacao = useCallback(() => setAConfirmar(null), []);
   const [quase, setQuase] = useState([]);
+  const [notas, setNotas] = useState(null);
+
+  useEffect(() => {
+    let activo = true;
+    listarNotas()
+      .then((lista) => activo && setNotas(Object.fromEntries(lista.map((n) => [n.disciplina, n.nota]))))
+      .catch(() => {});
+    return () => { activo = false; };
+  }, []);
 
   // Só quando há 1 ou 2 sugestões: pede os cursos que ficaram mais perto.
   const nValidos = recomendacoes.length;
@@ -246,8 +259,10 @@ export default function Resultado() {
           A percentagem de compatibilidade junta as tuas notas (60%) e as tuas respostas ao teste (40%).
         </p>
 
+        <PanoramaPerfil perfil={recomendacoes[0]?.perfil_aluno} notas={notas} />
+
         <div className="flex flex-col gap-5">
-          {recomendacoes.map((r) => <CartaoCurso key={r.id} rec={r} aoEscolher={setAConfirmar} />)}
+          {recomendacoes.map((r) => <CartaoCurso key={r.id} rec={r} todas={recomendacoes} aoEscolher={setAConfirmar} />)}
         </div>
 
         <QuaseLa validos={recomendacoes.length} cursos={quase} />

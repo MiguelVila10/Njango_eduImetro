@@ -8,26 +8,19 @@ import { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 
 import { listarNotas, obterAluno } from "../../api/aluno";
+import { explicarCalculo, explicarNotas, explicarTeste } from "../../componentes/explicacao";
 import { Compatibilidade, percentagem, razaoCurta } from "../../componentes/sugestoes";
 import { useRecomendacoes } from "../../hooks/useRecomendacoes";
 import { sessaoAluno } from "../../sessao/sessaoAluno";
 
 // O resumo é lido pela família: fala do aluno na 3.ª pessoa.
-const TERCEIRA = { terceiraPessoa: true };
+const TERCEIRA = { terceiraPessoa: true, terceira: true };
 
 const hoje = () => new Date().toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit", year: "numeric" });
 
 function juntar(lista) {
   if (lista.length <= 1) return lista.join("");
   return `${lista.slice(0, -1).join(", ")} e ${lista[lista.length - 1]}`;
-}
-
-/** "Tem 16 a Matemática (o curso pede 14) e 15 a Física (pede 13)." */
-function porqueComNumeros(rec) {
-  const req = (rec.notas_minimas ?? []).filter((r) => r.tua_nota != null);
-  if (!req.length) return razaoCurta(rec, TERCEIRA);
-  const partes = req.map((r, i) => `${r.tua_nota} a ${r.disciplina} (${i === 0 ? "o curso pede" : "pede"} ${r.nota_min})`);
-  return `Tem ${juntar(partes)}. ${razaoCurta(rec, TERCEIRA)}`;
 }
 
 function situacao(nota, minimo) {
@@ -158,9 +151,11 @@ export default function ResumoFamilia() {
             </p>
             <h1 className="text-[24px] font-bold leading-tight print:text-[17px]">{principal.curso_nome}</h1>
             <p className="mb-3 text-[15px] font-semibold text-primaria print:mb-2 print:text-[12px] print:text-texto">{principal.curso_instituicao}</p>
-            <p className="text-[14px] leading-relaxed print:text-[11px]">
-              <strong>Porque foi sugerido: </strong>{porqueComNumeros(principal)}
-            </p>
+            <div className="flex flex-col gap-1.5 text-[14px] leading-relaxed print:gap-0.5 print:text-[9.5px] print:leading-snug">
+              <p><strong>Pelas notas: </strong>{explicarNotas(principal, TERCEIRA).join(" ")}</p>
+              <p><strong>Pelo teste: </strong>{explicarTeste(principal, TERCEIRA).join(" ")}</p>
+              <p className="text-texto-suave">{explicarCalculo(principal)}</p>
+            </div>
             </div>
             <Compatibilidade rec={principal} tamanho={96} detalhe className="shrink-0 self-center" />
           </section>
@@ -176,15 +171,15 @@ export default function ResumoFamilia() {
                 <table className="w-full min-w-[520px] border-collapse text-left text-[13px] print:min-w-0 print:text-[10px]">
                   <thead>
                     <tr className="bg-primaria-clara/70 print:bg-transparent">
-                      <th scope="col" className="border-b border-borda px-3 py-2 font-semibold print:px-2 print:py-1">Disciplina</th>
-                      <th scope="col" className="border-b border-borda bg-primaria-clara px-3 py-2 text-center font-semibold print:bg-transparent print:px-2 print:py-1">Nota do aluno</th>
+                      <th scope="col" className="border-b border-borda px-3 py-2 font-semibold print:px-2 print:py-0.5">Disciplina</th>
+                      <th scope="col" className="border-b border-borda bg-primaria-clara px-3 py-2 text-center font-semibold print:bg-transparent print:px-2 print:py-0.5">Nota do aluno</th>
                       {recomendacoes.map((r) => (
-                        <th key={r.id} scope="col" className="border-b border-borda px-3 py-2 text-center font-semibold leading-tight print:px-2 print:py-1">
+                        <th key={r.id} scope="col" className="border-b border-borda px-3 py-2 text-center font-semibold leading-tight print:px-2 print:py-0.5">
                           Mín. {r.curso_instituicao}
                           <span className="block text-[11px] font-normal text-texto-suave print:text-[8px]">{r.curso_nome.replace(/^Técnico de /, "")} · {percentagem(r.score_final)}%</span>
                         </th>
                       ))}
-                      <th scope="col" className="border-b border-borda px-3 py-2 text-center font-semibold print:px-2 print:py-1">
+                      <th scope="col" className="border-b border-borda px-3 py-2 text-center font-semibold print:px-2 print:py-0.5">
                         Situação<span className="block text-[11px] font-normal text-texto-suave print:text-[8px]">no {escolhida ? "curso escolhido" : "1.º curso"}</span>
                       </th>
                     </tr>
@@ -195,12 +190,12 @@ export default function ResumoFamilia() {
                       const s = situacao(nota, minimo(principal, d));
                       return (
                         <tr key={d} className="border-b border-borda/70">
-                          <td className="px-3 py-2 font-medium print:px-2 print:py-1">{d}</td>
-                          <td className="bg-primaria-clara/50 px-3 py-2 text-center text-[15px] font-bold text-primaria-escura print:bg-transparent print:px-2 print:py-1 print:text-[11px] print:text-texto">{nota ?? "—"}</td>
+                          <td className="px-3 py-2 font-medium print:px-2 print:py-0.5">{d}</td>
+                          <td className="bg-primaria-clara/50 px-3 py-2 text-center text-[15px] font-bold text-primaria-escura print:bg-transparent print:px-2 print:py-0.5 print:text-[11px] print:text-texto">{nota ?? "—"}</td>
                           {recomendacoes.map((r) => (
-                            <td key={r.id} className="px-3 py-2 text-center text-texto-suave print:px-2 print:py-1">{minimo(r, d) ?? "—"}</td>
+                            <td key={r.id} className="px-3 py-2 text-center text-texto-suave print:px-2 print:py-0.5">{minimo(r, d) ?? "—"}</td>
                           ))}
-                          <td className="px-3 py-2 text-center print:px-2 print:py-1">
+                          <td className="px-3 py-2 text-center print:px-2 print:py-0.5">
                             <span className={`inline-block whitespace-nowrap rounded-full px-2.5 py-0.5 text-[12px] font-semibold print:p-0 print:text-[10px] ${s.classe}`}>{s.texto}</span>
                           </td>
                         </tr>
@@ -257,7 +252,7 @@ export default function ResumoFamilia() {
           </section>
 
           {/* Assinaturas */}
-          <section className="mb-6 grid grid-cols-2 gap-8 pt-6 print:mb-3 print:pt-6">
+          <section className="mb-6 grid grid-cols-2 gap-8 pt-6 print:mb-2 print:pt-5">
             {["Assinatura do encarregado de educação", "Assinatura do aluno"].map((t) => (
               <div key={t} className="border-t border-texto/60 pt-2 text-center text-[12px] text-texto-suave print:text-[10px]">{t}</div>
             ))}
