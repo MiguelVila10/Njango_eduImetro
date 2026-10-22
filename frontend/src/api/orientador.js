@@ -55,6 +55,7 @@ export const fichaAluno = (id) => comToken(`/alunos/${id}/`);
 
 // Catálogo de cursos
 export const listarCursos = () => comToken("/cursos/");
+export const obterCurso = (id) => comToken(`/cursos/${id}/`);
 export const criarCurso = (dados) => comToken("/cursos/", { metodo: "POST", corpo: dados });
 export const alterarCurso = (id, dados) => comToken(`/cursos/${id}/`, { metodo: "PATCH", corpo: dados });
 export const listarPreRequisitos = () => comToken("/prerequisitos/");

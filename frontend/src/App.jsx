@@ -15,6 +15,7 @@ import Privacidade from "./paginas/Privacidade";
 
 import Alunos from "./paginas/orientador/Alunos";
 import Cursos from "./paginas/orientador/Cursos";
+import DetalheCursoOrientador from "./paginas/orientador/DetalheCurso";
 import CriarConta from "./paginas/orientador/CriarConta";
 import Entrar from "./paginas/orientador/Entrar";
 import FichaAluno from "./paginas/orientador/FichaAluno";
@@ -55,6 +56,7 @@ export default function App() {
             <Route path="alunos" element={<Alunos />} />
             <Route path="alunos/:id" element={<FichaAluno />} />
             <Route path="cursos" element={<Cursos />} />
+            <Route path="cursos/:id" element={<DetalheCursoOrientador />} />
             <Route path="perguntas" element={<Perguntas />} />
             <Route path="pedidos" element={<PedidosConta />} />
           </Route>

@@ -1,7 +1,7 @@
 // Peças da área do orientador (design "Njango Edu — Painel"): cores dos
 // perfis, etiquetas de perfil e de estado, cartão base e nomes curtos.
 
-import { Check, Hourglass, TriangleAlert, X } from "lucide-react";
+import { Check, ChevronDown, Hourglass, TriangleAlert, X } from "lucide-react";
 
 // Cores dos quatro perfis (DESIGN.md do painel).
 export const COR_PERFIL = {
@@ -81,3 +81,44 @@ export function nomeAbreviado(nome = "") {
 
 export const dataCurta = (iso) =>
   iso ? new Date(iso).toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit", year: "numeric" }) : "—";
+
+/** Caixa de filtro das listas ("Estado: Todos"). */
+export function Filtro({ rotulo, valor, aoMudar, opcoes }) {
+  return (
+    <div className="relative">
+      <select
+        value={valor}
+        onChange={(e) => aoMudar(e.target.value)}
+        aria-label={rotulo}
+        className="h-12 w-full cursor-pointer appearance-none rounded-[12px] border border-borda bg-white pl-3.5 pr-9 text-[14px] font-medium text-texto shadow-xs focus:border-primaria focus:outline-none focus:ring-1 focus:ring-primaria"
+      >
+        <option value="">{rotulo}: Todos</option>
+        {opcoes.map(([v, t]) => <option key={v} value={v}>{t}</option>)}
+      </select>
+      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-texto-suave" aria-hidden="true" />
+    </div>
+  );
+}
+
+/** Páginas das listas: ‹ Anterior 1 2 … 6 Seguinte ›. */
+export function Paginas({ pagina, total, aoMudar }) {
+  if (total <= 1) return null;
+  // 1 2 3 … 6: primeira, última e as vizinhas da actual
+  const numeros = [...new Set([1, pagina - 1, pagina, pagina + 1, total])].filter((n) => n >= 1 && n <= total).sort((a, b) => a - b);
+  const itens = numeros.flatMap((n, i) => (i > 0 && n - numeros[i - 1] > 1 ? ["…", n] : [n]));
+  const botao = "flex h-9 min-w-9 items-center justify-center rounded-[8px] px-2 text-[14px] font-semibold";
+  return (
+    <nav aria-label="Páginas" className="flex items-center gap-1">
+      <button type="button" disabled={pagina === 1} onClick={() => aoMudar(pagina - 1)}
+        className={`${botao} text-texto-suave enabled:hover:bg-fundo disabled:opacity-50`}>‹ Anterior</button>
+      {itens.map((n, i) => n === "…" ? (
+        <span key={`r${i}`} className="px-1 text-texto-suave">…</span>
+      ) : (
+        <button key={n} type="button" onClick={() => aoMudar(n)} aria-current={n === pagina ? "page" : undefined}
+          className={`${botao} ${n === pagina ? "bg-primaria text-white" : "text-texto hover:bg-fundo"}`}>{n}</button>
+      ))}
+      <button type="button" disabled={pagina === total} onClick={() => aoMudar(pagina + 1)}
+        className={`${botao} text-texto enabled:hover:bg-fundo disabled:opacity-50`}>Seguinte ›</button>
+    </nav>
+  );
+}

@@ -24,7 +24,7 @@ class CursoViewSet(viewsets.ModelViewSet):
             vezes_escolhido=Count(
                 "recomendacoes", filter=Q(recomendacoes__escolhida_pelo_aluno=True), distinct=True
             ),
-        ).order_by("nome")
+        ).prefetch_related("prerequisitos", "vetores_ideais").order_by("nome")
 
 
 class PreRequisitoCursoViewSet(viewsets.ModelViewSet):
