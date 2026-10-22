@@ -14,10 +14,8 @@ User = get_user_model()
 NOVA = "Escola2027nova"
 
 
-@override_settings(
-    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
-    FRONTEND_URL="http://localhost:5173",
-)
+# Os testes do Django já trocam o envio de e-mail por uma caixa em memória (mail.outbox).
+@override_settings(FRONTEND_URL="http://localhost:5173", EMAIL_NA_CONSOLA=False)
 class RecuperarSenhaTest(APITestCase):
     def setUp(self):
         cache.clear()

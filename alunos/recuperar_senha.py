@@ -48,15 +48,18 @@ def link_nova_senha(user):
 
 
 def enviar_email_recuperacao(user):
+    link = link_nova_senha(user)
     nome = user.first_name or user.get_full_name() or "orientador"
     texto = (
         f"Olá, {nome}.\n\n"
         "Recebemos um pedido para criar uma palavra-passe nova na área do orientador do Njango Edu.\n\n"
-        f"Abra este link para escolher a palavra-passe nova (vale 1 hora):\n{link_nova_senha(user)}\n\n"
+        f"Abra este link para escolher a palavra-passe nova (vale 1 hora):\n{link}\n\n"
         "Se não foi você que pediu, ignore este e-mail: a sua palavra-passe continua a mesma.\n\n"
         "Njango Edu"
     )
     send_mail("Njango Edu — criar uma palavra-passe nova", texto, settings.DEFAULT_FROM_EMAIL, [user.email])
+    if getattr(settings, "EMAIL_NA_CONSOLA", False):
+        print(f"\n[Njango Edu] Link para {user.email} criar uma palavra-passe nova (vale 1 hora):\n{link}\n", flush=True)
 
 
 class PedirRecuperacaoView(APIView):

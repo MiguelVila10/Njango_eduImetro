@@ -9,6 +9,8 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
+import django
+
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -132,15 +134,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 STATIC_URL = "static/"
 
 
-# --- Email ---------------------------------------------------------------------
-
-MAILERS = {
-    "default": {
-        "BACKEND": "django.core.mail.backends.console.EmailBackend",
-    },
-}
-
-
 # --- API (Django REST Framework) -----------------------------------------------
 # Por omissão, tudo é reservado ao orientador (utilizador staff). Os endpoints
 # que o aluno usa abrem-se explicitamente nas views (RNF de privacidade:
@@ -169,19 +162,41 @@ SESSAO_ALUNO_DURACAO = timedelta(hours=int(os.getenv("SESSAO_ALUNO_HORAS", "24")
 CAT_LIMIAR_TEMPO_RAPIDO_MS = int(os.getenv("CAT_LIMIAR_TEMPO_RAPIDO_MS", "3000"))
 
 
-# --- Recuperar a palavra-passe do orientador (link por e-mail) -----------------
-# Em desenvolvimento o e-mail aparece na janela do backend (consola). Para enviar
-# e-mails a sério, definir no .env: EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
-# e os dados do servidor de e-mail (EMAIL_HOST, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD...).
+# --- E-mail (recuperar a palavra-passe do orientador) -------------------------
+# Por omissão o e-mail aparece na janela do backend (consola): serve para testar
+# e para a demonstração sem internet. Para enviar e-mails a sério, definir no
+# .env EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend e os dados do
+# servidor (EMAIL_HOST, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD...).
 
-EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
-EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
-EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
-EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True").lower() in ("1", "true", "sim", "yes")
-EMAIL_TIMEOUT = 15
-DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER or "Njango Edu <nao-responder@njangoedu.ao>")
+_EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
+_EMAIL_SMTP = {
+    "host": os.getenv("EMAIL_HOST", "smtp.gmail.com"),
+    "port": int(os.getenv("EMAIL_PORT", "587")),
+    "username": os.getenv("EMAIL_HOST_USER", ""),
+    "password": os.getenv("EMAIL_HOST_PASSWORD", ""),
+    "use_tls": os.getenv("EMAIL_USE_TLS", "True").lower() in ("1", "true", "sim", "yes"),
+    "timeout": 15,
+}
+_E_SMTP = _EMAIL_BACKEND.endswith("smtp.EmailBackend")
+# Com o e-mail na consola, o link de recuperação é também escrito numa linha
+# limpa na janela do backend (o texto do e-mail aparece codificado).
+EMAIL_NA_CONSOLA = _EMAIL_BACKEND.endswith("console.EmailBackend")
+
+if django.VERSION >= (6, 1):
+    # Django 6.1+: o e-mail configura-se em MAILERS (EMAIL_HOST & cia. deixaram de ser permitidos).
+    MAILERS = {"default": {"BACKEND": _EMAIL_BACKEND, "OPTIONS": _EMAIL_SMTP if _E_SMTP else {}}}
+else:
+    EMAIL_BACKEND = _EMAIL_BACKEND
+    EMAIL_HOST = _EMAIL_SMTP["host"]
+    EMAIL_PORT = _EMAIL_SMTP["port"]
+    EMAIL_HOST_USER = _EMAIL_SMTP["username"]
+    EMAIL_HOST_PASSWORD = _EMAIL_SMTP["password"]
+    EMAIL_USE_TLS = _EMAIL_SMTP["use_tls"]
+    EMAIL_TIMEOUT = _EMAIL_SMTP["timeout"]
+
+DEFAULT_FROM_EMAIL = os.getenv(
+    "DEFAULT_FROM_EMAIL", _EMAIL_SMTP["username"] or "Njango Edu <nao-responder@njangoedu.ao>"
+)
 
 # Endereço do frontend, usado para montar o link do e-mail.
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
