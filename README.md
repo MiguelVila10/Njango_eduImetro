@@ -34,11 +34,11 @@ não são resultados de testes com utilizadores reais.
 | `python manage.py aprovar_orientador` | Ver os pedidos de conta feitos em "Criar conta" |
 | `python manage.py aprovar_orientador --email EMAIL` | Aprovar um pedido de conta (só depois disso a pessoa entra) |
 | `python manage.py configurar_orientador --username NOME --administrador` | Tornar a conta administradora: vê "Pedidos de conta" no menu e aprova/recusa no próprio sistema |
-
-**Esqueci-me da palavra-passe.** Na página de entrar, o orientador pede um link por e-mail (vale 1 hora e só funciona uma vez). Sem configurar e-mail no `.env`, a mensagem com o link aparece na janela do backend — útil para testar e para a demonstração. Para enviar e-mails a sério, ver a secção "Recuperar palavra-passe" no `.env.example`. Se o e-mail não chegar, o administrador usa `configurar_orientador --username NOME --nova-senha`.
 | `python manage.py seed_cursos` / `seed_itens_cat` | Carregar os cursos e o banco de perguntas |
 | `python manage.py simular_cat` | Simulação do teste adaptativo com alunos sintéticos |
 | `python manage.py test` | Testes do backend |
 | `cd frontend && npm test` | Testes do frontend |
+
+**Esqueci-me da palavra-passe.** Na página de entrar, o orientador pede um link por e-mail (vale 1 hora e só funciona uma vez). Sem configurar e-mail no `.env`, a mensagem com o link aparece na janela do backend — útil para testar e para a demonstração. Para enviar e-mails a sério, ver a secção "Recuperar palavra-passe" no `.env.example`. Se o e-mail não chegar, o administrador usa `configurar_orientador --username NOME --nova-senha`.
 
 Mais detalhes do frontend em `frontend/README.md`.
