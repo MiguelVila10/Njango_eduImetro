@@ -9,6 +9,8 @@ from rest_framework.permissions import BasePermission
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from alunos.estado import CONCLUIDO, POR_TERMINAR, PONTO_DE_ATENCAO, SEM_CURSO_COMPATIVEL
+from alunos.management.commands.dados_demo import ESCOLA_DEMO
 from alunos.models import Aluno
 from alunos.sessao import (
     EhOrientador,
@@ -174,6 +176,27 @@ def _distribuicao_perfis():
     return contagem
 
 
+def _contar_estados():
+    """Quantos alunos há em cada estado (ver alunos/estado.py), numa só passagem."""
+    from alunos.estado import carregar_cursos, estado_do_aluno
+
+    cursos = carregar_cursos()
+    contagem = {POR_TERMINAR: 0, SEM_CURSO_COMPATIVEL: 0, PONTO_DE_ATENCAO: 0, CONCLUIDO: 0}
+    for aluno in Aluno.objects.prefetch_related("recomendacoes", "respostas_cat", "notas"):
+        contagem[estado_do_aluno(aluno, cursos)] += 1
+    return contagem
+
+
+def _alunos_recentes(total=5):
+    """Os últimos alunos registados, com o mesmo resumo da lista de alunos."""
+    from alunos.serializers import AlunoResumoSerializer
+
+    alunos = Aluno.objects.order_by("-criado_em", "-id").prefetch_related(
+        "recomendacoes__curso", "respostas_cat__item", "notas"
+    )[:total]
+    return AlunoResumoSerializer(alunos, many=True).data
+
+
 def _alunos_sem_curso_compativel():
     """Alunos que terminaram notas e teste, mas sem nenhum curso compatível."""
     from alunos.estado import SEM_CURSO_COMPATIVEL, carregar_cursos, estado_do_aluno
@@ -213,9 +236,17 @@ class PainelResumoView(APIView):
         )
         total_alunos = Aluno.objects.count()
         com_recomendacoes = Recomendacao.objects.values("aluno").distinct().count()
-        sem_curso = _alunos_sem_curso_compativel()
+        estados = _contar_estados()
+        sem_curso = estados[SEM_CURSO_COMPATIVEL]
         return Response({
             "total_alunos": total_alunos,
+            # Terminaram notas e teste (com sugestões ou sem curso compatível).
+            "testes_concluidos": com_recomendacoes + sem_curso,
+            # Precisam do orientador: alerta de viés, confiança baixa ou sem curso compatível.
+            "alunos_ponto_de_atencao": estados[PONTO_DE_ATENCAO],
+            "alunos_a_acompanhar": estados[PONTO_DE_ATENCAO] + sem_curso,
+            "alunos_demonstracao": Aluno.objects.filter(escola=ESCOLA_DEMO).count(),
+            "alunos_recentes": _alunos_recentes(),
             "testes_por_terminar": total_alunos - com_recomendacoes - sem_curso,
             "alunos_sem_curso_compativel": sem_curso,
             "distribuicao_perfis": _distribuicao_perfis(),

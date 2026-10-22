@@ -88,6 +88,9 @@ class VistaDoOrientadorTest(APITestCase):
 
     def test_painel_mostra_perfis_e_testes_por_terminar(self):
         dados = self.client.get("/api/painel/resumo/").data
+        recentes = dados["alunos_recentes"]
+        self.assertLessEqual(len(recentes), 5)
+        self.assertEqual({"nome", "escola", "criado_em", "estado", "perfil_dominante", "primeira_sugestao"} - set(recentes[0]), set())
         self.assertEqual(dados["testes_por_terminar"], 1)
         self.assertEqual(dados["distribuicao_perfis"],
                          {"Analítico": 1, "Humanista": 0, "Criativo": 1, "Estrategista": 0})
@@ -168,3 +171,6 @@ class SemCursoCompativelTest(APITestCase):
         dados = self.client.get("/api/painel/resumo/").data
         self.assertEqual(dados["alunos_sem_curso_compativel"], 1)
         self.assertEqual(dados["testes_por_terminar"], 3)
+        self.assertEqual(dados["testes_concluidos"] + dados["testes_por_terminar"], dados["total_alunos"])
+        self.assertGreaterEqual(dados["alunos_a_acompanhar"], 1)  # inclui quem não tem curso compatível
+        self.assertEqual(dados["alunos_demonstracao"], 0)
