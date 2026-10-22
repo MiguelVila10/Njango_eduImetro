@@ -48,7 +48,7 @@ export default function Entrar() {
     setErro(null);
     try {
       const r = await entrar(email.trim(), password);
-      iniciarSessaoOrientador({ token: r.token, nome: r.nome, email: r.email || email.trim() });
+      iniciarSessaoOrientador({ token: r.token, nome: r.nome, email: r.email || email.trim(), administrador: r.administrador });
       navegar(state?.voltarPara ?? "/orientador", { replace: true });
     } catch (err) {
       if (err.codigo === "conta_pendente") setPendente(true);

@@ -13,6 +13,7 @@ Uso:
     python manage.py configurar_orientador --username prof.ana
     python manage.py configurar_orientador --username prof.ana --nova-senha
     python manage.py configurar_orientador --username prof.ana --email ana@escola.ao
+    python manage.py configurar_orientador --username prof.ana --administrador
 
 Ao escrever a palavra-passe, o terminal não mostra nada (nem asteriscos):
 é normal. Pede-se duas vezes para evitar erros de escrita.
@@ -65,6 +66,10 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("--username", help="Cria ou actualiza esta conta de orientador.")
         parser.add_argument("--email", help="E-mail da conta (para entrar com o e-mail na página do orientador).")
+        parser.add_argument(
+            "--administrador", action="store_true",
+            help="Dá a esta conta o papel de administrador: aprova os pedidos de conta de novos orientadores.",
+        )
         parser.add_argument("--password", help="Só para testes/automação; sem isto, a palavra-passe é pedida.")
         parser.add_argument(
             "--nova-senha", action="store_true",
@@ -116,6 +121,12 @@ class Command(BaseCommand):
             user.email = opts["email"].strip().lower()
         user.save()
         user.groups.add(grupo)
+        if opts.get("administrador"):
+            perms = Permission.objects.filter(
+                content_type__app_label="alunos", codename__in=["view_perfilorientador", "change_perfilorientador"]
+            )
+            user.user_permissions.add(*perms)
+            self.stdout.write(self.style.SUCCESS(f'"{username}" é agora administrador: pode aprovar pedidos de conta.'))
 
         if criado:
             self.stdout.write(self.style.SUCCESS(f'Conta de orientador "{username}" criada. Já pode entrar.'))

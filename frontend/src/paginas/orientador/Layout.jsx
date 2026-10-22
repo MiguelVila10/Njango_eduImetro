@@ -22,7 +22,7 @@ export default function LayoutOrientador() {
     <div className="min-h-screen bg-slate-50">
       <header className="border-b bg-white">
         <nav className="mx-auto flex max-w-5xl flex-wrap items-center gap-4 px-4 py-3 text-sm">
-          {ligacoes.map(([para, texto]) => (
+          {[...ligacoes, ...(sessao?.administrador ? [["/orientador/pedidos", "Pedidos de conta"]] : [])].map(([para, texto]) => (
             <NavLink key={para} to={para} end className={({ isActive }) => (isActive ? "font-semibold" : "text-slate-600")}>
               {texto}
             </NavLink>

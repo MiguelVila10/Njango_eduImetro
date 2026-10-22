@@ -24,6 +24,10 @@ export function pedirConta({ nome, email, escola, password, confirmarPassword, a
   });
 }
 
+// Pedidos de conta (só o administrador)
+export const listarPedidosConta = () => comToken("/orientadores/pedidos/");
+export const decidirPedidoConta = (id, decisao) => comToken(`/orientadores/pedidos/${id}/${decisao}/`, { metodo: "POST" });
+
 export const painelResumo = () => comToken("/painel/resumo/");
 
 // Alunos (só consulta)

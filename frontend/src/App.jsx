@@ -20,6 +20,7 @@ import Entrar from "./paginas/orientador/Entrar";
 import FichaAluno from "./paginas/orientador/FichaAluno";
 import LayoutOrientador from "./paginas/orientador/Layout";
 import Painel from "./paginas/orientador/Painel";
+import PedidosConta from "./paginas/orientador/PedidosConta";
 import Perguntas from "./paginas/orientador/Perguntas";
 
 export default function App() {
@@ -51,6 +52,7 @@ export default function App() {
             <Route path="alunos/:id" element={<FichaAluno />} />
             <Route path="cursos" element={<Cursos />} />
             <Route path="perguntas" element={<Perguntas />} />
+            <Route path="pedidos" element={<PedidosConta />} />
           </Route>
         </Route>
 

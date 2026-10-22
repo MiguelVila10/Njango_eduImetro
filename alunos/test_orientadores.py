@@ -85,3 +85,48 @@ class AcessoOrientadorTest(APITestCase):
         resposta = self.pedir_conta(email="ana@escola.ao")
         self.assertEqual(resposta.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("email", resposta.data)
+
+
+class PedidosContaTest(APITestCase):
+    def setUp(self):
+        cache.clear()
+        for email, nome in [("a@escola.ao", "Ana Kiluange"), ("b@escola.ao", "Bento Lunda")]:
+            self.client.post("/api/orientadores/registo/", {
+                "nome": nome, "email": email, "escola": "Escola n.º 1",
+                "password": SENHA, "confirmar_password": SENHA, "aceita_termos": True,
+            }, format="json")
+        self.admin = User.objects.create_user(username="admin.escola", password=SENHA, is_staff=True)
+        call_command("configurar_orientador", username="admin.escola", administrador=True, stdout=StringIO())
+
+    def entrar(self, identificador):
+        r = self.client.post("/api/auth/login/", {"email": identificador, "password": SENHA}, format="json")
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {r.data['token']}")
+        return r
+
+    def test_administrador_lista_aprova_e_recusa(self):
+        self.assertTrue(self.entrar("admin.escola").data["administrador"])
+        pendentes = self.client.get("/api/orientadores/pedidos/").data["pendentes"]
+        self.assertEqual([p["email"] for p in pendentes], ["a@escola.ao", "b@escola.ao"])
+
+        aprovar = self.client.post(f"/api/orientadores/pedidos/{pendentes[0]['id']}/aprovar/")
+        self.assertEqual(aprovar.status_code, status.HTTP_200_OK)
+        self.assertTrue(User.objects.get(email="a@escola.ao").is_active)
+
+        recusar = self.client.post(f"/api/orientadores/pedidos/{pendentes[1]['id']}/recusar/")
+        self.assertEqual(recusar.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(User.objects.filter(email="b@escola.ao").exists())
+
+        dados = self.client.get("/api/orientadores/pedidos/").data
+        self.assertEqual(dados["pendentes"], [])
+        self.assertEqual(dados["aprovados"][0]["email"], "a@escola.ao")
+
+    def test_orientador_normal_nao_ve_pedidos(self):
+        call_command("aprovar_orientador", email="a@escola.ao", stdout=StringIO())
+        r = self.entrar("a@escola.ao")
+        self.assertFalse(r.data["administrador"])
+        self.assertEqual(self.client.get("/api/orientadores/pedidos/").status_code, status.HTTP_403_FORBIDDEN)
+        pid = PerfilOrientador.objects.get(user__email="b@escola.ao").pk
+        self.assertEqual(self.client.post(f"/api/orientadores/pedidos/{pid}/aprovar/").status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_sem_sessao_nao_ve_pedidos(self):
+        self.assertIn(self.client.get("/api/orientadores/pedidos/").status_code, (401, 403))

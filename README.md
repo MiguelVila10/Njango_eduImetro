@@ -33,6 +33,7 @@ não são resultados de testes com utilizadores reais.
 | `python manage.py configurar_orientador --username NOME --email EMAIL` | Dar um e-mail à conta (para entrar com o e-mail) |
 | `python manage.py aprovar_orientador` | Ver os pedidos de conta feitos em "Criar conta" |
 | `python manage.py aprovar_orientador --email EMAIL` | Aprovar um pedido de conta (só depois disso a pessoa entra) |
+| `python manage.py configurar_orientador --username NOME --administrador` | Tornar a conta administradora: vê "Pedidos de conta" no menu e aprova/recusa no próprio sistema |
 | `python manage.py seed_cursos` / `seed_itens_cat` | Carregar os cursos e o banco de perguntas |
 | `python manage.py simular_cat` | Simulação do teste adaptativo com alunos sintéticos |
 | `python manage.py test` | Testes do backend |

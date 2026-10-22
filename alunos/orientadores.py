@@ -13,6 +13,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
 from django.utils import timezone
 from rest_framework import serializers, status
+from rest_framework.permissions import BasePermission
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -58,6 +59,21 @@ def aprovar_conta_orientador(user):
     return user
 
 
+def eh_administrador(user):
+    """Quem pode aprovar pedidos de conta: superutilizador ou quem tem a permissão de gerir perfis."""
+    return bool(
+        user and user.is_authenticated and user.is_active
+        and (user.is_superuser or user.has_perm("alunos.change_perfilorientador"))
+    )
+
+
+class EhAdministrador(BasePermission):
+    message = "Só o administrador pode gerir os pedidos de conta."
+
+    def has_permission(self, request, view):
+        return eh_administrador(request.user)
+
+
 class EntrarView(APIView):
     """
     POST /api/auth/login/   {"email": "...", "password": "..."}
@@ -86,7 +102,10 @@ class EntrarView(APIView):
         if not user.is_staff:
             return Response({"erro": "Esta conta não tem acesso à área do orientador."}, status=status.HTTP_403_FORBIDDEN)
         token, _ = Token.objects.get_or_create(user=user)
-        return Response({"token": token.key, "nome": user.get_full_name() or user.username, "email": user.email})
+        return Response({
+            "token": token.key, "nome": user.get_full_name() or user.username, "email": user.email,
+            "administrador": eh_administrador(user),
+        })
 
 
 class RegistoOrientadorSerializer(serializers.Serializer):
@@ -166,3 +185,55 @@ class RegistoOrientadorView(APIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         return Response({"estado": "pendente", "email": user.email}, status=status.HTTP_201_CREATED)
+
+
+def _pedido_para_json(perfil):
+    return {
+        "id": perfil.pk,
+        "nome": perfil.user.get_full_name() or perfil.user.username,
+        "email": perfil.user.email,
+        "escola": perfil.escola,
+        "criado_em": perfil.criado_em,
+        "aprovado_em": perfil.aprovado_em,
+    }
+
+
+class PedidosContaView(APIView):
+    """
+    GET /api/orientadores/pedidos/  (só o administrador)
+    {"pendentes": [...], "aprovados": [...últimos 20]}
+    """
+
+    permission_classes = [EhAdministrador]
+
+    def get(self, request):
+        base = PerfilOrientador.objects.select_related("user")
+        return Response({
+            "pendentes": [_pedido_para_json(p) for p in base.filter(aprovado_em__isnull=True).order_by("criado_em")],
+            "aprovados": [_pedido_para_json(p) for p in base.filter(aprovado_em__isnull=False).order_by("-aprovado_em")[:20]],
+        })
+
+
+class DecidirPedidoView(APIView):
+    """
+    POST /api/orientadores/pedidos/{id}/aprovar/  → activa a conta
+    POST /api/orientadores/pedidos/{id}/recusar/  → apaga o pedido (a conta nunca esteve activa)
+    """
+
+    permission_classes = [EhAdministrador]
+
+    def post(self, request, pk, decisao):
+        if decisao not in ("aprovar", "recusar"):
+            return Response({"erro": "Decisão inválida."}, status=status.HTTP_404_NOT_FOUND)
+        perfil = PerfilOrientador.objects.select_related("user").filter(pk=pk).first()
+        if perfil is None:
+            return Response({"erro": "Pedido não encontrado."}, status=status.HTTP_404_NOT_FOUND)
+        if decisao == "aprovar":
+            aprovar_conta_orientador(perfil.user)
+            perfil.refresh_from_db()
+            return Response(_pedido_para_json(perfil))
+        if not perfil.pendente:
+            return Response({"erro": "Esta conta já foi aprovada e não pode ser recusada aqui."},
+                            status=status.HTTP_409_CONFLICT)
+        perfil.user.delete()  # apaga também o perfil (on_delete=CASCADE)
+        return Response(status=status.HTTP_204_NO_CONTENT)

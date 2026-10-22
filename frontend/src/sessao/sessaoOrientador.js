@@ -7,8 +7,8 @@ const CHAVE = "njango.sessaoOrientador";
 
 let emMemoria = null;
 
-export function iniciarSessaoOrientador({ token, username, nome = null, email = null }) {
-  emMemoria = { token, username: username ?? email, nome: nome ?? username ?? email, email };
+export function iniciarSessaoOrientador({ token, username, nome = null, email = null, administrador = false }) {
+  emMemoria = { token, username: username ?? email, nome: nome ?? username ?? email, email, administrador };
   guardar(CHAVE, emMemoria);
   return emMemoria;
 }
