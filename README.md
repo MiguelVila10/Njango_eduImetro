@@ -24,6 +24,21 @@ python manage.py dados_demo --apagar
 Os alunos de demonstração são dados simulados para apresentar o sistema;
 não são resultados de testes com utilizadores reais.
 
+## Levar os dados para outro computador
+
+Cada computador tem a sua própria base de dados; o GitHub só leva o código.
+Para ter os mesmos alunos noutro computador:
+
+1. No computador com os dados: dois cliques em `copiar_dados.bat`. Cria
+   `njangoedu_copia.json` na pasta acima do projecto (fora do Git).
+2. Levar o ficheiro numa pen para a pasta acima do projecto no outro computador.
+3. No outro computador: dois cliques em `carregar_copia.bat` e escrever `SIM`.
+   Substitui os dados desse computador (que ficam guardados em
+   `njangoedu_antes_de_carregar.json`).
+
+O ficheiro tem dados pessoais de alunos menores: não o envies por WhatsApp ou
+e-mail, não o ponhas no GitHub e apaga-o da pen depois de carregar.
+
 ## Comandos úteis
 
 | Comando | Para quê |
