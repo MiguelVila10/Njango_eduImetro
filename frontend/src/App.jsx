@@ -19,9 +19,11 @@ import CriarConta from "./paginas/orientador/CriarConta";
 import Entrar from "./paginas/orientador/Entrar";
 import FichaAluno from "./paginas/orientador/FichaAluno";
 import LayoutOrientador from "./paginas/orientador/Layout";
+import NovaSenha from "./paginas/orientador/NovaSenha";
 import Painel from "./paginas/orientador/Painel";
 import PedidosConta from "./paginas/orientador/PedidosConta";
 import Perguntas from "./paginas/orientador/Perguntas";
+import RecuperarSenha from "./paginas/orientador/RecuperarSenha";
 
 export default function App() {
   return (
@@ -44,6 +46,8 @@ export default function App() {
         {/* Orientador */}
         <Route path="/orientador/entrar" element={<Entrar />} />
         <Route path="/orientador/criar-conta" element={<CriarConta />} />
+        <Route path="/orientador/recuperar-senha" element={<RecuperarSenha />} />
+        <Route path="/orientador/nova-senha" element={<NovaSenha />} />
         <Route path="/privacidade" element={<Privacidade />} />
         <Route path="/orientador" element={<RotaOrientador />}>
           <Route element={<LayoutOrientador />}>

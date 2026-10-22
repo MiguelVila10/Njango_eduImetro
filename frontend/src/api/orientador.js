@@ -24,6 +24,25 @@ export function pedirConta({ nome, email, escola, password, confirmarPassword, a
   });
 }
 
+/** Pede o link para criar uma palavra-passe nova (responde igual exista ou não a conta). */
+export function pedirRecuperacao(email) {
+  return pedido("/auth/recuperar/", { metodo: "POST", corpo: { email } });
+}
+
+/** Verifica se o link do e-mail ainda vale (ErroApi 400 com codigo "link_invalido" se não). */
+export function verificarLinkNovaSenha(uid, token) {
+  const q = new URLSearchParams({ uid, token });
+  return pedido(`/auth/nova-senha/?${q}`);
+}
+
+/** Define a palavra-passe nova a partir do link do e-mail. */
+export function definirNovaSenha({ uid, token, password, confirmarPassword }) {
+  return pedido("/auth/nova-senha/", {
+    metodo: "POST",
+    corpo: { uid, token, password, confirmar_password: confirmarPassword },
+  });
+}
+
 // Pedidos de conta (só o administrador)
 export const listarPedidosConta = () => comToken("/orientadores/pedidos/");
 export const decidirPedidoConta = (id, decisao) => comToken(`/orientadores/pedidos/${id}/${decisao}/`, { metodo: "POST" });

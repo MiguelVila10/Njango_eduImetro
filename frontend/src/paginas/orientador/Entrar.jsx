@@ -2,7 +2,7 @@
 // Entra com e-mail e palavra-passe. Avisos: sessão terminada, conta pendente
 // (pedido ainda não aprovado) e conta acabada de pedir.
 
-import { Clock, Eye, EyeOff, Hourglass, Lock, LoaderCircle, Mail, MailCheck } from "lucide-react";
+import { CircleCheck, Clock, Eye, EyeOff, Hourglass, Lock, LoaderCircle, Mail, MailCheck } from "lucide-react";
 import { useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 
@@ -14,6 +14,7 @@ function Aviso({ icone: Icone, cor = "ambar", children }) {
   const cores = {
     ambar: "bg-[#fff4e0] text-[#9a5b00]",
     azul: "bg-primaria-clara text-primaria-escura",
+    verde: "bg-emerald-50 text-emerald-800",
   };
   return (
     <div role="status" className={`mb-8 flex items-center gap-5 rounded-[12px] p-5 ${cores[cor]}`}>
@@ -68,6 +69,9 @@ export default function Entrar() {
           Pedido de conta enviado. Vai poder entrar assim que um administrador aprovar a sua conta.
         </Aviso>
       )}
+      {state?.senhaAlterada && (
+        <Aviso icone={CircleCheck} cor="verde">Palavra-passe alterada. Entre com a palavra-passe nova.</Aviso>
+      )}
       {pendente && (
         <Aviso icone={Hourglass}>
           A sua conta ainda aguarda aprovação de um administrador. Tente novamente mais tarde.
@@ -94,6 +98,13 @@ export default function Entrar() {
             </button>
           }
         />
+        <Link
+          to="/orientador/recuperar-senha"
+          state={{ email: email.trim() }}
+          className="-mt-3 self-end text-[14px] font-medium text-primaria underline-offset-2 hover:underline"
+        >
+          Esqueci-me da palavra-passe
+        </Link>
         {erro && <p role="alert" className="rounded-[8px] bg-red-50 px-4 py-3 text-[14px] text-red-700">{erro}</p>}
         <button
           type="submit"
