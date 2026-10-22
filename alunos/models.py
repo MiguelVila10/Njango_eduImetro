@@ -1,5 +1,6 @@
 # alunos/models.py — versão final com NotaDisciplina
 
+from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.utils import timezone
@@ -65,3 +66,33 @@ class NotaDisciplina(models.Model):
 
     def __str__(self):
         return f"{self.aluno.nome} — {self.disciplina}: {self.nota}"
+
+class PerfilOrientador(models.Model):
+    """
+    Dados do orientador que se registou pela página "Criar conta".
+
+    O registo cria um utilizador INACTIVO e sem acesso de orientador: a conta
+    só passa a funcionar depois de um administrador a aprovar (comando
+    `aprovar_orientador` ou acção no Admin). Assim ninguém consegue ver os
+    dados dos alunos só por criar uma conta.
+    """
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="perfil_orientador",
+        help_text="Conta de utilizador do orientador.",
+    )
+    escola = models.CharField(max_length=120, help_text="Escola ou instituição onde trabalha.")
+    criado_em = models.DateTimeField(default=timezone.now, editable=False)
+    aprovado_em = models.DateTimeField(null=True, blank=True, help_text="Quando a conta foi aprovada.")
+
+    class Meta:
+        verbose_name = "Perfil de orientador"
+        verbose_name_plural = "Perfis de orientador"
+        ordering = ["-criado_em"]
+
+    def __str__(self):
+        return f"{self.user.get_full_name() or self.user.username} ({self.escola})"
+
+    @property
+    def pendente(self):
+        return self.aprovado_em is None

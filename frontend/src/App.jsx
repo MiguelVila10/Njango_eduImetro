@@ -11,9 +11,11 @@ import Registo from "./paginas/aluno/Registo";
 import Resultado from "./paginas/aluno/Resultado";
 import SessaoExpirada from "./paginas/aluno/SessaoExpirada";
 import Teste from "./paginas/aluno/Teste";
+import Privacidade from "./paginas/Privacidade";
 
 import Alunos from "./paginas/orientador/Alunos";
 import Cursos from "./paginas/orientador/Cursos";
+import CriarConta from "./paginas/orientador/CriarConta";
 import Entrar from "./paginas/orientador/Entrar";
 import FichaAluno from "./paginas/orientador/FichaAluno";
 import LayoutOrientador from "./paginas/orientador/Layout";
@@ -40,6 +42,8 @@ export default function App() {
 
         {/* Orientador */}
         <Route path="/orientador/entrar" element={<Entrar />} />
+        <Route path="/orientador/criar-conta" element={<CriarConta />} />
+        <Route path="/privacidade" element={<Privacidade />} />
         <Route path="/orientador" element={<RotaOrientador />}>
           <Route element={<LayoutOrientador />}>
             <Route index element={<Painel />} />

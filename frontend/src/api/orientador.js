@@ -4,9 +4,24 @@ import { pedido } from "./cliente";
 
 const comToken = (caminho, opcoes = {}) => pedido(caminho, { ...opcoes, auth: "orientador" });
 
-/** Devolve { token }. Credenciais erradas → ErroApi 400. */
-export function entrar(username, password) {
-  return pedido("/auth/login/", { metodo: "POST", corpo: { username, password } });
+/**
+ * Entra com e-mail (ou nome de utilizador das contas antigas) e palavra-passe.
+ * Devolve { token, nome, email }. Credenciais erradas → ErroApi 400;
+ * conta ainda não aprovada → ErroApi 403 com codigo "conta_pendente".
+ */
+export function entrar(email, password) {
+  return pedido("/auth/login/", { metodo: "POST", corpo: { email, password } });
+}
+
+/**
+ * Pede uma conta nova de orientador. A conta fica pendente até um
+ * administrador a aprovar. Erros de validação vêm em ErroApi.dados (por campo).
+ */
+export function pedirConta({ nome, email, escola, password, confirmarPassword, aceitaTermos }) {
+  return pedido("/orientadores/registo/", {
+    metodo: "POST",
+    corpo: { nome, email, escola, password, confirmar_password: confirmarPassword, aceita_termos: aceitaTermos },
+  });
 }
 
 export const painelResumo = () => comToken("/painel/resumo/");

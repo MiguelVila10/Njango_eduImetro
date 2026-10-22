@@ -12,6 +12,7 @@ Regra de negócio:
 Uso:
     python manage.py configurar_orientador --username prof.ana
     python manage.py configurar_orientador --username prof.ana --nova-senha
+    python manage.py configurar_orientador --username prof.ana --email ana@escola.ao
 
 Ao escrever a palavra-passe, o terminal não mostra nada (nem asteriscos):
 é normal. Pede-se duas vezes para evitar erros de escrita.
@@ -63,6 +64,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--username", help="Cria ou actualiza esta conta de orientador.")
+        parser.add_argument("--email", help="E-mail da conta (para entrar com o e-mail na página do orientador).")
         parser.add_argument("--password", help="Só para testes/automação; sem isto, a palavra-passe é pedida.")
         parser.add_argument(
             "--nova-senha", action="store_true",
@@ -110,6 +112,8 @@ class Command(BaseCommand):
         user.is_active = True
         if senha:
             user.set_password(senha)
+        if opts.get("email"):
+            user.email = opts["email"].strip().lower()
         user.save()
         user.groups.add(grupo)
 

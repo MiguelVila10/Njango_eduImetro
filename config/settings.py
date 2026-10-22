@@ -154,6 +154,10 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "alunos.sessao.EhOrientador",
     ],
+    # Limita tentativas de entrar e de pedir conta (protege contra adivinhar palavras-passe).
+    "DEFAULT_THROTTLE_RATES": {
+        "acesso": os.getenv("LIMITE_ACESSO", "20/min"),
+    },
 }
 
 # Validade da sessão do aluno (token devolvido ao criar o aluno). O aluno não

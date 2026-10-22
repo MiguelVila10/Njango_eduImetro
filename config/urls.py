@@ -2,12 +2,14 @@
 
 from django.contrib import admin
 from django.urls import include, path
-from rest_framework.authtoken.views import obtain_auth_token
+
+from alunos.orientadores import EntrarView, RegistoOrientadorView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    # Login do orientador para o frontend: devolve {"token": "..."}
-    path("api/auth/login/", obtain_auth_token, name="auth-login"),
+    # Acesso do orientador: entrar (e-mail ou utilizador) e pedir conta nova
+    path("api/auth/login/", EntrarView.as_view(), name="auth-login"),
+    path("api/orientadores/registo/", RegistoOrientadorView.as_view(), name="orientador-registo"),
     # Login/logout na API navegável (testes no browser)
     path("api-auth/", include("rest_framework.urls")),
     path("api/", include("alunos.urls")),

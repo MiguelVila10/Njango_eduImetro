@@ -27,7 +27,7 @@ export default function LayoutOrientador() {
               {texto}
             </NavLink>
           ))}
-          <span className="ml-auto text-slate-500">{sessao?.username}</span>
+          <span className="ml-auto text-slate-500">{sessao?.nome ?? sessao?.username}</span>
           <button type="button" onClick={sair} className="text-slate-600 underline">Sair</button>
         </nav>
       </header>
