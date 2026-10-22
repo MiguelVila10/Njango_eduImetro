@@ -1,9 +1,12 @@
 // Moldura das páginas de acesso do orientador (entrar e criar conta), segundo o
 // design: painel azul à esquerda com o logótipo e "Área do orientador",
-// formulário à direita. No telemóvel o painel fica numa faixa em cima.
+// ilustração e formulário à direita. No telemóvel o painel fica numa faixa
+// em cima, sem a ilustração.
 
 import { BookOpen, GraduationCap } from "lucide-react";
 import { Link } from "react-router-dom";
+
+import ilustracao from "../../assets/orientador/orientador.svg";
 
 export default function LayoutAcesso({ children }) {
   return (
@@ -12,7 +15,7 @@ export default function LayoutAcesso({ children }) {
         <Link to="/" className="relative z-10 flex items-center gap-3 text-[24px] font-bold lg:text-[28px]">
           <BookOpen className="h-7 w-7" strokeWidth={1.8} aria-hidden="true" /> NjangoEdu
         </Link>
-        <div className="relative z-10 mt-6 flex items-center gap-4 lg:my-auto lg:block">
+        <div className="relative z-10 mt-6 flex items-center gap-4 lg:mb-0 lg:mt-auto lg:block">
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primaria lg:mb-8 lg:h-[88px] lg:w-[88px]">
             <GraduationCap className="h-6 w-6 lg:h-9 lg:w-9" strokeWidth={1.8} aria-hidden="true" />
           </span>
@@ -21,6 +24,12 @@ export default function LayoutAcesso({ children }) {
             <span className="mt-3 hidden h-[3px] w-12 rounded-full bg-white lg:block" aria-hidden="true" />
           </div>
         </div>
+        <img
+          src={ilustracao}
+          alt=""
+          aria-hidden="true"
+          className="relative z-10 mx-auto mt-6 hidden max-h-[42vh] w-full max-w-[320px] object-contain lg:block"
+        />
         {/* círculos decorativos do design */}
         <span aria-hidden="true" className="absolute -bottom-40 -right-24 hidden h-[360px] w-[360px] rounded-full border border-white/15 lg:block" />
         <span aria-hidden="true" className="absolute -bottom-52 -right-12 hidden h-[360px] w-[360px] rounded-full border border-white/10 lg:block" />
