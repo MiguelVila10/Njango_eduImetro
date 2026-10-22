@@ -80,6 +80,17 @@ class VistaDoOrientadorTest(APITestCase):
         self.assertEqual(dados["notas"], {"Matemática": 17})
         self.assertEqual([s["rank"] for s in dados["sugestoes"]], [1, 2])
 
+    def test_ficha_mostra_perfil_respostas_e_data_do_teste(self):
+        dados = self.client.get(f"/api/alunos/{self.ana.id}/").data
+        perfil = dados["perfil_respostas"]
+        self.assertEqual(perfil["total"], len(dados["respostas_teste"]))
+        self.assertEqual(sum(a["respostas"] for a in perfil["arquetipos"]), perfil["total"])
+        primeira = dados["respostas_teste"][0]
+        self.assertEqual({"numero", "pergunta", "resposta", "arquetipo"} - set(primeira), set())
+        self.assertTrue(primeira["resposta"])
+        self.assertIsNotNone(dados["teste_feito_em"])
+        self.assertIsInstance(dados["pontos_de_atencao"], list)
+
     def test_aluno_continua_a_ver_so_o_registo_basico(self):
         self.client.logout()
         autenticar_aluno(self.client, self.ana)

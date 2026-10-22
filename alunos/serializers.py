@@ -128,12 +128,12 @@ class AlunoResumoSerializer(serializers.ModelSerializer):
                 "instituicao": primeira.curso.instituicao}
 
     def get_curso_escolhido(self, aluno):
-        """None = ainda não decidiu."""
+        """None = ainda não decidiu. rank = em que lugar o curso foi sugerido."""
         escolhida = next((r for r in self._recs(aluno) if r.escolhida_pelo_aluno), None)
         if escolhida is None:
             return None
         return {"curso": escolhida.curso_id, "nome": escolhida.curso.nome,
-                "instituicao": escolhida.curso.instituicao}
+                "instituicao": escolhida.curso.instituicao, "rank": escolhida.rank}
 
     def get_confianca(self, aluno):
         primeira = self._primeira(aluno)
@@ -150,11 +150,82 @@ class AlunoDetalheSerializer(AlunoResumoSerializer):
     motivos_confianca = serializers.SerializerMethodField()
     alertas_vieses = serializers.SerializerMethodField()
 
+    perfil_respostas = serializers.SerializerMethodField()
+    respostas_teste = serializers.SerializerMethodField()
+    teste_feito_em = serializers.SerializerMethodField()
+    pontos_de_atencao = serializers.SerializerMethodField()
+
     class Meta(AlunoResumoSerializer.Meta):
         fields = AlunoResumoSerializer.Meta.fields + [
             "notas", "sugestoes", "cursos_proximos", "motivos_confianca", "alertas_vieses",
+            "perfil_respostas", "respostas_teste", "teste_feito_em", "pontos_de_atencao",
         ]
         read_only_fields = fields
+
+    def _respostas(self, aluno):
+        return sorted(
+            (r for r in aluno.respostas_cat.all() if r.tentativa == aluno.tentativa_cat),
+            key=lambda r: (r.respondida_em is None, r.respondida_em, r.id),
+        )
+
+    def get_perfil_respostas(self, aluno):
+        """Como as respostas ao teste (tentativa actual) se repartem pelos 4 perfis."""
+        from cat import motor
+        respostas = self._respostas(aluno)
+        total = len(respostas)
+        contagem = {a: 0 for a in motor.ARQUETIPOS}
+        for r in respostas:
+            contagem[r.arquetipo_escolhido] = contagem.get(r.arquetipo_escolhido, 0) + 1
+        return {
+            "total": total,
+            "arquetipos": sorted(
+                ({"arquetipo": a, "respostas": n, "percentagem": round(n / total, 4) if total else 0}
+                 for a, n in contagem.items()),
+                key=lambda x: -x["respostas"],
+            ),
+        }
+
+    def get_respostas_teste(self, aluno):
+        """Cada pergunta respondida, com a opção escolhida (texto) e o perfil dessa opção."""
+        resultado = []
+        for n, r in enumerate(self._respostas(aluno), start=1):
+            opcao = next((o for o in (r.item.opcoes or []) if o.get("arquetipo") == r.arquetipo_escolhido), None)
+            resultado.append({
+                "numero": n,
+                "pergunta": r.item.texto,
+                "resposta": (opcao or {}).get("texto", ""),
+                "arquetipo": r.arquetipo_escolhido,
+                "tempo_ms": r.tempo_resposta_ms,
+            })
+        return resultado
+
+    def get_teste_feito_em(self, aluno):
+        datas = [r.respondida_em for r in self._respostas(aluno) if r.respondida_em]
+        return max(datas) if datas else None
+
+    def get_pontos_de_atencao(self, aluno):
+        """
+        O que levou ao estado "ponto de atenção", em dados simples para o ecrã
+        explicar: perfis em que as respostas e as notas não batem certo (com as
+        disciplinas desse perfil e a média do aluno) e motivos de confiança baixa.
+        Serve para apoiar a conversa com o aluno; não é um diagnóstico.
+        """
+        from deteccao_vieses.services import MAPEAMENTO
+        alertas = self.get_alertas_vieses(aluno) or {}
+        notas = self.get_notas(aluno)
+        media = round(sum(notas.values()) / len(notas), 1) if notas else None
+        pontos = []
+        for tipo in ("sobrestimacao", "subestimacao"):
+            for perfil in alertas.get(tipo, []):
+                pontos.append({
+                    "tipo": tipo,
+                    "perfil": perfil,
+                    "media_aluno": media,
+                    "disciplinas": [{"disciplina": d, "nota": notas.get(d)} for d in MAPEAMENTO.get(perfil, [])],
+                })
+        if self.get_confianca(aluno) == "baixa":
+            pontos.append({"tipo": "confianca_baixa", "motivos": self.get_motivos_confianca(aluno)})
+        return pontos
 
     def get_notas(self, aluno):
         return {n.disciplina: n.nota for n in aluno.notas.all()}
