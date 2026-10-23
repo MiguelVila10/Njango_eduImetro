@@ -130,3 +130,32 @@ class PedidosContaTest(APITestCase):
 
     def test_sem_sessao_nao_ve_pedidos(self):
         self.assertIn(self.client.get("/api/orientadores/pedidos/").status_code, (401, 403))
+
+
+class PapelAdministradorTest(APITestCase):
+    """Só quem recebeu --administrador vê os pedidos de conta; aprovar uma conta não a torna administradora."""
+
+    def setUp(self):
+        cache.clear()
+        call_command("configurar_orientador", username="admin.escola", password="Senha2026forte",
+                     administrador=True, stdout=StringIO())
+        self.client.post("/api/orientadores/registo/", {
+            "nome": "Bento Teste", "email": "bento@escola.ao", "escola": "Escola n.º 2",
+            "password": SENHA, "confirmar_password": SENHA, "aceita_termos": True,
+        }, format="json")
+        from .orientadores import aprovar_conta_orientador
+        aprovar_conta_orientador(User.objects.get(email="bento@escola.ao"))
+
+    def entrar(self, ident, senha):
+        return self.client.post("/api/auth/login/", {"email": ident, "password": senha}, format="json").data
+
+    def test_conta_aprovada_nao_e_administradora(self):
+        self.assertFalse(self.entrar("bento@escola.ao", SENHA)["administrador"])
+        self.assertTrue(self.entrar("admin.escola", "Senha2026forte")["administrador"])
+
+    def test_remover_administrador_e_listar(self):
+        call_command("configurar_orientador", username="admin.escola", remover_administrador=True, stdout=StringIO())
+        self.assertFalse(self.entrar("admin.escola", "Senha2026forte")["administrador"])
+        saida = StringIO()
+        call_command("configurar_orientador", listar=True, stdout=saida)
+        self.assertIn("bento@escola.ao", saida.getvalue())

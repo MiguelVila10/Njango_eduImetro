@@ -14,6 +14,8 @@ Uso:
     python manage.py configurar_orientador --username prof.ana --nova-senha
     python manage.py configurar_orientador --username prof.ana --email ana@escola.ao
     python manage.py configurar_orientador --username prof.ana --administrador
+    python manage.py configurar_orientador --username prof.ana --remover-administrador
+    python manage.py configurar_orientador --listar
 
 Ao escrever a palavra-passe, o terminal não mostra nada (nem asteriscos):
 é normal. Pede-se duas vezes para evitar erros de escrita.
@@ -70,6 +72,11 @@ class Command(BaseCommand):
             "--administrador", action="store_true",
             help="Dá a esta conta o papel de administrador: aprova os pedidos de conta de novos orientadores.",
         )
+        parser.add_argument(
+            "--remover-administrador", action="store_true",
+            help="Tira a esta conta o papel de administrador (continua a ser orientador).",
+        )
+        parser.add_argument("--listar", action="store_true", help="Mostra as contas de orientador e quem é administrador.")
         parser.add_argument("--password", help="Só para testes/automação; sem isto, a palavra-passe é pedida.")
         parser.add_argument(
             "--nova-senha", action="store_true",
@@ -89,7 +96,54 @@ class Command(BaseCommand):
             raise CommandError("As duas palavras-passe não são iguais. Nada foi alterado; tenta de novo.")
         return senha
 
+    def _listar(self):
+        from alunos.orientadores import eh_administrador
+
+        User = get_user_model()
+        contas = User.objects.filter(is_staff=True) | User.objects.filter(perfil_orientador__isnull=False)
+        contas = contas.distinct().order_by("id")
+        if not contas:
+            self.stdout.write("Ainda não há contas de orientador.")
+            return
+        self.stdout.write("Contas de orientador:")
+        for u in contas:
+            if not u.is_active:
+                papel = "pedido pendente"
+            elif u.is_superuser:
+                papel = "ADMINISTRADOR (superutilizador do Django)"
+            elif eh_administrador(u):
+                papel = "ADMINISTRADOR"
+            else:
+                papel = "orientador"
+            self.stdout.write(f"  - utilizador: {u.username} | e-mail: {u.email or '—'} | {papel}")
+
     def handle(self, *args, **opts):
+        if opts.get("listar"):
+            self._listar()
+            return
+        if opts.get("remover_administrador"):
+            username = (opts.get("username") or "").strip()
+            if not username:
+                raise CommandError("Indique a conta: --username NOME (veja os nomes com --listar).")
+            User = get_user_model()
+            user = User.objects.filter(username=username).first()
+            if user is None:
+                raise CommandError(f'Não existe a conta "{username}". Veja os nomes com --listar.')
+            perms = Permission.objects.filter(
+                content_type__app_label="alunos", codename__in=["view_perfilorientador", "change_perfilorientador"]
+            )
+            user.user_permissions.remove(*perms)
+            if user.is_superuser:
+                self.stdout.write(self.style.WARNING(
+                    f'"{username}" é superutilizador do Django e por isso continua administrador. '
+                    "Se não for a conta do administrador geral, tire-lhe o superutilizador no Admin (/admin)."
+                ))
+            else:
+                self.stdout.write(self.style.SUCCESS(
+                    f'"{username}" já não é administrador: continua orientador, mas deixa de ver "Pedidos de conta". '
+                    "Tem de sair e voltar a entrar para a mudança aparecer."
+                ))
+            return
         grupo = configurar_grupo()
         self.stdout.write(self.style.SUCCESS(
             f'Grupo "{NOME_GRUPO}" configurado com {grupo.permissions.count()} permissões.'

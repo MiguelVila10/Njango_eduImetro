@@ -49,6 +49,8 @@ e-mail, não o ponhas no GitHub e apaga-o da pen depois de carregar.
 | `python manage.py aprovar_orientador` | Ver os pedidos de conta feitos em "Criar conta" |
 | `python manage.py aprovar_orientador --email EMAIL` | Aprovar um pedido de conta (só depois disso a pessoa entra) |
 | `python manage.py configurar_orientador --username NOME --administrador` | Tornar a conta administradora: vê "Pedidos de conta" no menu e aprova/recusa no próprio sistema |
+| `python manage.py configurar_orientador --username NOME --remover-administrador` | Tirar o papel de administrador (a conta continua orientador) |
+| `python manage.py configurar_orientador --listar` | Ver todas as contas de orientador e quem é administrador |
 | `python manage.py seed_cursos` / `seed_itens_cat` | Carregar os cursos e o banco de perguntas |
 | `python manage.py simular_cat` | Simulação do teste adaptativo com alunos sintéticos |
 | `python manage.py test` | Testes do backend |
