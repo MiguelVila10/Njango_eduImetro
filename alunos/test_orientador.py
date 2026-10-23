@@ -185,3 +185,11 @@ class SemCursoCompativelTest(APITestCase):
         self.assertEqual(dados["testes_concluidos"] + dados["testes_por_terminar"], dados["total_alunos"])
         self.assertGreaterEqual(dados["alunos_a_acompanhar"], 1)  # inclui quem não tem curso compatível
         self.assertEqual(dados["alunos_demonstracao"], 0)
+        self.assertEqual(sum(dados["estados"].values()), dados["total_alunos"])
+        dias = dados["actividade"]["dias"]
+        self.assertEqual(len(dias), 14)
+        self.assertEqual(len(dados["actividade"]["semanas"]), 8)
+        # Todos os alunos do teste foram criados hoje: contam no último dia.
+        self.assertEqual(dias[-1]["registados"], dados["total_alunos"])
+        self.assertEqual(dias[-1]["concluidos"], dados["testes_concluidos"])
+        self.assertEqual(dados["registados_7_dias"], dados["total_alunos"])

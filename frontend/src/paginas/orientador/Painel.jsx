@@ -1,9 +1,10 @@
-// Painel do orientador (design Stitch "Njango Edu — Painel"): números
-// principais, perfil dominante, cursos mais sugeridos e alunos recentes.
+// Painel do orientador (design Stitch "Njango Edu — Painel", com as ideias
+// das referências do utilizador): números com anel, actividade no tempo,
+// estado dos alunos, perfil dominante, cursos mais sugeridos e alunos recentes.
 
 import { motion, useReducedMotion } from "framer-motion";
 import {
-  ArrowRight, CircleCheck, CirclePause, CirclePlay, Hourglass, Info, RefreshCw, TriangleAlert, Users,
+  ArrowRight, CircleCheck, CirclePause, CirclePlay, CircleX, Hourglass, Info, RefreshCw, TriangleAlert, Users,
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -12,6 +13,7 @@ import { painelResumo } from "../../api/orientador";
 import {
   COR_PERFIL, Cartao, EtiquetaEstado, EtiquetaPerfil, ORDEM_PERFIS, dataCurta, nomeAbreviado, nomeCurtoCurso,
 } from "../../componentes/orientador/pecas";
+import { Anel, Donut, GraficoActividade, LegendaDonut } from "../../componentes/orientador/graficos";
 import { useCarregar } from "../../hooks/useCarregar";
 
 const CHAVE_GRAFICOS = "njango.orientador.graficos";
@@ -50,19 +52,6 @@ function EscolherGraficos({ valor, aoMudar }) {
   );
 }
 
-function CartaoNumero({ icone: Icone, valor, rotulo, detalhe, destaque = false }) {
-  return (
-    <Cartao className={`p-4 sm:p-6 ${destaque ? "border-[#fbe3b8]! bg-[#fff4e0]!" : ""}`}>
-      <span className={`mb-4 flex h-10 w-10 sm:mb-7 sm:h-12 sm:w-12 items-center justify-center rounded-[10px] ${destaque ? "bg-[#fde0ad] text-[#9a5b00]" : "bg-primaria-clara text-primaria"}`}>
-        <Icone className="h-6 w-6" aria-hidden="true" />
-      </span>
-      <p className={`text-[34px] font-bold leading-none tabular-nums sm:text-[44px] ${destaque ? "text-[#9a5b00]" : ""}`}>{valor}</p>
-      <p className={`mt-2 text-[14px] leading-snug sm:mt-3 sm:text-[16px] ${destaque ? "font-semibold text-[#9a5b00]" : "text-texto-suave"}`}>{rotulo}</p>
-      {detalhe && <p className="mt-1 text-[13px] text-[#9a5b00]">{detalhe}</p>}
-    </Cartao>
-  );
-}
-
 function Barra({ animar, atraso, children, ...props }) {
   return animar ? (
     <motion.div {...props} transition={{ duration: 0.7, delay: atraso, ease: [0.22, 1, 0.36, 1] }}>{children}</motion.div>
@@ -71,53 +60,109 @@ function Barra({ animar, atraso, children, ...props }) {
   );
 }
 
-function PerfilDominante({ distribuicao, animar }) {
-  const total = ORDEM_PERFIS.reduce((s, p) => s + (distribuicao[p] ?? 0), 0);
-  const maximo = Math.max(1, ...ORDEM_PERFIS.map((p) => distribuicao[p] ?? 0));
+function CartaoKPI({ valor, rotulo, detalhe, proporcao, icone, cor = "#1f6fc0", trilho, destaque = false, animar, rotuloAnel }) {
   return (
-    <Cartao className="flex flex-col p-6">
-      <div className="mb-6 flex flex-wrap items-baseline justify-between gap-2">
+    <Cartao className={`flex items-center justify-between gap-3 p-4 sm:p-5 ${destaque ? "border-[#fbe3b8]! bg-[#fff4e0]!" : ""}`}>
+      <div className="min-w-0">
+        <p className={`text-[30px] font-bold leading-none tabular-nums sm:text-[36px] ${destaque ? "text-[#9a5b00]" : ""}`}>{valor}</p>
+        <p className={`mt-2 text-[14px] leading-snug sm:text-[15px] ${destaque ? "font-semibold text-[#9a5b00]" : "font-medium"}`}>{rotulo}</p>
+        {detalhe && <p className={`mt-1 text-[12px] sm:text-[13px] ${destaque ? "text-[#9a5b00]" : "text-texto-suave"}`}>{detalhe}</p>}
+      </div>
+      <Anel proporcao={proporcao} icone={icone} cor={cor} trilho={trilho} animar={animar} rotulo={rotuloAnel} />
+    </Cartao>
+  );
+}
+
+const pct = (parte, total) => (total ? Math.round((parte / total) * 100) : 0);
+const diaCurto = (iso) => new Date(`${iso}T12:00:00`).toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit" });
+const diaLongo = (iso) => new Date(`${iso}T12:00:00`).toLocaleDateString("pt-PT", { weekday: "long", day: "numeric", month: "long" });
+
+const SERIES_ACTIVIDADE = [
+  { chave: "registados", rotulo: "Alunos registados", cor: "#1f6fc0" },
+  { chave: "concluidos", rotulo: "Testes concluídos", cor: "#1e8e5a" },
+];
+
+function Actividade({ actividade, animar }) {
+  const [vista, setVista] = useState("dias");
+  const pontos = vista === "dias"
+    ? actividade.dias.map((d) => ({ ...d, chave: d.data, rotulo: diaCurto(d.data), titulo: diaLongo(d.data) }))
+    : actividade.semanas.map((s) => ({ ...s, chave: s.inicio, rotulo: diaCurto(s.inicio), titulo: `Semana de ${diaCurto(s.inicio)}` }));
+  const totais = SERIES_ACTIVIDADE.map((s) => pontos.reduce((t, p) => t + p[s.chave], 0));
+  return (
+    <Cartao className="flex flex-col p-5 sm:p-6">
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-[20px] font-semibold">Actividade dos alunos</h2>
+          <p className="mt-1 text-[14px] text-texto-suave">
+            {vista === "dias" ? "Últimos 14 dias" : "Últimas 8 semanas"}: {totais[0]} registados · {totais[1]} testes concluídos
+          </p>
+        </div>
+        <div role="group" aria-label="Período" className="inline-flex rounded-[10px] border border-borda p-0.5">
+          {[["dias", "14 dias"], ["semanas", "8 semanas"]].map(([id, texto]) => (
+            <button key={id} type="button" aria-pressed={vista === id} onClick={() => setVista(id)}
+              className={`h-9 rounded-[8px] px-3 text-[13px] font-semibold ${vista === id ? "bg-primaria-clara text-primaria" : "text-texto-suave hover:text-texto"}`}>
+              {texto}
+            </button>
+          ))}
+        </div>
+      </div>
+      <ul className="mb-3 flex flex-wrap gap-x-5 gap-y-1 text-[13px] font-medium">
+        {SERIES_ACTIVIDADE.map((s) => (
+          <li key={s.chave} className="flex items-center gap-2">
+            <span className="h-[3px] w-5 rounded-full" style={{ backgroundColor: s.cor }} aria-hidden="true" /> {s.rotulo}
+          </li>
+        ))}
+      </ul>
+      <div className="min-h-[240px] flex-1">
+        <GraficoActividade key={`${vista}-${animar}`} pontos={pontos} series={SERIES_ACTIVIDADE} animar={animar} />
+      </div>
+    </Cartao>
+  );
+}
+
+const PARTES_ESTADO = [
+  { id: "concluido", rotulo: "Concluído", cor: "#1e8e5a", icone: CircleCheck },
+  { id: "ponto_de_atencao", rotulo: "Ponto de atenção", cor: "#d48806", icone: TriangleAlert },
+  { id: "sem_curso_compativel", rotulo: "Sem curso compatível", cor: "#c0392b", icone: CircleX },
+  { id: "por_terminar", rotulo: "Por terminar", cor: "#a3abbd", icone: Hourglass },
+];
+
+function EstadoDosAlunos({ estados, total, animar }) {
+  const partes = PARTES_ESTADO.map((p) => ({ ...p, valor: estados?.[p.id] ?? 0 }));
+  return (
+    <Cartao className="flex flex-col p-5 sm:p-6">
+      <h2 className="text-[20px] font-semibold">Estado dos alunos</h2>
+      <p className="mb-5 mt-1 text-[14px] text-texto-suave">Em que ponto está cada aluno. Toque num estado para ver os alunos.</p>
+      <div className="flex flex-1 flex-col items-center gap-5">
+        <Donut partes={partes} centro={total} subcentro={total === 1 ? "aluno" : "alunos"} animar={animar} tamanho={180} rotulo="Estado dos alunos" />
+        <LegendaDonut partes={partes} ligacao={(p) => `/orientador/alunos?estado=${p.id}`} />
+      </div>
+    </Cartao>
+  );
+}
+
+function PerfilDominante({ distribuicao, animar }) {
+  const partes = ORDEM_PERFIS.map((p) => ({ id: p, rotulo: p, valor: distribuicao[p] ?? 0, cor: COR_PERFIL[p] }));
+  const total = partes.reduce((s, p) => s + p.valor, 0);
+  const maior = [...partes].sort((a, b) => b.valor - a.valor)[0];
+  return (
+    <Cartao className="flex flex-col p-5 sm:p-6">
+      <div className="mb-5 flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-[20px] font-semibold">Perfil dominante dos alunos</h2>
         <span className="text-[13px] text-texto-suave">N = {total} com respostas</span>
       </div>
       {total === 0 ? (
         <p className="py-10 text-center text-[15px] text-texto-suave">Ainda nenhum aluno respondeu ao teste.</p>
       ) : (
-        <>
-          <div className="grid flex-1 grid-cols-4 gap-3 border-b border-borda px-1 sm:gap-8 sm:px-2" role="img"
-            aria-label={ORDEM_PERFIS.map((p) => `${p}: ${distribuicao[p] ?? 0}`).join(", ")}>
-            {ORDEM_PERFIS.map((p, i) => {
-              const n = distribuicao[p] ?? 0;
-              return (
-                <div key={p} className="flex flex-col items-center">
-                  <span className="mb-2 text-[15px] font-bold tabular-nums">{n}</span>
-                  <div className="relative flex h-[190px] w-full max-w-[58px] items-end overflow-hidden rounded-t-[8px] bg-[#f1f2fb]">
-                    <Barra
-                      animar={animar} atraso={0.08 * i}
-                      className="w-full rounded-t-[8px]"
-                      initial={{ height: 0 }}
-                      style={{ backgroundColor: COR_PERFIL[p] }}
-                      animate={{ height: `${(n / maximo) * 100}%` }}
-                    >
-                      <span className="sr-only">{n}</span>
-                    </Barra>
-                  </div>
-                </div>
-              );
-            })}
+        <div className="flex flex-1 flex-col items-center gap-6 sm:flex-row sm:items-center">
+          <Donut partes={partes} centro={`${pct(maior.valor, total)}%`} subcentro={maior.rotulo} animar={animar} tamanho={190} rotulo="Perfil dominante dos alunos" />
+          <div className="w-full flex-1">
+            <LegendaDonut partes={partes} />
+            <p className="mt-3 px-3 text-[13px] leading-relaxed text-texto-suave">
+              O perfil mais frequente é <strong className="font-semibold text-texto">{maior.rotulo}</strong> ({maior.valor} de {total} alunos).
+            </p>
           </div>
-          <div className="mt-3 grid grid-cols-4 gap-3 px-1 text-center text-[11px] text-texto-suave sm:gap-8 sm:px-2 sm:text-[13px]">
-            {ORDEM_PERFIS.map((p) => <span key={p} className="truncate">{p}</span>)}
-          </div>
-          <ul className="mt-6 grid grid-cols-2 gap-x-6 gap-y-2 rounded-[10px] bg-[#f7f8fc] p-4 text-[14px] font-medium">
-            {ORDEM_PERFIS.map((p) => (
-              <li key={p} className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-full" style={{ backgroundColor: COR_PERFIL[p] }} aria-hidden="true" />
-                {p} ({distribuicao[p] ?? 0})
-              </li>
-            ))}
-          </ul>
-        </>
+        </div>
       )}
     </Cartao>
   );
@@ -302,14 +347,27 @@ export default function Painel() {
 
       {dados && (
         <div className="flex flex-col gap-6">
-          <div className="grid grid-cols-2 gap-3 sm:gap-6 xl:grid-cols-4">
-            <CartaoNumero icone={Users} valor={dados.total_alunos} rotulo="Alunos registados" />
-            <CartaoNumero icone={CircleCheck} valor={dados.testes_concluidos} rotulo="Testes concluídos" />
-            <CartaoNumero icone={Hourglass} valor={dados.testes_por_terminar} rotulo="Testes por terminar" />
-            <CartaoNumero
-              icone={TriangleAlert} valor={dados.alunos_a_acompanhar} rotulo="Alunos com pontos de atenção" destaque
-              detalhe={semCurso > 0 ? `${semCurso} sem curso compatível` : null}
-            />
+          <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 sm:gap-6 xl:grid-cols-4">
+            <CartaoKPI animar={animar} key={`k1-${graficos}`} valor={dados.total_alunos} rotulo="Alunos registados" icone={Users}
+              proporcao={1} rotuloAnel="Total de alunos"
+              detalhe={dados.registados_7_dias > 0 ? `+${dados.registados_7_dias} nos últimos 7 dias` : "Nenhum nos últimos 7 dias"} />
+            <CartaoKPI animar={animar} key={`k2-${graficos}`} valor={dados.testes_concluidos} rotulo="Testes concluídos" icone={CircleCheck}
+              cor="#1e8e5a" trilho="#e7f4ec" proporcao={dados.total_alunos ? dados.testes_concluidos / dados.total_alunos : 0}
+              rotuloAnel={`${pct(dados.testes_concluidos, dados.total_alunos)}% dos alunos`}
+              detalhe={`${pct(dados.testes_concluidos, dados.total_alunos)}% dos alunos`} />
+            <CartaoKPI animar={animar} key={`k3-${graficos}`} valor={dados.testes_por_terminar} rotulo="Testes por terminar" icone={Hourglass}
+              cor="#5b6475" trilho="#eef0f4" proporcao={dados.total_alunos ? dados.testes_por_terminar / dados.total_alunos : 0}
+              rotuloAnel={`${pct(dados.testes_por_terminar, dados.total_alunos)}% dos alunos`}
+              detalhe={`${pct(dados.testes_por_terminar, dados.total_alunos)}% dos alunos`} />
+            <CartaoKPI animar={animar} key={`k4-${graficos}`} valor={dados.alunos_a_acompanhar} rotulo="Alunos com pontos de atenção" icone={TriangleAlert}
+              cor="#b26a00" trilho="#fde0ad" destaque
+              proporcao={dados.testes_concluidos ? dados.alunos_a_acompanhar / dados.testes_concluidos : 0}
+              rotuloAnel={`${pct(dados.alunos_a_acompanhar, dados.testes_concluidos)}% dos testes concluídos`}
+              detalhe={semCurso > 0 ? `${semCurso} sem curso compatível` : `${pct(dados.alunos_a_acompanhar, dados.testes_concluidos)}% dos testes concluídos`} />
+          </div>
+          <div className="grid gap-6 xl:grid-cols-[2fr_1fr]">
+            {dados.actividade && <Actividade actividade={dados.actividade} animar={animar} />}
+            <EstadoDosAlunos key={`e-${graficos}`} estados={dados.estados} total={dados.total_alunos} animar={animar} />
           </div>
           <div className="grid gap-6 xl:grid-cols-2">
             <PerfilDominante key={`p-${graficos}`} distribuicao={dados.distribuicao_perfis} animar={animar} />

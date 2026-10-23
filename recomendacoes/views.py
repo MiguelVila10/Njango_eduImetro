@@ -1,7 +1,10 @@
 # recomendacoes/views.py
+from collections import Counter
+from datetime import timedelta
 
 from django.db import transaction
 from django.db.models import Count
+from django.utils import timezone
 from rest_framework import status as drf_status
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -177,14 +180,48 @@ def _distribuicao_perfis():
 
 
 def _contar_estados():
-    """Quantos alunos há em cada estado (ver alunos/estado.py), numa só passagem."""
+    """
+    Numa só passagem pelos alunos: quantos há em cada estado (alunos/estado.py)
+    e, para o gráfico de actividade, o dia em que cada um se registou e o dia
+    em que terminou o teste (última resposta da tentativa actual).
+    """
     from alunos.estado import carregar_cursos, estado_do_aluno
 
     cursos = carregar_cursos()
     contagem = {POR_TERMINAR: 0, SEM_CURSO_COMPATIVEL: 0, PONTO_DE_ATENCAO: 0, CONCLUIDO: 0}
+    datas = []
     for aluno in Aluno.objects.prefetch_related("recomendacoes", "respostas_cat", "notas"):
-        contagem[estado_do_aluno(aluno, cursos)] += 1
-    return contagem
+        estado = estado_do_aluno(aluno, cursos)
+        contagem[estado] += 1
+        terminou = None
+        if estado != POR_TERMINAR:
+            respostas = [r.respondida_em for r in aluno.respostas_cat.all()
+                         if r.tentativa == aluno.tentativa_cat and r.respondida_em]
+            terminou = timezone.localdate(max(respostas)) if respostas else None
+        datas.append((timezone.localdate(aluno.criado_em) if aluno.criado_em else None, terminou))
+    return contagem, datas
+
+
+def _actividade(datas, hoje=None):
+    """Alunos registados e testes concluídos por dia (14 dias) e por semana (8 semanas)."""
+    hoje = hoje or timezone.localdate()
+    registados = Counter(d for d, _ in datas if d)
+    concluidos = Counter(t for _, t in datas if t)
+    dias = []
+    for i in range(13, -1, -1):
+        dia = hoje - timedelta(days=i)
+        dias.append({"data": dia, "registados": registados[dia], "concluidos": concluidos[dia]})
+    inicio_semana = hoje - timedelta(days=hoje.weekday())  # segunda-feira
+    semanas = []
+    for i in range(7, -1, -1):
+        inicio = inicio_semana - timedelta(weeks=i)
+        dias_semana = [inicio + timedelta(days=k) for k in range(7)]
+        semanas.append({
+            "inicio": inicio,
+            "registados": sum(registados[d] for d in dias_semana),
+            "concluidos": sum(concluidos[d] for d in dias_semana),
+        })
+    return {"dias": dias, "semanas": semanas}
 
 
 def _alunos_recentes(total=5):
@@ -236,10 +273,14 @@ class PainelResumoView(APIView):
         )
         total_alunos = Aluno.objects.count()
         com_recomendacoes = Recomendacao.objects.values("aluno").distinct().count()
-        estados = _contar_estados()
+        estados, datas = _contar_estados()
         sem_curso = estados[SEM_CURSO_COMPATIVEL]
+        semana_passada = timezone.localdate() - timedelta(days=6)
         return Response({
             "total_alunos": total_alunos,
+            "registados_7_dias": sum(1 for d, _ in datas if d and d >= semana_passada),
+            "estados": estados,
+            "actividade": _actividade(datas),
             # Terminaram notas e teste (com sugestões ou sem curso compatível).
             "testes_concluidos": com_recomendacoes + sem_curso,
             # Precisam do orientador: alerta de viés, confiança baixa ou sem curso compatível.
