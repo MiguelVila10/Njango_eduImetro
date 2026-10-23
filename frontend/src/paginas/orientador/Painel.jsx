@@ -77,9 +77,10 @@ const pct = (parte, total) => (total ? Math.round((parte / total) * 100) : 0);
 const diaCurto = (iso) => new Date(`${iso}T12:00:00`).toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit" });
 const diaLongo = (iso) => new Date(`${iso}T12:00:00`).toLocaleDateString("pt-PT", { weekday: "long", day: "numeric", month: "long" });
 
+// Destaque nos testes concluídos (azul da marca); os registos ficam como contexto, em cinzento.
 const SERIES_ACTIVIDADE = [
-  { chave: "registados", rotulo: "Alunos registados", cor: "#1f6fc0" },
-  { chave: "concluidos", rotulo: "Testes concluídos", cor: "#1e8e5a" },
+  { chave: "registados", rotulo: "Alunos registados", cor: "#b8c2d3" },
+  { chave: "concluidos", rotulo: "Testes concluídos", cor: "#1f6fc0" },
 ];
 
 function Actividade({ actividade, animar }) {
@@ -109,7 +110,7 @@ function Actividade({ actividade, animar }) {
       <ul className="mb-3 flex flex-wrap gap-x-5 gap-y-1 text-[13px] font-medium">
         {SERIES_ACTIVIDADE.map((s) => (
           <li key={s.chave} className="flex items-center gap-2">
-            <span className="h-[3px] w-5 rounded-full" style={{ backgroundColor: s.cor }} aria-hidden="true" /> {s.rotulo}
+            <span className="h-3 w-3 rounded-[3px]" style={{ backgroundColor: s.cor }} aria-hidden="true" /> {s.rotulo}
           </li>
         ))}
       </ul>
@@ -120,11 +121,13 @@ function Actividade({ actividade, animar }) {
   );
 }
 
+// Cores do estado sem repetir as dos perfis: cinzentos para o que está normal,
+// âmbar (claro e escuro) para quem precisa de atenção. O ícone e o nome vão sempre ao lado.
 const PARTES_ESTADO = [
-  { id: "concluido", rotulo: "Concluído", cor: "#1e8e5a", icone: CircleCheck },
-  { id: "ponto_de_atencao", rotulo: "Ponto de atenção", cor: "#d48806", icone: TriangleAlert },
-  { id: "sem_curso_compativel", rotulo: "Sem curso compatível", cor: "#c0392b", icone: CircleX },
-  { id: "por_terminar", rotulo: "Por terminar", cor: "#a3abbd", icone: Hourglass },
+  { id: "concluido", rotulo: "Concluído", cor: "#5b6b85", icone: CircleCheck },
+  { id: "ponto_de_atencao", rotulo: "Ponto de atenção", cor: "#e0a100", icone: TriangleAlert },
+  { id: "sem_curso_compativel", rotulo: "Sem curso compatível", cor: "#7a4f00", icone: CircleX },
+  { id: "por_terminar", rotulo: "Por terminar", cor: "#c5ccd8", icone: Hourglass },
 ];
 
 function EstadoDosAlunos({ estados, total, animar }) {
@@ -352,7 +355,7 @@ export default function Painel() {
               proporcao={1} rotuloAnel="Total de alunos"
               detalhe={dados.registados_7_dias > 0 ? `+${dados.registados_7_dias} nos últimos 7 dias` : "Nenhum nos últimos 7 dias"} />
             <CartaoKPI animar={animar} key={`k2-${graficos}`} valor={dados.testes_concluidos} rotulo="Testes concluídos" icone={CircleCheck}
-              cor="#1e8e5a" trilho="#e7f4ec" proporcao={dados.total_alunos ? dados.testes_concluidos / dados.total_alunos : 0}
+              cor="#1f6fc0" trilho="#e3f0fc" proporcao={dados.total_alunos ? dados.testes_concluidos / dados.total_alunos : 0}
               rotuloAnel={`${pct(dados.testes_concluidos, dados.total_alunos)}% dos alunos`}
               detalhe={`${pct(dados.testes_concluidos, dados.total_alunos)}% dos alunos`} />
             <CartaoKPI animar={animar} key={`k3-${graficos}`} valor={dados.testes_por_terminar} rotulo="Testes por terminar" icone={Hourglass}

@@ -3,7 +3,7 @@
 // Todos aceitam "animar" (botão Gráficos animados / estáticos).
 
 import { motion } from "framer-motion";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 const TRANSICAO = { duration: 0.8, ease: [0.22, 1, 0.36, 1] };
 
@@ -108,32 +108,6 @@ export function LegendaDonut({ partes, ligacao }) {
   );
 }
 
-// Curva suave sem passar acima/abaixo dos pontos (monotone cubic, Fritsch–Carlson).
-function curva(pontos) {
-  if (pontos.length < 2) return "";
-  const n = pontos.length;
-  const dx = [], dy = [], m = [];
-  for (let i = 0; i < n - 1; i++) {
-    dx.push(pontos[i + 1][0] - pontos[i][0]);
-    dy.push(pontos[i + 1][1] - pontos[i][1]);
-    m.push(dy[i] / dx[i]);
-  }
-  const t = [m[0]];
-  for (let i = 1; i < n - 1; i++) t.push(m[i - 1] * m[i] <= 0 ? 0 : (m[i - 1] + m[i]) / 2);
-  t.push(m[n - 2]);
-  for (let i = 0; i < n - 1; i++) {
-    if (m[i] === 0) { t[i] = 0; t[i + 1] = 0; continue; }
-    const a = t[i] / m[i], b = t[i + 1] / m[i], s = a * a + b * b;
-    if (s > 9) { const k = 3 / Math.sqrt(s); t[i] = k * a * m[i]; t[i + 1] = k * b * m[i]; }
-  }
-  let d = `M${pontos[0][0]},${pontos[0][1]}`;
-  for (let i = 0; i < n - 1; i++) {
-    const h = dx[i] / 3;
-    d += ` C${pontos[i][0] + h},${pontos[i][1] + t[i] * h} ${pontos[i + 1][0] - h},${pontos[i + 1][1] - t[i + 1] * h} ${pontos[i + 1][0]},${pontos[i + 1][1]}`;
-  }
-  return d;
-}
-
 function divisaoBonita(maximo) {
   if (maximo <= 4) return 1;
   const bruto = maximo / 4;
@@ -142,13 +116,13 @@ function divisaoBonita(maximo) {
 }
 
 /**
- * Actividade no tempo: alunos registados (área) e testes concluídos (linha),
- * no mesmo eixo (as duas séries contam alunos). Passar o rato mostra os valores.
+ * Actividade no tempo em barras agrupadas: por cada dia (ou semana), uma barra
+ * por série, lado a lado, no mesmo eixo (as duas séries contam alunos).
+ * Barras em vez de curva: são contagens inteiras, sem valores entre os dias.
+ * Passar o rato (ou tocar) num dia mostra os números desse dia.
  */
 export function GraficoActividade({ pontos, series, animar }) {
-  const idClip = useId().replace(/:/g, "");
   const [activo, setActivo] = useState(null);
-  // Desenha no tamanho real do cartão (o texto fica sempre legível, também no telemóvel).
   const caixa = useRef(null);
   const [tamanho, setTamanho] = useState({ largura: 640, altura: 260 });
   useEffect(() => {
@@ -160,7 +134,7 @@ export function GraficoActividade({ pontos, series, animar }) {
     obs.observe(el);
     return () => obs.disconnect();
   }, []);
-  const L = tamanho.largura, A = tamanho.altura, m = { e: 30, d: 14, t: 12, b: 28 };
+  const L = tamanho.largura, A = tamanho.altura, m = { e: 30, d: 6, t: 12, b: 28 };
   const largura = L - m.e - m.d, altura = A - m.t - m.b;
 
   const { maximo, passo } = useMemo(() => {
@@ -169,29 +143,21 @@ export function GraficoActividade({ pontos, series, animar }) {
     return { maximo: Math.ceil(maior / p) * p, passo: p };
   }, [pontos, series]);
 
-  const x = (i) => m.e + (pontos.length === 1 ? largura / 2 : (i / (pontos.length - 1)) * largura);
+  const grupo = largura / pontos.length;
+  const espacoGrupo = Math.min(14, grupo * 0.28);
+  const larguraBarra = Math.max(3, Math.min(22, (grupo - espacoGrupo - 2 * (series.length - 1)) / series.length));
+  const larguraGrupo = larguraBarra * series.length + 2 * (series.length - 1);
+  const xGrupo = (i) => m.e + i * grupo + (grupo - larguraGrupo) / 2;
   const y = (v) => m.t + altura - (v / maximo) * altura;
   const marcas = [];
   for (let v = 0; v <= maximo; v += passo) marcas.push(v);
-  const cada = Math.ceil(pontos.length / Math.max(2, Math.floor(largura / 70)));
+  const cada = Math.ceil(pontos.length / Math.max(2, Math.floor(largura / 64)));
+  const raio = Math.min(4, larguraBarra / 2);
 
   return (
-    <div ref={caixa} className="relative h-full min-h-[220px] w-full">
+    <div ref={caixa} className="relative h-full min-h-[220px] w-full" onMouseLeave={() => setActivo(null)}>
       <svg width={L} height={A} viewBox={`0 0 ${L} ${A}`} className="absolute inset-0 block" role="img"
-        aria-label={`Actividade: ${pontos.map((p) => `${p.rotulo}: ${series.map((s) => `${s.rotulo} ${p[s.chave]}`).join(", ")}`).join("; ")}`}
-        onMouseLeave={() => setActivo(null)}>
-        <defs>
-          <linearGradient id={`area-${idClip}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={series[0].cor} stopOpacity="0.28" />
-            <stop offset="100%" stopColor={series[0].cor} stopOpacity="0.02" />
-          </linearGradient>
-          <clipPath id={`clip-${idClip}`}>
-            <motion.rect x={m.e} y="0" height={A}
-              initial={{ width: animar ? 0 : largura + m.d }} animate={{ width: largura + m.d }}
-              transition={animar ? { duration: 1.1, ease: [0.22, 1, 0.36, 1] } : { duration: 0 }} />
-          </clipPath>
-        </defs>
-
+        aria-label={`Actividade: ${pontos.map((p) => `${p.rotulo}: ${series.map((s) => `${s.rotulo} ${p[s.chave]}`).join(", ")}`).join("; ")}`}>
         {marcas.map((v) => (
           <g key={v}>
             <line x1={m.e} x2={L - m.d} y1={y(v)} y2={y(v)} stroke="#e6e9ef" strokeDasharray={v === 0 ? "" : "3 4"} />
@@ -199,49 +165,47 @@ export function GraficoActividade({ pontos, series, animar }) {
           </g>
         ))}
         {pontos.map((p, i) => {
-          // Rótulos alinhados a partir do último dia (o mais recente aparece sempre, sem se sobrepor).
           if ((pontos.length - 1 - i) % cada !== 0) return null;
-          const ancora = i === pontos.length - 1 ? "end" : i === 0 ? "start" : "middle";
-          return <text key={p.chave} x={x(i)} y={A - 8} textAnchor={ancora} fontSize="12" fill="#5b6475">{p.rotulo}</text>;
+          return <text key={p.chave} x={m.e + i * grupo + grupo / 2} y={A - 8} textAnchor="middle" fontSize="12" fill="#5b6475">{p.rotulo}</text>;
         })}
-
-        <g clipPath={`url(#clip-${idClip})`}>
-          {series.map((s, k) => {
-            const pts = pontos.map((p, i) => [x(i), y(p[s.chave])]);
-            const linha = curva(pts);
-            return (
-              <g key={s.chave}>
-                {k === 0 && <path d={`${linha} L${x(pontos.length - 1)},${y(0)} L${x(0)},${y(0)} Z`} fill={`url(#area-${idClip})`} />}
-                <path d={linha} fill="none" stroke={s.cor} strokeWidth="2.5" strokeLinecap="round" strokeDasharray={s.tracejado ? "6 5" : undefined} />
-              </g>
-            );
-          })}
-        </g>
 
         {activo != null && (
-          <g pointerEvents="none">
-            <line x1={x(activo)} x2={x(activo)} y1={m.t} y2={m.t + altura} stroke="#252b42" strokeOpacity="0.35" strokeDasharray="3 3" />
-            {series.map((s) => (
-              <circle key={s.chave} cx={x(activo)} cy={y(pontos[activo][s.chave])} r="5" fill={s.cor} stroke="#fff" strokeWidth="2" />
-            ))}
-          </g>
+          <rect x={m.e + activo * grupo + 1} y={m.t} width={grupo - 2} height={altura} rx="6" fill="#1f6fc0" fillOpacity="0.06" />
         )}
-        {pontos.map((p, i) => {
-          const meio = largura / Math.max(1, pontos.length - 1) / 2;
+
+        {pontos.map((p, i) => series.map((s, k) => {
+          const v = p[s.chave];
+          if (!v) return null;
+          const alto = y(0) - y(v);
+          const x0 = xGrupo(i) + k * (larguraBarra + 2);
+          // Topo arredondado (4px), base direita assente no eixo.
+          const d = `M${x0},${y(0)} V${y(v) + raio} Q${x0},${y(v)} ${x0 + raio},${y(v)} H${x0 + larguraBarra - raio} Q${x0 + larguraBarra},${y(v)} ${x0 + larguraBarra},${y(v) + raio} V${y(0)} Z`;
           return (
-            <rect key={p.chave} x={x(i) - meio} y={m.t} width={meio * 2} height={altura} fill="transparent"
-              onMouseEnter={() => setActivo(i)} onFocus={() => setActivo(i)} />
+            <motion.path key={`${p.chave}-${s.chave}`} d={d} fill={s.cor}
+              style={{ transformBox: "fill-box", transformOrigin: "bottom" }}
+              initial={{ scaleY: animar ? 0 : 1 }} animate={{ scaleY: 1 }}
+              transition={animar ? { duration: 0.6, delay: 0.02 * i, ease: [0.22, 1, 0.36, 1] } : { duration: 0 }}>
+              <title>{`${p.titulo} · ${s.rotulo}: ${v}`}</title>
+            </motion.path>
           );
-        })}
+        }))}
+
+        {pontos.map((p, i) => (
+          <rect key={`alvo-${p.chave}`} x={m.e + i * grupo} y={m.t} width={grupo} height={altura} fill="transparent"
+            onMouseEnter={() => setActivo(i)} onClick={() => setActivo(i)} />
+        ))}
       </svg>
 
       {activo != null && (
-        <div className="pointer-events-none absolute top-1 z-10 -translate-x-1/2 rounded-[10px] bg-texto px-3 py-2 text-[12px] text-white shadow-lg"
-          style={{ left: `${(x(activo) / L) * 100}%` }}>
+        <div className="pointer-events-none absolute top-1 z-10 rounded-[10px] bg-texto px-3 py-2 text-[12px] text-white shadow-lg"
+          style={{
+            left: `${((m.e + activo * grupo + grupo / 2) / L) * 100}%`,
+            transform: `translateX(${activo > pontos.length * 0.7 ? "-100%" : activo < pontos.length * 0.3 ? "0%" : "-50%"})`,
+          }}>
           <p className="mb-1 font-semibold">{pontos[activo].titulo}</p>
           {series.map((s) => (
             <p key={s.chave} className="flex items-center gap-2 whitespace-nowrap">
-              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: s.cor }} aria-hidden="true" />
+              <span className="h-2 w-2 rounded-[2px]" style={{ backgroundColor: s.cor }} aria-hidden="true" />
               {s.rotulo}: <strong className="tabular-nums">{pontos[activo][s.chave]}</strong>
             </p>
           ))}

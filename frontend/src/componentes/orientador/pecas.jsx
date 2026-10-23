@@ -40,10 +40,10 @@ export function EtiquetaPerfil({ perfil }) {
 }
 
 export const ESTADOS = {
-  concluido: { texto: "Concluído", icone: Check, classes: "bg-emerald-50 text-emerald-700" },
+  concluido: { texto: "Concluído", icone: Check, classes: "bg-[#e9edf3] text-[#3b4a63]" },
   ponto_de_atencao: { texto: "Ponto de atenção", icone: TriangleAlert, classes: "bg-[#fff4e0] text-[#9a5b00]" },
-  sem_curso_compativel: { texto: "Sem curso compatível", icone: X, classes: "bg-red-50 text-red-700" },
-  por_terminar: { texto: "Por terminar", icone: Hourglass, classes: "bg-[#eef0f7] text-texto-suave" },
+  sem_curso_compativel: { texto: "Sem curso compatível", icone: X, classes: "bg-[#f3e6cf] text-[#6b4500]" },
+  por_terminar: { texto: "Por terminar", icone: Hourglass, classes: "border border-dashed border-[#c5ccd8] bg-white text-texto-suave" },
 };
 
 export function EtiquetaEstado({ estado, quadrada = false, quebra = false }) {
