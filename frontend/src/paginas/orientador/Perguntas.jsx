@@ -3,9 +3,9 @@
 // 4 opções e o perfil de cada uma. RF12: adicionar, editar e desactivar
 // (não se apaga, para não perder as respostas dos alunos).
 
-import { ChevronDown, CircleCheck, FileQuestion, Link2, LoaderCircle, Pencil, Plus, Power, RefreshCw, Search } from "lucide-react";
+import { ChevronDown, CircleCheck, Eye, FileQuestion, Link2, LoaderCircle, Pencil, Plus, Power, RefreshCw, Search } from "lucide-react";
 import { Fragment, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 
 import { alterarPergunta, listarPerguntas } from "../../api/orientador";
 import FormularioPergunta from "../../componentes/orientador/FormularioPergunta";
@@ -91,7 +91,11 @@ function Detalhe({ pergunta, numeroPar, aoEditar, aoActivar, aMudar }) {
             pergunta.tipo === "nucleo" ? "Sem pergunta de verificação ligada." : ""
           )}
         </p>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Link to={`/orientador/perguntas/${pergunta.id}`}
+            className="flex h-10 items-center gap-2 rounded-[8px] px-3 text-[14px] font-semibold text-primaria hover:bg-primaria-clara">
+            <Eye className="h-4 w-4" aria-hidden="true" /> Ver detalhe
+          </Link>
           <button type="button" onClick={() => aoActivar(pergunta)} disabled={aMudar}
             className={`flex h-10 items-center gap-2 rounded-[8px] border-[1.5px] px-4 text-[14px] font-semibold ${pergunta.ativo ? "border-borda bg-white text-texto hover:border-[#e0a100] hover:bg-[#fff8eb]" : "border-[#1e8e5a] bg-white text-[#1e7a4f] hover:bg-[#e7f4ec]"}`}>
             {aMudar ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Power className="h-4 w-4" aria-hidden="true" />}

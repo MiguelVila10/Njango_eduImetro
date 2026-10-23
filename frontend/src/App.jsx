@@ -23,6 +23,7 @@ import LayoutOrientador from "./paginas/orientador/Layout";
 import NovaSenha from "./paginas/orientador/NovaSenha";
 import Painel from "./paginas/orientador/Painel";
 import PedidosConta from "./paginas/orientador/PedidosConta";
+import DetalhePergunta from "./paginas/orientador/DetalhePergunta";
 import Perguntas from "./paginas/orientador/Perguntas";
 import RecuperarSenha from "./paginas/orientador/RecuperarSenha";
 
@@ -58,6 +59,7 @@ export default function App() {
             <Route path="cursos" element={<Cursos />} />
             <Route path="cursos/:id" element={<DetalheCursoOrientador />} />
             <Route path="perguntas" element={<Perguntas />} />
+            <Route path="perguntas/:id" element={<DetalhePergunta />} />
             <Route path="pedidos" element={<PedidosConta />} />
           </Route>
         </Route>
