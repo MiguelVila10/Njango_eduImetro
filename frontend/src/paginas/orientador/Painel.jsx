@@ -157,15 +157,16 @@ function PerfilDominante({ distribuicao, animar }) {
       {total === 0 ? (
         <p className="py-10 text-center text-[15px] text-texto-suave">Ainda nenhum aluno respondeu ao teste.</p>
       ) : (
-        <div className="flex flex-1 flex-col items-center gap-6 sm:flex-row sm:items-center">
-          <Donut partes={partes} centro={`${pct(maior.valor, total)}%`} subcentro={maior.rotulo} animar={animar} tamanho={190} rotulo="Perfil dominante dos alunos" />
-          <div className="w-full flex-1">
-            <LegendaDonut partes={partes} />
-            <p className="mt-3 px-3 text-[13px] leading-relaxed text-texto-suave">
-              O perfil mais frequente é <strong className="font-semibold text-texto">{maior.rotulo}</strong> ({maior.valor} de {total} alunos).
-            </p>
+        <>
+          <div className="flex flex-1 flex-col items-center justify-center gap-6 sm:flex-row">
+            <Donut partes={partes} centro={`${pct(maior.valor, total)}%`} subcentro={maior.rotulo} animar={animar} tamanho={190} rotulo="Perfil dominante dos alunos" />
+            <div className="w-full flex-1"><LegendaDonut partes={partes} /></div>
           </div>
-        </div>
+          <p className="mt-5 flex items-start gap-2 border-t border-borda pt-4 text-[13px] leading-relaxed text-texto-suave">
+            <Info className="mt-0.5 h-4 w-4 shrink-0 text-primaria" aria-hidden="true" />
+            <span>O perfil mais frequente é <strong className="font-semibold text-texto">{maior.rotulo}</strong> ({maior.valor} de {total} alunos com respostas).</span>
+          </p>
+        </>
       )}
     </Cartao>
   );
@@ -205,7 +206,7 @@ function CursosMaisSugeridos({ cursos, animar }) {
           ))}
         </ul>
       )}
-      <p className="mt-6 flex items-start gap-2 text-[13px] text-texto-suave">
+      <p className="mt-5 flex items-start gap-2 border-t border-borda pt-4 text-[13px] leading-relaxed text-texto-suave">
         <Info className="mt-0.5 h-4 w-4 shrink-0 text-primaria" aria-hidden="true" />
         Conta o curso sugerido em 1.º lugar a cada aluno.
       </p>
@@ -249,7 +250,7 @@ function AlunosRecentes({ alunos }) {
                     onClick={() => navegar(`/orientador/alunos/${a.id}`)}
                     className="cursor-pointer border-b border-borda/70 last:border-0 hover:bg-[#f7f8fc]"
                   >
-                    <td className="px-4 py-5 font-semibold">
+                    <td className="whitespace-nowrap px-4 py-5 font-semibold">
                       <Link to={`/orientador/alunos/${a.id}`} onClick={(e) => e.stopPropagation()} className="hover:text-primaria">
                         {nomeAbreviado(a.nome)}
                       </Link>
@@ -352,8 +353,9 @@ export default function Painel() {
         <div className="flex flex-col gap-6">
           <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 sm:gap-6 xl:grid-cols-4">
             <CartaoKPI animar={animar} key={`k1-${graficos}`} valor={dados.total_alunos} rotulo="Alunos registados" icone={Users}
-              proporcao={1} rotuloAnel="Total de alunos"
-              detalhe={dados.registados_7_dias > 0 ? `+${dados.registados_7_dias} nos últimos 7 dias` : "Nenhum nos últimos 7 dias"} />
+              proporcao={dados.total_alunos ? dados.alunos_que_escolheram_curso / dados.total_alunos : 0}
+              rotuloAnel={`${pct(dados.alunos_que_escolheram_curso, dados.total_alunos)}% já escolheram curso`}
+              detalhe={`${dados.alunos_que_escolheram_curso} já ${dados.alunos_que_escolheram_curso === 1 ? "escolheu" : "escolheram"} curso · +${dados.registados_7_dias} em 7 dias`} />
             <CartaoKPI animar={animar} key={`k2-${graficos}`} valor={dados.testes_concluidos} rotulo="Testes concluídos" icone={CircleCheck}
               cor="#1f6fc0" trilho="#e3f0fc" proporcao={dados.total_alunos ? dados.testes_concluidos / dados.total_alunos : 0}
               rotuloAnel={`${pct(dados.testes_concluidos, dados.total_alunos)}% dos alunos`}
