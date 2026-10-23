@@ -32,9 +32,12 @@ Para ter os mesmos alunos noutro computador:
 1. No computador com os dados: dois cliques em `copiar_dados.bat`. Cria
    `njangoedu_copia.json` na pasta acima do projecto (fora do Git).
 2. Levar o ficheiro numa pen para a pasta acima do projecto no outro computador.
-3. No outro computador: dois cliques em `carregar_copia.bat` e escrever `SIM`.
-   Substitui os dados desse computador (que ficam guardados em
-   `njangoedu_antes_de_carregar.json`).
+3. No outro computador, uma de duas:
+   - **juntar** (não apaga nada): dois cliques em `juntar_copia.bat`. Junta os
+     alunos da cópia aos que já lá estão, sem os repetir. Não traz contas de
+     orientador nem alunos de demonstração;
+   - **substituir** tudo: dois cliques em `carregar_copia.bat` e escrever `SIM`
+     (os dados anteriores ficam em `njangoedu_antes_de_carregar.json`).
 
 O ficheiro tem dados pessoais de alunos menores: não o envies por WhatsApp ou
 e-mail, não o ponhas no GitHub e apaga-o da pen depois de carregar.

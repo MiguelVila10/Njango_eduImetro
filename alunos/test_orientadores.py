@@ -159,3 +159,46 @@ class PapelAdministradorTest(APITestCase):
         saida = StringIO()
         call_command("configurar_orientador", listar=True, stdout=saida)
         self.assertIn("bento@escola.ao", saida.getvalue())
+
+
+class JuntarAlunosTest(APITestCase):
+    """juntar_alunos junta os alunos de uma cópia sem apagar nem repetir."""
+
+    def test_junta_sem_apagar_e_sem_repetir(self):
+        import json
+        import tempfile
+        from django.core import serializers as ser
+        from alunos.models import Aluno, NotaDisciplina
+        from cat.models import ItemCAT, RespostaCAT
+        from cursos.models import Curso
+        from recomendacoes.models import Recomendacao
+
+        curso = Curso.objects.create(nome="Técnico de Informática", instituicao="ITEL", arquetipo_dominante="Analítico")
+        item = ItemCAT.objects.create(codigo="AN-99", texto="Pergunta", tipo="nucleo", tendencia="Analítico",
+                                      opcoes=[{"texto": t, "arquetipo": a} for t, a in
+                                              [("a", "Analítico"), ("b", "Humanista"), ("c", "Criativo"), ("d", "Estrategista")]])
+        de_fora = Aluno.objects.create(nome="Rosa Ndala", idade=15, escola="Escola n.º 7")
+        NotaDisciplina.objects.create(aluno=de_fora, disciplina="Matemática", nota=16)
+        RespostaCAT.objects.create(aluno=de_fora, item=item, arquetipo_escolhido="Analítico")
+        Recomendacao.objects.create(aluno=de_fora, curso=curso, score_academico=0.8, score_psicografico=0.5,
+                                    score_final=0.68, rank=1, escolhida_pelo_aluno=True)
+        copia = ser.serialize("json", [curso, item, de_fora, *de_fora.notas.all(), *de_fora.respostas_cat.all(),
+                                       *de_fora.recomendacoes.all()], use_natural_foreign_keys=True)
+        ficheiro = tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8")
+        ficheiro.write(copia); ficheiro.close()
+
+        # "Outro computador": o aluno da cópia não existe, mas há um aluno próprio.
+        de_fora.delete()
+        proprio = Aluno.objects.create(nome="Kiala Tomás", idade=14, escola="Escola n.º 3")
+
+        call_command("juntar_alunos", ficheiro.name, simular=True, stdout=StringIO())
+        self.assertEqual(Aluno.objects.count(), 1)  # simular não grava
+
+        call_command("juntar_alunos", ficheiro.name, stdout=StringIO())
+        call_command("juntar_alunos", ficheiro.name, stdout=StringIO())  # 2.ª vez: não repete
+        self.assertTrue(Aluno.objects.filter(pk=proprio.pk).exists())
+        rosa = Aluno.objects.get(nome="Rosa Ndala")
+        self.assertEqual(Aluno.objects.count(), 2)
+        self.assertEqual(rosa.notas.get().nota, 16)
+        self.assertEqual(rosa.respostas_cat.get().item, item)
+        self.assertTrue(rosa.recomendacoes.get().escolhida_pelo_aluno)
