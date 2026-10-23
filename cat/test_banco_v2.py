@@ -161,3 +161,46 @@ class CATComBancoV2Test(TestCase):
         estado, _ = self._responder_ate_terminar(lambda item: "Criativo")
         self.assertEqual(estado["arquetipo_provavel"], "Criativo")
         self.assertEqual(estado["motivo"], "perfil_identificado")
+
+
+class GerirPerguntasTest(TestCase):
+    """RF12: o orientador adiciona, edita e desactiva perguntas (não apaga)."""
+
+    def setUp(self):
+        from rest_framework.test import APIClient
+        from alunos.apoio_testes import autenticar_orientador
+        self.client = APIClient()
+        autenticar_orientador(self.client)
+        self.opcoes = [{"texto": f"Opção {a}", "arquetipo": a} for a in ["Analítico", "Humanista", "Criativo", "Estrategista"]]
+
+    def criar(self, **extra):
+        dados = {"texto": "Na tua turma vão fazer um trabalho sobre o bairro. Tu…", "tipo": "nucleo",
+                 "tendencia": "Humanista", "opcoes": self.opcoes}
+        dados.update(extra)
+        return self.client.post("/api/itens-cat/", dados, format="json")
+
+    def test_cria_principal_e_verificacao_no_mesmo_par(self):
+        principal = self.criar()
+        self.assertEqual(principal.status_code, 201, principal.data)
+        sem_par = self.criar(tipo="verificacao")
+        self.assertIn("confirma", sem_par.data)
+        verif = self.criar(tipo="verificacao", confirma=principal.data["id"], texto="Lá em casa vão arrumar o quintal. Tu…")
+        self.assertEqual(verif.status_code, 201, verif.data)
+        p = ItemCAT.objects.get(pk=principal.data["id"])
+        v = ItemCAT.objects.get(pk=verif.data["id"])
+        self.assertTrue(p.par_coerencia)
+        self.assertEqual(p.par_coerencia, v.par_coerencia)
+        self.assertEqual(self.client.get(f"/api/itens-cat/{v.pk}/").data["par"]["id"], p.pk)
+
+    def test_opcao_vazia_e_situacao_curta_sao_recusadas(self):
+        opcoes = [dict(o) for o in self.opcoes]
+        opcoes[0]["texto"] = "  "
+        r = self.criar(opcoes=opcoes)
+        self.assertIn("Cada pergunta precisa de uma opção para cada perfil", str(r.data["opcoes"]))
+        self.assertIn("texto", self.criar(texto="Curta").data)
+
+    def test_desactivar_sem_apagar(self):
+        pid = self.criar().data["id"]
+        self.assertEqual(self.client.patch(f"/api/itens-cat/{pid}/", {"ativo": False}, format="json").status_code, 200)
+        self.assertFalse(ItemCAT.objects.get(pk=pid).ativo)
+        self.assertEqual(self.client.delete(f"/api/itens-cat/{pid}/").status_code, 403)
