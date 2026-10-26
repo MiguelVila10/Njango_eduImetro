@@ -114,7 +114,7 @@ export default function ResumoFamilia() {
               <div>
                 <p className="text-[22px] font-extrabold leading-tight print:text-[18px]">
                   Njango<span className="text-primaria">Edu</span>
-                  <span className="ml-2 align-middle text-[11px] font-bold uppercase tracking-wide text-primaria-escura">Resumo para a família</span>
+                  <span className="block text-[11px] font-bold uppercase tracking-wide text-primaria-escura sm:ml-2 sm:inline sm:align-middle print:ml-2 print:inline print:align-middle">Resumo para a família</span>
                 </p>
                 <p className="text-[13px] text-texto-suave print:text-[10px]">
                   Orientação vocacional para finalistas do I Ciclo do Ensino Secundário · Luanda
@@ -144,8 +144,8 @@ export default function ResumoFamilia() {
 
           {/* Curso principal: cabeçalho e os 3 pontos da sugestão, em blocos */}
           <section className="mb-6 rounded-[12px] border-[1.5px] border-borda print:mb-3">
-            <div className="flex items-center gap-4 border-b border-borda p-5 print:gap-3 print:p-3">
-              <IconeCurso nome={principal.curso_nome} className="h-14 w-14 shrink-0 print:h-10 print:w-10" />
+            <div className="flex flex-col gap-4 border-b border-borda p-5 sm:flex-row sm:items-center print:flex-row print:items-center print:gap-3 print:p-3">
+              <span className="hidden shrink-0 sm:block print:block"><IconeCurso nome={principal.curso_nome} className="h-14 w-14 print:h-10 print:w-10" /></span>
               <div className="min-w-0 flex-1">
                 <p className="mb-1 inline-block rounded-full bg-primaria px-3 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white print:border print:border-texto print:bg-transparent print:px-2 print:text-[8px] print:text-texto">
                   {escolhida ? "Curso escolhido" : "1.ª sugestão"}

@@ -14,6 +14,11 @@ frontend em React (pasta `frontend/`).
 2. **Para usar:** dois cliques em `iniciar.bat`. Abre o backend e o
    frontend, cada um na sua janela, e depois o browser em
    http://localhost:5173. Para parar, fecha as duas janelas.
+3. **Para abrir também num telemóvel:** dois cliques em
+   `iniciar_telemovel.bat` (o telemóvel tem de estar na mesma rede Wi-Fi).
+   No telemóvel, abre o endereço "Network" que aparece na janela do
+   frontend (ex.: http://192.168.1.20:5173). Na primeira vez, o Windows
+   pode pedir autorização: escolhe "Permitir".
 
 Para apagar só os alunos de demonstração:
 
