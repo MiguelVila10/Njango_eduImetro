@@ -231,7 +231,7 @@ export default function DetalheCurso() {
                 {chave.map((d) => {
                   const ok = d.tua_nota != null && d.tua_nota >= d.referencia;
                   return (
-                    <li key={d.disciplina} className="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-1.5 sm:grid-cols-[150px_1fr_auto]">
+                    <li key={d.disciplina} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1.5 sm:grid-cols-[150px_minmax(0,1fr)_auto]">
                       <span className="text-[14px] font-semibold">{d.disciplina}</span>
                       <span className="col-span-2 row-start-2 flex flex-col gap-1 sm:col-span-1 sm:row-start-auto">
                         <span className="h-2.5 overflow-hidden rounded-full bg-fundo ring-1 ring-borda/70">
@@ -241,7 +241,7 @@ export default function DetalheCurso() {
                           <span className="block h-full rounded-full bg-[#cfd5df]" style={{ width: `${(d.referencia / 20) * 100}%` }} />
                         </span>
                       </span>
-                      <span className="flex items-center gap-2 justify-self-end">
+                      <span className="flex flex-wrap items-center justify-end gap-x-2 gap-y-1 justify-self-end">
                         <span className="text-[13px] tabular-nums text-texto-suave"><strong className="text-texto">{d.tua_nota ?? "—"}</strong>/{d.referencia}</span>
                         <Estado ok={ok} texto={ok ? "No nível" : "Podes melhorar"} />
                       </span>

@@ -69,9 +69,10 @@ function CartaoCurso({ rec, aoEscolher }) {
             </Link>
           </div>
         </div>
-        <div className="flex items-center gap-5 md:flex-col md:gap-4">
+        {/* Ecrãs estreitos (≤ 360 px): o botão desce para baixo do anel e ocupa a largura toda. */}
+        <div className="flex flex-wrap items-center gap-4 sm:gap-5 md:flex-col md:flex-nowrap md:gap-4">
           <Compatibilidade rec={rec} />
-          <button type="button" onClick={() => aoEscolher(rec)} className={`${BOTAO_PRINCIPAL} flex-1 md:w-auto md:flex-none md:px-8`}>
+          <button type="button" onClick={() => aoEscolher(rec)} className={`${BOTAO_PRINCIPAL} min-w-[200px] flex-1 md:w-auto md:flex-none md:px-8`}>
             Escolher este curso
           </button>
         </div>
