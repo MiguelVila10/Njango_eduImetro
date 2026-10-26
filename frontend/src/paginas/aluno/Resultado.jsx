@@ -11,7 +11,7 @@ import { Link, Navigate, useNavigate } from "react-router-dom";
 import { cursosQuaseCompativeis, listarNotas } from "../../api/aluno";
 import CabecalhoPercurso from "../../componentes/CabecalhoPercurso";
 import { IconeCurso } from "../../componentes/cursoVisual";
-import { PanoramaPerfil, resumoSugestao } from "../../componentes/explicacao";
+import { PanoramaPerfil, PerfilSemSugestao, resumoSugestao } from "../../componentes/explicacao";
 import {
   AvisoVinteQuatroHoras, BOTAO_PRINCIPAL, BOTAO_SECUNDARIO, Compatibilidade, ConfirmarEscolha, percentagem,
 } from "../../componentes/sugestoes";
@@ -269,6 +269,8 @@ export default function Resultado() {
         </p>
 
         <PanoramaPerfil perfil={recomendacoes[0]?.perfil_aluno} notas={notas} />
+
+        <PerfilSemSugestao perfil={recomendacoes[0]?.perfil_aluno} className="mb-8" />
 
         <div className="flex flex-col gap-5">
           {recomendacoes.map((r) => <CartaoCurso key={r.id} rec={r} aoEscolher={setAConfirmar} />)}

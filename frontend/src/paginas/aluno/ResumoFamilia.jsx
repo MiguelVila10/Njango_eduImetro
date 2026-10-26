@@ -9,6 +9,7 @@ import { Link, Navigate } from "react-router-dom";
 
 import { listarNotas, obterAluno } from "../../api/aluno";
 import { IconeCurso } from "../../componentes/cursoVisual";
+import { PerfilSemSugestao } from "../../componentes/explicacao";
 import { Compatibilidade, percentagem } from "../../componentes/sugestoes";
 import { useRecomendacoes } from "../../hooks/useRecomendacoes";
 import { sessaoAluno } from "../../sessao/sessaoAluno";
@@ -201,6 +202,8 @@ export default function ResumoFamilia() {
               </p>
             </div>
           </section>
+
+          <PerfilSemSugestao perfil={principal.perfil_aluno} quem="familia" className="mb-6 print:mb-3" />
 
           {/* Tabela */}
           {disciplinas.length > 0 && (

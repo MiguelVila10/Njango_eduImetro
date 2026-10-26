@@ -257,3 +257,49 @@ class GerarNaoApagaEscolhaTest(TestCase):
         with self.assertRaises(ValueError):
             gerar_recomendacoes(self.aluno)
         self.assertTrue(Recomendacao.objects.get(pk=rec.pk).escolhida_pelo_aluno)
+
+
+class ResumoPerfilTest(TestCase):
+    """Explicação quando nenhuma sugestão é do perfil mais forte no teste (o
+    filtro de notas mínimas tirou esses cursos) e empate de perfis."""
+
+    def setUp(self):
+        from alunos.models import Aluno, NotaDisciplina
+        from cat.models import ItemCAT, RespostaCAT
+        from cursos.models import Curso, PreRequisitoCurso
+        self.aluno = Aluno.objects.create(nome="Ana Teste", idade=15, escola="Escola X")
+        NotaDisciplina.objects.create(aluno=self.aluno, disciplina="Português", nota=12)
+        NotaDisciplina.objects.create(aluno=self.aluno, disciplina="Matemática", nota=16)
+        self.analitico = Curso.objects.create(nome="Curso A", instituicao="ITEL", arquetipo_dominante="Analítico")
+        self.gestao = Curso.objects.create(nome="Curso G", instituicao="IMEL", arquetipo_dominante="Estrategista")
+        PreRequisitoCurso.objects.create(curso=self.gestao, disciplina="Português", nota_min=14)
+        self.itens = [
+            ItemCAT.objects.create(texto=f"Pergunta de teste número {i}.", tipo="nucleo",
+                                   opcoes=[{"texto": a, "arquetipo": a} for a in ("Analítico", "Humanista", "Criativo", "Estrategista")])
+            for i in range(4)
+        ]
+        self.RespostaCAT = RespostaCAT
+
+    def _responder(self, *arquetipos):
+        for item, a in zip(self.itens, arquetipos):
+            self.RespostaCAT.objects.create(aluno=self.aluno, item=item, arquetipo_escolhido=a)
+
+    def test_perfil_sem_sugestao_mostra_o_que_falta(self):
+        from .serializers import resumo_perfil
+        self._responder("Estrategista", "Estrategista", "Estrategista", "Analítico")
+        r = resumo_perfil(self.aluno, [self.analitico])
+        self.assertEqual(r["dominantes"], ["Estrategista"])
+        fora = r["perfil_sem_sugestao"]["eliminados"]
+        self.assertEqual([c["curso_nome"] for c in fora], ["Curso G"])
+        self.assertEqual(fora[0]["faltas"][0]["disciplina"], "Português")
+        self.assertEqual(fora[0]["faltas"][0]["nota_min"], 14)
+
+    def test_sem_explicacao_quando_ha_sugestao_do_perfil(self):
+        from .serializers import resumo_perfil
+        self._responder("Analítico", "Analítico", "Analítico", "Estrategista")
+        self.assertIsNone(resumo_perfil(self.aluno, [self.analitico])["perfil_sem_sugestao"])
+
+    def test_empate_devolve_os_dois_perfis(self):
+        from .serializers import resumo_perfil
+        self._responder("Humanista", "Estrategista", "Humanista", "Estrategista")
+        self.assertEqual(resumo_perfil(self.aluno, [self.analitico])["dominantes"], ["Humanista", "Estrategista"])

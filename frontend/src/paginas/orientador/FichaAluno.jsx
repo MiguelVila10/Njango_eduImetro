@@ -9,7 +9,7 @@ import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { DISCIPLINAS } from "../../api/aluno";
 import { fichaAluno } from "../../api/orientador";
-import { juntar } from "../../componentes/explicacao";
+import { PerfilSemSugestao, juntar, nomePerfis } from "../../componentes/explicacao";
 import {
   AvisoDemonstracao, COR_PERFIL, Cartao, ESCOLA_DEMO, EtiquetaEstado, ORDEM_PERFIS, dataCurta, nomeCurtoCurso,
 } from "../../componentes/orientador/pecas";
@@ -134,6 +134,7 @@ function SugestoesEEscolha({ a }) {
       <h2 className="text-[20px] font-semibold">Sugestões e escolha</h2>
       <p className="mb-5 mt-1 text-[14px] text-texto-suave">Pontuação final = 60% compatibilidade com as notas + 40% afinidade com o perfil.</p>
       <div className="flex-1">{corpo}</div>
+      {a.sugestoes.length > 0 && <PerfilSemSugestao perfil={a.perfil_respostas} quem="orientador" className="mt-4" />}
       {rodape && <p className="mt-5 border-t border-borda pt-4 text-[14px] text-texto-suave">{rodape}</p>}
     </Cartao>
   );
@@ -142,9 +143,10 @@ function SugestoesEEscolha({ a }) {
 // ---------- Perfil nas respostas ----------
 
 function PerfilNasRespostas({ a }) {
-  const { total, arquetipos } = a.perfil_respostas;
-  const dominante = a.perfil_dominante;
-  const cor = COR_PERFIL[dominante] ?? "#5b6475";
+  const { total, arquetipos, dominantes = [] } = a.perfil_respostas;
+  // O mesmo critério das barras (respostas em cada perfil); em empate mostram-se todos.
+  const dominante = dominantes.length ? nomePerfis(dominantes) : a.perfil_dominante;
+  const cor = dominantes.length > 1 ? "#5b6475" : (COR_PERFIL[dominantes[0] ?? a.perfil_dominante] ?? "#5b6475");
   return (
     <Cartao className="flex flex-col p-5 sm:p-6">
       <h2 className="mb-5 text-[20px] font-semibold">Perfil nas respostas</h2>

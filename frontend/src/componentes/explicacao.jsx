@@ -6,7 +6,7 @@
 // Os textos usam só números que vêm da API, para o aluno perceber de onde
 // vem a percentagem. `terceira` escreve para a família ("o aluno tem…").
 
-import { ListChecks, NotebookPen } from "lucide-react";
+import { Info, ListChecks, NotebookPen } from "lucide-react";
 
 export const PERFIS = {
   Analítico: "perceber como as coisas funcionam, fazer contas e experiências e resolver problemas com lógica",
@@ -23,6 +23,75 @@ export function juntar(lista) {
 }
 
 const valores = (n) => (n === 1 ? "1 valor" : `${n} valores`);
+
+/** ["Humanista", "Estrategista"] → "Humanista e Estrategista (empate)". */
+export function nomePerfis(lista = []) {
+  return lista.length > 1 ? `${juntar(lista)} (empate)` : (lista[0] ?? "");
+}
+
+/**
+ * Quando nenhuma sugestão é do perfil mais forte no teste, explica porquê:
+ * os cursos desse perfil que as notas mínimas (regras das escolas) deixaram
+ * de fora e o que falta em cada disciplina. O motor não muda; isto só mostra
+ * o que aconteceu. `quem`: "aluno" (tu), "familia" (o aluno) ou "orientador".
+ */
+export function PerfilSemSugestao({ perfil, quem = "aluno", className = "" }) {
+  const info = perfil?.perfil_sem_sugestao;
+  if (!info) return null;
+  const tu = quem === "aluno";
+  const nomes = nomePerfis(perfil.dominantes);
+  const varios = perfil.dominantes.length > 1;
+  const { eliminados, passaram_mas_abaixo: abaixo } = info;
+  const titulo = tu
+    ? `Porque não aparecem cursos ${varios ? "dos teus perfis" : "do teu perfil"} ${nomes}?`
+    : quem === "familia"
+      ? `Porque não aparecem cursos do perfil ${nomes}?`
+      : `Nenhuma sugestão do perfil do teste (${nomes})`;
+  const inicio = tu
+    ? `No teste, ${varios ? "os teus perfis mais fortes foram" : "o teu perfil mais forte foi"} ${nomes}.`
+    : `No teste, ${varios ? "os perfis mais fortes foram" : "o perfil mais forte foi"} ${nomes}.`;
+  return (
+    <section className={`rounded-[16px] border-[1.5px] border-primaria/30 bg-primaria-clara/50 p-5 md:p-6 print:border-borda print:bg-transparent print:p-3 ${className}`}>
+      <h2 className="mb-2 flex items-start gap-2 text-[17px] font-bold print:text-[12px]">
+        <Info className="mt-0.5 h-5 w-5 shrink-0 text-primaria print:h-3.5 print:w-3.5" aria-hidden="true" /> {titulo}
+      </h2>
+      <p className="text-[15px] leading-relaxed text-texto-suave print:text-[10px]">
+        {inicio}{" "}
+        {eliminados.length > 0 && (
+          <>Mas {eliminados.length === 1 ? "o curso deste perfil pede" : "os cursos deste perfil pedem"} notas mínimas que {tu ? "ainda não tens" : "o aluno ainda não tem"}.
+          As notas mínimas são regras das escolas, por isso {eliminados.length === 1 ? "ficou" : "ficaram"} de fora:</>
+        )}
+        {eliminados.length === 0 && abaixo > 0 && (
+          <>Os cursos deste perfil cumprem as notas mínimas, mas {tu ? "as tuas notas" : "as notas do aluno"} combinam mais com os cursos sugeridos, por isso ficaram mais abaixo na lista.</>
+        )}
+      </p>
+      {eliminados.length > 0 && (
+        <ul className="mt-3 grid gap-2 sm:grid-cols-2 print:grid-cols-2">
+          {eliminados.map((c) => (
+            <li key={c.curso_nome} className="rounded-[10px] bg-white px-3.5 py-2.5 text-[14px] leading-snug ring-1 ring-borda print:px-2 print:py-1 print:text-[9.5px]">
+              <span className="font-semibold">{c.curso_nome}</span> <span className="text-texto-suave">({c.curso_instituicao})</span>
+              <span className="mt-0.5 block text-texto-suave">
+                {c.faltas.map((f) => `${f.disciplina}: ${tu ? "tens" : "tem"} ${f.nota}, pede ${f.nota_min}`).join(" · ")}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {eliminados.length > 0 && abaixo > 0 && (
+        <p className="mt-3 text-[14px] text-texto-suave print:text-[9.5px]">
+          {abaixo === 1 ? "Outro curso deste perfil cumpre" : `Outros ${abaixo} cursos deste perfil cumprem`} as notas mínimas, mas {abaixo === 1 ? "ficou" : "ficaram"} mais abaixo por causa das notas.
+        </p>
+      )}
+      {quem !== "orientador" && (
+        <p className="mt-3 text-[14px] font-medium text-texto print:text-[9.5px]">
+          {tu
+            ? "As sugestões abaixo são os cursos que já cumprem as notas mínimas e que mais combinam contigo. Se melhorares essas notas, os cursos do teu perfil podem passar a aparecer."
+            : "As sugestões são os cursos que já cumprem as notas mínimas. Se o aluno melhorar essas notas, os cursos do seu perfil podem passar a aparecer."}
+        </p>
+      )}
+    </section>
+  );
+}
 
 /** Parágrafos da parte das notas. */
 export function explicarNotas(rec, { terceira = false } = {}) {
@@ -130,7 +199,7 @@ export function PanoramaPerfil({ perfil, notas }) {
               <ul className="mb-3 flex flex-col gap-2">
                 {perfil.arquetipos.map((a) => (
                   <li key={a.arquetipo} className="grid grid-cols-[96px_1fr_40px] items-center gap-3 text-[13px]">
-                    <span className={a === topo ? "font-bold" : "text-texto-suave"}>{a.arquetipo}</span>
+                    <span className={(perfil.dominantes ?? [topo.arquetipo]).includes(a.arquetipo) ? "font-bold" : "text-texto-suave"}>{a.arquetipo}</span>
                     <span className="h-2 overflow-hidden rounded-full bg-white ring-1 ring-borda">
                       <span className="block h-full rounded-full bg-primaria" style={{ width: `${pct(a.percentagem)}%` }} />
                     </span>
@@ -139,7 +208,14 @@ export function PanoramaPerfil({ perfil, notas }) {
                 ))}
               </ul>
               <p className="text-[14px] leading-relaxed text-texto-suave">
-                O teu perfil mais forte foi <strong className="text-texto">{topo.arquetipo}</strong>: gostas de {PERFIS[topo.arquetipo]}.
+                {(perfil.dominantes?.length ?? 0) > 1 ? (
+                  <>
+                    Empate: os teus perfis mais fortes foram <strong className="text-texto">{juntar(perfil.dominantes)}</strong>. Gostas de{" "}
+                    {juntar(perfil.dominantes.map((d) => PERFIS[d]))}.
+                  </>
+                ) : (
+                  <>O teu perfil mais forte foi <strong className="text-texto">{topo.arquetipo}</strong>: gostas de {PERFIS[topo.arquetipo]}.</>
+                )}
               </p>
             </>
           ) : (

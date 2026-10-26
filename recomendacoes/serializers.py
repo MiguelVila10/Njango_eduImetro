@@ -9,6 +9,61 @@ from cat.models import respostas_atuais
 from cat.motor import ARQUETIPOS
 from .models import Recomendacao
 
+
+def resumo_perfil(aluno, cursos_sugeridos=None):
+    """
+    Como as respostas do aluno (tentativa actual) se repartem pelos 4 perfis,
+    com o(s) perfil(is) mais escolhido(s) — "dominantes" tem mais de um em
+    caso de empate.
+
+    Se nenhuma sugestão é de um perfil dominante, explica porquê
+    ("perfil_sem_sugestao"): os cursos desse perfil que o filtro SE-ENTÃO
+    eliminou (com o que falta em cada disciplina) e quantos passaram o
+    filtro mas ficaram abaixo por causa das notas. O motor não muda: as
+    notas mínimas das escolas são eliminatórias; isto só torna visível o
+    que aconteceu (transparência).
+    """
+    from filtro_regras.services import filtrar_cursos
+
+    contagem = Counter(respostas_atuais(aluno).values_list("arquetipo_escolhido", flat=True))
+    total = sum(contagem.values())
+    maximo = max((contagem.get(a, 0) for a in ARQUETIPOS), default=0)
+    dominantes = [a for a in ARQUETIPOS if maximo and contagem.get(a, 0) == maximo]
+    resumo = {
+        "total": total,
+        "arquetipos": sorted(
+            (
+                {"arquetipo": a, "respostas": contagem.get(a, 0),
+                 "percentagem": round(contagem.get(a, 0) / total, 4) if total else 0}
+                for a in ARQUETIPOS
+            ),
+            key=lambda x: -x["respostas"],
+        ),
+        "dominantes": dominantes,
+        "perfil_sem_sugestao": None,
+    }
+    if cursos_sugeridos is None:
+        cursos_sugeridos = [r.curso for r in aluno.recomendacoes.select_related("curso")]
+    if not dominantes or not cursos_sugeridos or any(c.arquetipo_dominante in dominantes for c in cursos_sugeridos):
+        return resumo
+
+    aprovados, eliminacoes = filtrar_cursos(aluno)
+    fora = [
+        {
+            "curso_nome": e["curso"].nome,
+            "curso_instituicao": e["curso"].instituicao,
+            "curso_arquetipo": e["curso"].arquetipo_dominante,
+            "faltas": e["faltas"],
+        }
+        for e in sorted(eliminacoes, key=lambda e: (sum(f["falta"] for f in e["faltas"]), e["curso"].nome))
+        if e["curso"].arquetipo_dominante in dominantes
+    ]
+    resumo["perfil_sem_sugestao"] = {
+        "eliminados": fora,
+        "passaram_mas_abaixo": sum(1 for c in aprovados if c.arquetipo_dominante in dominantes),
+    }
+    return resumo
+
 # Dados internos do motor que só o orientador vê. O aluno não deve ver
 # "alertas de viés" nem o nível de confiança das suas respostas: são
 # instrumentos de trabalho do orientador, não mensagens para o aluno.
@@ -71,19 +126,7 @@ class RecomendacaoSerializer(serializers.ModelSerializer):
         """
         cache = self.context.setdefault("_perfil_por_aluno", {})
         if rec.aluno_id not in cache:
-            contagem = Counter(respostas_atuais(rec.aluno).values_list("arquetipo_escolhido", flat=True))
-            total = sum(contagem.values())
-            cache[rec.aluno_id] = {
-                "total": total,
-                "arquetipos": sorted(
-                    (
-                        {"arquetipo": a, "respostas": contagem.get(a, 0),
-                         "percentagem": round(contagem.get(a, 0) / total, 4) if total else 0}
-                        for a in ARQUETIPOS
-                    ),
-                    key=lambda x: -x["respostas"],
-                ),
-            }
+            cache[rec.aluno_id] = resumo_perfil(rec.aluno)
         return cache[rec.aluno_id]
 
     def to_representation(self, instance):

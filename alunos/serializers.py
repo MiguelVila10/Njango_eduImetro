@@ -169,21 +169,13 @@ class AlunoDetalheSerializer(AlunoResumoSerializer):
         )
 
     def get_perfil_respostas(self, aluno):
-        """Como as respostas ao teste (tentativa actual) se repartem pelos 4 perfis."""
-        from cat import motor
-        respostas = self._respostas(aluno)
-        total = len(respostas)
-        contagem = {a: 0 for a in motor.ARQUETIPOS}
-        for r in respostas:
-            contagem[r.arquetipo_escolhido] = contagem.get(r.arquetipo_escolhido, 0) + 1
-        return {
-            "total": total,
-            "arquetipos": sorted(
-                ({"arquetipo": a, "respostas": n, "percentagem": round(n / total, 4) if total else 0}
-                 for a, n in contagem.items()),
-                key=lambda x: -x["respostas"],
-            ),
-        }
+        """
+        Como as respostas ao teste (tentativa actual) se repartem pelos 4 perfis,
+        o(s) perfil(is) mais escolhido(s) (empates incluídos) e, se nenhuma
+        sugestão é desse perfil, os cursos dele que o filtro eliminou.
+        """
+        from recomendacoes.serializers import resumo_perfil
+        return resumo_perfil(aluno, [r.curso for r in self._recs(aluno)])
 
     def get_respostas_teste(self, aluno):
         """Cada pergunta respondida, com a opção escolhida (texto) e o perfil dessa opção."""
