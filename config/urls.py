@@ -3,13 +3,14 @@
 from django.contrib import admin
 from django.urls import include, path
 
-from alunos.orientadores import DecidirPedidoView, EntrarView, PedidosContaView, RegistoOrientadorView
+from alunos.orientadores import DecidirPedidoView, EntrarView, PedidosContaView, RegistoOrientadorView, SairView
 from alunos.recuperar_senha import NovaSenhaView, PedirRecuperacaoView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     # Acesso do orientador: entrar (e-mail ou utilizador) e pedir conta nova
     path("api/auth/login/", EntrarView.as_view(), name="auth-login"),
+    path("api/auth/sair/", SairView.as_view(), name="auth-sair"),
     path("api/auth/recuperar/", PedirRecuperacaoView.as_view(), name="auth-recuperar"),
     path("api/auth/nova-senha/", NovaSenhaView.as_view(), name="auth-nova-senha"),
     path("api/orientadores/registo/", RegistoOrientadorView.as_view(), name="orientador-registo"),

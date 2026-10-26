@@ -18,6 +18,7 @@ export function validarNota(valor) {
 export function useNotas(alunoId) {
   const [notas, setNotas] = useState(() => Object.fromEntries(DISCIPLINAS.map((d) => [d, ""])));
   const [ids, setIds] = useState({}); // disciplina → id da nota já gravada
+  const [noServidor, setNoServidor] = useState({}); // disciplina → nota já gravada (para só enviar o que mudou)
   const [erros, setErros] = useState({});
   const [carregando, setCarregando] = useState(true);
   const [aGuardar, setAGuardar] = useState(false);
@@ -34,6 +35,7 @@ export function useNotas(alunoId) {
           return novo;
         });
         setIds(Object.fromEntries(lista.map((n) => [n.disciplina, n.id])));
+        setNoServidor(Object.fromEntries(lista.map((n) => [n.disciplina, Number(n.nota)])));
       })
       .catch((e) => ativo && setErro(e))
       .finally(() => ativo && setCarregando(false));
@@ -60,10 +62,14 @@ export function useNotas(alunoId) {
     setAGuardar(true);
     setErro(null);
     try {
+      // Só se envia o que mudou: depois das sugestões, as notas ficam fixas
+      // no servidor (RF11) e reenviar notas iguais daria erro sem motivo.
+      const aEnviar = DISCIPLINAS.filter((d) => !ids[d] || noServidor[d] !== Number(notas[d]));
       const gravadas = await Promise.all(
-        DISCIPLINAS.map((d) => (ids[d] ? alterarNota(ids[d], notas[d]) : criarNota(alunoId, d, notas[d]))),
+        aEnviar.map((d) => (ids[d] ? alterarNota(ids[d], notas[d]) : criarNota(alunoId, d, notas[d]))),
       );
-      setIds(Object.fromEntries(gravadas.map((n) => [n.disciplina, n.id])));
+      setIds((atual) => ({ ...atual, ...Object.fromEntries(gravadas.map((n) => [n.disciplina, n.id])) }));
+      setNoServidor((atual) => ({ ...atual, ...Object.fromEntries(gravadas.map((n) => [n.disciplina, Number(n.nota)])) }));
       const { completo } = await boletimCompleto(alunoId);
       return completo;
     } catch (e) {

@@ -108,6 +108,18 @@ class EntrarView(APIView):
         })
 
 
+class SairView(APIView):
+    """
+    POST /api/auth/sair/
+    Termina a sessão do orientador também no servidor: o token é apagado e
+    deixa de funcionar (mesmo que alguém o tenha copiado do browser).
+    """
+
+    def post(self, request):
+        Token.objects.filter(user=request.user).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class RegistoOrientadorSerializer(serializers.Serializer):
     nome = serializers.CharField(max_length=80)
     email = serializers.EmailField(max_length=150)

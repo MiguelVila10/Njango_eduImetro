@@ -17,6 +17,7 @@ from .sessao import (
     eh_orientador,
     OrientadorLeAlunoEscreve,
     exigir_acesso_ao_aluno,
+    exigir_dados_abertos,
     filtrar_pelo_aluno,
     gerar_token_sessao,
 )
@@ -100,15 +101,20 @@ class NotaDisciplinaViewSet(viewsets.ModelViewSet):
     """Notas por disciplina (RF02, RF03). O aluno gere as suas; o orientador só consulta."""
     serializer_class = NotaDisciplinaSerializer
     permission_classes = [OrientadorLeAlunoEscreve]
+    # Sem PUT nem DELETE: o aluno corrige uma nota (PATCH) antes das sugestões; ninguém apaga.
+    http_method_names = ["get", "post", "patch", "head", "options"]
 
     def get_queryset(self):
         return filtrar_pelo_aluno(self.request, NotaDisciplina.objects.all())
 
     def perform_create(self, serializer):
         exigir_acesso_ao_aluno(self.request, serializer.validated_data["aluno"])
+        exigir_dados_abertos(serializer.validated_data["aluno"], "as notas")
         serializer.save()
 
     def perform_update(self, serializer):
         aluno = serializer.validated_data.get("aluno", serializer.instance.aluno)
         exigir_acesso_ao_aluno(self.request, aluno)
+        exigir_acesso_ao_aluno(self.request, serializer.instance.aluno)
+        exigir_dados_abertos(serializer.instance.aluno, "as notas")
         serializer.save()

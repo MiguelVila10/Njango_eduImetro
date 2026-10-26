@@ -146,7 +146,8 @@ class OpcoesSemArquetipoTest(APITestCase):
         resposta = self.client.post("/api/respostas-cat/", {"aluno": self.aluno.id, "item": self.item.id,
                                                             "opcao": 2}, format="json")
         self.assertEqual(resposta.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(resposta.data["arquetipo_escolhido"], "Criativo")
+        self.assertNotIn("arquetipo_escolhido", resposta.data)  # escondido do aluno
+        self.assertEqual(RespostaCAT.objects.get(pk=resposta.data["id"]).arquetipo_escolhido, "Criativo")
 
     def test_opcao_invalida_ou_em_falta_e_rejeitada(self):
         autenticar_aluno(self.client, self.aluno)

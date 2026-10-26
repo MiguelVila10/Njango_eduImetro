@@ -4,6 +4,8 @@ import random
 
 from rest_framework import serializers
 
+from alunos.sessao import eh_orientador
+
 from .models import ItemCAT, RespostaCAT, validar_opcoes
 from .motor import ARQUETIPOS
 
@@ -162,3 +164,12 @@ class RespostaCATSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError("Esta pergunta já foi respondida nesta tentativa.")
             attrs["tentativa"] = tentativa
         return attrs
+
+    def to_representation(self, instance):
+        # O aluno não vê o perfil de cada opção (senão saberia que opção vale
+        # cada perfil e o teste deixava de medir). Só o orientador o vê.
+        dados = super().to_representation(instance)
+        request = self.context.get("request")
+        if request is not None and not eh_orientador(request):
+            dados.pop("arquetipo_escolhido", None)
+        return dados

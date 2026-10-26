@@ -8,6 +8,7 @@ import {
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 
+import { sairDaConta } from "../../api/orientador";
 import { sessaoOrientador, terminarSessaoOrientador } from "../../sessao/sessaoOrientador";
 
 const LIGACOES = [
@@ -89,7 +90,9 @@ export default function LayoutOrientador() {
     return () => document.removeEventListener("keydown", fechar);
   }, [menuAberto]);
 
-  function sair() {
+  async function sair() {
+    // Apaga o token no servidor; sem ligação, termina pelo menos neste browser.
+    try { await sairDaConta(); } catch { /* sem ligação: segue */ }
     terminarSessaoOrientador();
     navegar("/orientador/entrar", { replace: true });
   }

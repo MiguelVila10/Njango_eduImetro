@@ -186,7 +186,9 @@ class ProximaPerguntaEndpointTest(APITestCase):
                 format="json",
             )
             self.assertEqual(resposta.status_code, status.HTTP_201_CREATED)
-            self.assertEqual(resposta.data["arquetipo_escolhido"], "Humanista")
+            # o aluno não vê o arquétipo; confirma-se o que ficou gravado
+            self.assertNotIn("arquetipo_escolhido", resposta.data)
+            self.assertEqual(RespostaCAT.objects.get(pk=resposta.data["id"]).arquetipo_escolhido, "Humanista")
         self.assertTrue(dados["terminado"])
         self.assertEqual(estado_cat(self.aluno)["arquetipo_provavel"], "Humanista")
 

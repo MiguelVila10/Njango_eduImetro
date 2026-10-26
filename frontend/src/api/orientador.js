@@ -44,6 +44,9 @@ export function definirNovaSenha({ uid, token, password, confirmarPassword }) {
 }
 
 // Pedidos de conta (só o administrador)
+/** Termina a sessão no servidor (o token deixa de funcionar). */
+export const sairDaConta = () => comToken("/auth/sair/", { metodo: "POST" });
+
 export const listarPedidosConta = () => comToken("/orientadores/pedidos/");
 export const decidirPedidoConta = (id, decisao) => comToken(`/orientadores/pedidos/${id}/${decisao}/`, { metodo: "POST" });
 

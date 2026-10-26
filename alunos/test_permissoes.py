@@ -436,3 +436,64 @@ class ConfigurarOrientadorSenhaTest(TestCase):
         with mock.patch("getpass.getpass", side_effect=["curta"]):
             with self.assertRaises(CommandError):
                 self._correr(username="prof")
+
+
+class SegurancaRevisaoTest(APITestCase):
+    """Revisão de segurança (Outubro 2026): dados fixos depois das sugestões,
+    perfil das opções escondido do aluno e sair apaga o token."""
+
+    def setUp(self):
+        from alunos.sessao import gerar_token_sessao
+        from cat.models import ItemCAT
+        from cursos.models import Curso
+        from recomendacoes.models import Recomendacao
+        self.aluno = Aluno.objects.create(nome="Ana Teste", idade=15, escola="Escola X")
+        self.h = {"HTTP_X_SESSAO_ALUNO": gerar_token_sessao(self.aluno)}
+        self.item = ItemCAT.objects.create(
+            texto="Uma pergunta de teste com texto suficiente.", tipo="nucleo",
+            opcoes=[{"texto": f"Opção {a}", "arquetipo": a} for a in ("Analítico", "Humanista", "Criativo", "Estrategista")],
+        )
+        self.nota = NotaDisciplina.objects.create(aluno=self.aluno, disciplina="Matemática", nota=14)
+        self.Curso, self.Recomendacao = Curso, Recomendacao
+
+    def _gerar_sugestao(self):
+        curso = self.Curso.objects.create(nome="Curso X", instituicao="ITEL", arquetipo_dominante="Analítico")
+        self.Recomendacao.objects.create(aluno=self.aluno, curso=curso, score_academico=0.5,
+                                         score_psicografico=0.5, score_final=0.5, rank=1)
+
+    def test_resposta_nao_mostra_perfil_ao_aluno(self):
+        r = self.client.post("/api/respostas-cat/", {"aluno": self.aluno.pk, "item": self.item.pk, "opcao": 0}, format="json", **self.h)
+        self.assertEqual(r.status_code, 201)
+        self.assertNotIn("arquetipo_escolhido", r.json())
+
+    def test_resposta_nao_se_altera_nem_apaga(self):
+        r = self.client.post("/api/respostas-cat/", {"aluno": self.aluno.pk, "item": self.item.pk, "opcao": 0}, format="json", **self.h)
+        rid = r.json()["id"]
+        self.assertEqual(self.client.patch(f"/api/respostas-cat/{rid}/", {"opcao": 1}, format="json", **self.h).status_code, 405)
+        self.assertEqual(self.client.delete(f"/api/respostas-cat/{rid}/", **self.h).status_code, 405)
+
+    def test_nota_nao_se_apaga(self):
+        self.assertEqual(self.client.delete(f"/api/notas-disciplina/{self.nota.pk}/", **self.h).status_code, 405)
+
+    def test_nota_corrige_se_antes_das_sugestoes(self):
+        r = self.client.patch(f"/api/notas-disciplina/{self.nota.pk}/", {"nota": 15}, format="json", **self.h)
+        self.assertEqual(r.status_code, 200)
+
+    def test_depois_das_sugestoes_notas_e_respostas_ficam_fixas(self):
+        self._gerar_sugestao()
+        r = self.client.patch(f"/api/notas-disciplina/{self.nota.pk}/", {"nota": 20}, format="json", **self.h)
+        self.assertEqual(r.status_code, 403)
+        r = self.client.post("/api/respostas-cat/", {"aluno": self.aluno.pk, "item": self.item.pk, "opcao": 0}, format="json", **self.h)
+        self.assertEqual(r.status_code, 403)
+        self.nota.refresh_from_db()
+        self.assertEqual(self.nota.nota, 14)
+
+    def test_sair_apaga_o_token(self):
+        from django.contrib.auth.models import User
+        from rest_framework.authtoken.models import Token
+        user = User.objects.create_user("orient", password="x-senha-123", is_staff=True)
+        token = Token.objects.create(user=user)
+        auth = {"HTTP_AUTHORIZATION": f"Token {token.key}"}
+        self.assertEqual(self.client.post("/api/auth/sair/", **auth).status_code, 204)
+        self.assertFalse(Token.objects.filter(user=user).exists())
+        self.assertEqual(self.client.get("/api/painel/resumo/", **auth).status_code, 401)

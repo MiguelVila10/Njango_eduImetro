@@ -12,6 +12,7 @@ from alunos.sessao import (
     eh_o_proprio_aluno,
     eh_orientador,
     exigir_acesso_ao_aluno,
+    exigir_dados_abertos,
     filtrar_pelo_aluno,
     pode_aceder_aluno,
 )
@@ -57,17 +58,16 @@ class RespostaCATViewSet(viewsets.ModelViewSet):
     """
     serializer_class = RespostaCATSerializer
     permission_classes = [OrientadorLeAlunoEscreve]
+    # Uma resposta dada não se altera nem se apaga (o CAT já escolheu as
+    # perguntas seguintes a partir dela; RF11).
+    http_method_names = ["get", "post", "head", "options"]
 
     def get_queryset(self):
         return filtrar_pelo_aluno(self.request, RespostaCAT.objects.all())
 
     def perform_create(self, serializer):
         exigir_acesso_ao_aluno(self.request, serializer.validated_data["aluno"])
-        serializer.save()
-
-    def perform_update(self, serializer):
-        aluno = serializer.validated_data.get("aluno", serializer.instance.aluno)
-        exigir_acesso_ao_aluno(self.request, aluno)
+        exigir_dados_abertos(serializer.validated_data["aluno"], "as respostas")
         serializer.save()
 
 

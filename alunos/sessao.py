@@ -76,6 +76,17 @@ def exigir_acesso_ao_aluno(request, aluno):
         raise PermissionDenied("Só podes registar dados no teu próprio perfil.")
 
 
+def exigir_dados_abertos(aluno, o_que="as notas e as respostas"):
+    """
+    RF11 (auditoria): depois de o motor gerar as sugestões, as notas e as
+    respostas que as originaram ficam fixas — a ficha do orientador mostra
+    exactamente os dados de onde vieram as sugestões. (Repetir o teste apaga
+    primeiro as sugestões, por isso continua a funcionar.)
+    """
+    if aluno.recomendacoes.exists():
+        raise PermissionDenied(f"As tuas sugestões já foram geradas: {o_que} já não se podem alterar.")
+
+
 class EhOrientador(BasePermission):
     """Permissão por omissão da API: só o orientador."""
     message = "Acesso reservado ao orientador."
