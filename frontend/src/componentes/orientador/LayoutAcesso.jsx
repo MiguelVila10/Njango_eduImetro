@@ -3,17 +3,18 @@
 // o orientador pode fazer e a ilustração; formulário à direita. No telemóvel o painel fica numa faixa
 // em cima, sem a ilustração.
 
-import { BookOpen, BookOpenCheck, ChartColumn, Users } from "lucide-react";
+import { BookOpenCheck, ChartColumn, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import ilustracao from "../../assets/orientador/orientador.svg";
+import Marca from "../Marca";
 
 export default function LayoutAcesso({ children }) {
   return (
     <div className="flex min-h-screen flex-col bg-white lg:flex-row">
       <aside className="relative flex shrink-0 flex-col overflow-hidden bg-[#17589b] px-6 py-6 text-white sm:px-10 lg:w-[512px] lg:px-14 lg:py-14">
-        <Link to="/" className="relative z-10 flex items-center gap-3 text-[24px] font-bold lg:text-[28px]">
-          <BookOpen className="h-7 w-7" strokeWidth={1.8} aria-hidden="true" /> NjangoEdu
+        <Link to="/" aria-label="Njango Edu — página inicial" className="relative z-10 flex items-center self-start">
+          <Marca branco className="h-10 lg:h-12" />
         </Link>
         <div className="relative z-10 mt-4 lg:mt-14">
           <p className="text-[22px] font-bold leading-tight lg:text-[34px]">Área do orientador</p>

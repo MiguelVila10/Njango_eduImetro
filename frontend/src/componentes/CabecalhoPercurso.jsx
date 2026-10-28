@@ -6,6 +6,7 @@ import { Check, ChevronLeft, UserRound } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { sessaoAluno } from "../sessao/sessaoAluno";
+import Marca from "./Marca";
 
 export const PASSOS = ["Os teus dados", "Notas", "Teste", "Sugestões"];
 
@@ -17,8 +18,8 @@ export default function CabecalhoPercurso({ passo, voltarPara = "/", detalhe = n
     <header className="sticky top-0 z-40 w-full border-b border-borda bg-white">
       {/* Computador */}
       <div className="mx-auto hidden h-20 max-w-[1380px] items-center justify-between gap-6 px-6 md:flex lg:px-12">
-        <Link to="/" className="shrink-0 text-[26px] font-extrabold tracking-tight">
-          Njango<span className="text-primaria">Edu</span>
+        <Link to="/" aria-label="Njango Edu — página inicial" className="flex shrink-0 items-center">
+          <Marca className="h-11" />
         </Link>
 
         <nav aria-label="Passos">
@@ -71,8 +72,8 @@ export default function CabecalhoPercurso({ passo, voltarPara = "/", detalhe = n
           >
             <ChevronLeft className="h-6 w-6" aria-hidden="true" />
           </button>
-          <Link to="/" className="text-center text-[20px] font-extrabold tracking-tight">
-            Njango<span className="text-primaria">Edu</span>
+          <Link to="/" aria-label="Njango Edu — página inicial" className="flex items-center justify-center">
+            <Marca className="h-8" />
           </Link>
           <span />
         </div>

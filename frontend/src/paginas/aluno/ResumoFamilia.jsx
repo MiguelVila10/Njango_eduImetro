@@ -13,6 +13,7 @@ import { PerfilSemSugestao } from "../../componentes/explicacao";
 import { Compatibilidade, percentagem } from "../../componentes/sugestoes";
 import { useRecomendacoes } from "../../hooks/useRecomendacoes";
 import { sessaoAluno } from "../../sessao/sessaoAluno";
+import Marca from "../../componentes/Marca";
 
 const hoje = () => new Date().toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit", year: "numeric" });
 
@@ -111,12 +112,9 @@ export default function ResumoFamilia() {
           {/* Cabeçalho */}
           <header className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-start print:mb-3 print:flex-row">
             <div className="flex items-start gap-3">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[10px] bg-primaria text-[18px] font-extrabold text-white print:h-9 print:w-9 print:text-[15px]">N</span>
               <div>
-                <p className="text-[22px] font-extrabold leading-tight print:text-[18px]">
-                  Njango<span className="text-primaria">Edu</span>
-                  <span className="block text-[11px] font-bold uppercase tracking-wide text-primaria-escura sm:ml-2 sm:inline sm:align-middle print:ml-2 print:inline print:align-middle">Resumo para a família</span>
-                </p>
+                <Marca className="h-10 print:h-8" />
+                <p className="mt-2 text-[11px] font-bold uppercase tracking-wide text-primaria-escura">Resumo para a família</p>
                 <p className="text-[13px] text-texto-suave print:text-[10px]">
                   Orientação vocacional para finalistas do I Ciclo do Ensino Secundário · Luanda
                 </p>

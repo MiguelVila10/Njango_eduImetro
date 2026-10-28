@@ -5,13 +5,13 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import Marca from "./Marca";
 
 
 export function Logotipo({ className = "" }) {
   return (
-    <Link to="/" className={`flex items-center text-[24px] font-extrabold tracking-tight text-texto md:text-[26px] ${className}`}>
-      <span>Njango</span>
-      <span className="text-primaria">Edu</span>
+    <Link to="/" aria-label="Njango Edu — página inicial" className={`flex items-center ${className}`}>
+      <Marca className="h-9 md:h-11" />
     </Link>
   );
 }

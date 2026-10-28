@@ -10,6 +10,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-do
 
 import { sairDaConta } from "../../api/orientador";
 import { sessaoOrientador, terminarSessaoOrientador } from "../../sessao/sessaoOrientador";
+import Marca from "../../componentes/Marca";
 
 const LIGACOES = [
   { para: "/orientador", texto: "Painel", icone: LayoutDashboard, fim: true },
@@ -21,8 +22,8 @@ const PEDIDOS = { para: "/orientador/pedidos", texto: "Pedidos de conta", icone:
 
 function Logotipo() {
   return (
-    <Link to="/orientador" className="text-[22px] font-bold tracking-tight text-texto">
-      Njango<span className="text-primaria">Edu</span>
+    <Link to="/orientador" aria-label="Njango Edu — painel" className="flex items-center">
+      <Marca className="h-9 lg:h-10" />
     </Link>
   );
 }
