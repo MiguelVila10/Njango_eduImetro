@@ -3,12 +3,13 @@
 // cartão da pergunta), com as cores azuis do Njango Edu.
 // Telemóvel: design do Stitch (lista de opções e botão "Seguinte" fixo em baixo).
 // O servidor decide a pergunta seguinte e quando o teste acaba (5 a 18 perguntas).
-// No fim vai sempre para as sugestões (o ecrã não propõe repetir o teste).
+// No fim vai para as sugestões. Se as respostas indicarem pouca atenção (confiança
+// baixa) e for a 1.ª tentativa, abre-se um painel para recomeçar ou continuar.
 // O tempo de resposta conta até à escolha, não até ao toque em "Avançar".
 
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  ArrowRight, Check, CircleCheck, Info, LoaderCircle, MessageCircle, Puzzle, RefreshCw, ShieldCheck, Sparkles,
+  ArrowRight, Check, CircleCheck, Info, LoaderCircle, MessageCircle, Puzzle, RefreshCw, RotateCcw, ShieldCheck, Sparkles,
   WifiOff,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -22,6 +23,7 @@ import { sessaoAluno } from "../../sessao/sessaoAluno";
 const BOTAO =
   "flex h-14 whitespace-nowrap items-center justify-center gap-2 rounded-[14px] px-8 text-[16px] font-semibold transition-[background-color,color,transform] active:scale-[0.99] disabled:cursor-not-allowed lg:h-[52px] lg:rounded-[10px]";
 const BOTAO_PRINCIPAL = `${BOTAO} bg-primaria text-white hover:bg-primaria-escura disabled:bg-primaria-clara disabled:text-primaria/50`;
+const BOTAO_SECUNDARIO = `${BOTAO} border-[1.5px] border-borda bg-white text-texto hover:bg-fundo disabled:text-texto-suave`;
 
 function Opcao({ opcao, escolhida, desactivada, aoEscolher }) {
   const id = `opcao-${opcao.posicao}`;
@@ -105,7 +107,7 @@ function ColunaLateral({ respondidas, atual }) {
 }
 
 // Ecrã final (design "Teste concluído"): progresso a 100%, ilustração com o
-// visto, mensagem e botão para as sugestões. Não se propõe repetir o teste.
+// visto, mensagem e botão para as sugestões.
 function Ilustracao({ className = "" }) {
   return (
     <div className={`relative flex items-center justify-center overflow-hidden rounded-[16px] border-[1.5px] border-borda bg-white ${className}`}>
@@ -166,6 +168,59 @@ function Conclusao({ respondidas, aoVerCursos }) {
   );
 }
 
+// Painel do fim do teste quando a confiança é baixa (só na 1.ª tentativa).
+// O aluno escolhe: recomeçar o teste (uma única vez) ou continuar para os cursos.
+// Não se mostra o perfil nem os indicadores; só uma explicação simples.
+export function PainelRepetir({ aRepetir, erro, aoRecomecar, aoContinuar }) {
+  const titulo = useRef(null);
+  useEffect(() => { titulo.current?.focus(); }, []);
+  return (
+    <motion.div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-texto/50 p-0 sm:items-center sm:p-6"
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+    >
+      <motion.div
+        role="dialog" aria-modal="true" aria-labelledby="titulo-repetir" aria-describedby="texto-repetir"
+        className="w-full max-w-[580px] rounded-t-[20px] bg-white p-6 shadow-[0_-8px_32px_rgba(0,0,0,0.12)] sm:rounded-[20px] sm:p-8"
+        initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 40, opacity: 0 }}
+        transition={{ type: "spring", stiffness: 380, damping: 34 }}
+      >
+        <span className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-700">
+          <Info className="h-6 w-6" aria-hidden="true" />
+        </span>
+        <h2 id="titulo-repetir" ref={titulo} tabIndex={-1} className="mb-3 text-[22px] font-bold leading-tight outline-none sm:text-[24px]">
+          Queres fazer o teste outra vez?
+        </h2>
+        <div id="texto-repetir" className="mb-6 space-y-3 text-[15px] leading-relaxed text-texto-suave sm:text-[16px]">
+          <p>
+            Algumas respostas foram dadas muito depressa, sempre no mesmo lugar do ecrã ou de forma diferente em
+            situações parecidas. Assim, o resultado pode não mostrar bem o que gostas de fazer.
+          </p>
+          <p>
+            Podes <strong className="font-semibold text-texto">recomeçar o teste uma única vez</strong>, com calma, ou
+            continuar com estas respostas.
+          </p>
+        </div>
+        {erro && (
+          <p role="alert" className="mb-4 rounded-[10px] bg-red-50 px-4 py-3 text-[14px] font-medium text-red-800">
+            Não foi possível recomeçar o teste. Verifica a ligação e tenta novamente.
+          </p>
+        )}
+        <div className="flex flex-col gap-3 sm:flex-row-reverse">
+          <button type="button" onClick={aoRecomecar} disabled={aRepetir} className={`${BOTAO_PRINCIPAL} w-full sm:flex-1 sm:px-5`}>
+            {aRepetir
+              ? <><LoaderCircle className="h-[18px] w-[18px] animate-spin" aria-hidden="true" /> A recomeçar…</>
+              : <><RotateCcw className="h-[18px] w-[18px]" aria-hidden="true" /> Recomeçar o teste</>}
+          </button>
+          <button type="button" onClick={aoContinuar} disabled={aRepetir} className={`${BOTAO_SECUNDARIO} w-full sm:flex-1 sm:px-5`}>
+            Continuar para os cursos
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 function BarraConcluida() {
   return (
     <>
@@ -183,7 +238,8 @@ function BarraConcluida() {
 export default function Teste() {
   const navegar = useNavigate();
   const { alunoId } = sessaoAluno();
-  const { estado, carregando, aEnviar, erro, responder, recarregar, tempoDecorrido } = useTeste(alunoId);
+  const { estado, carregando, aEnviar, erro, responder, repetir, recarregar, tempoDecorrido } = useTeste(alunoId);
+  const [painelFechado, setPainelFechado] = useState(false);
   const [escolha, setEscolha] = useState(null); // { opcao, tempoMs }
   const titulo = useRef(null);
 
@@ -237,7 +293,21 @@ export default function Teste() {
       </div>
     );
   } else if (estado.terminado) {
-    conteudo = <Conclusao respondidas={respondidas} aoVerCursos={() => navegar("/aluno/resultado")} />;
+    conteudo = (
+      <>
+        <Conclusao respondidas={respondidas} aoVerCursos={() => navegar("/aluno/resultado")} />
+        <AnimatePresence>
+          {estado.pode_repetir && !painelFechado && (
+            <PainelRepetir
+              aRepetir={aEnviar}
+              erro={erro}
+              aoRecomecar={repetir}
+              aoContinuar={() => { setPainelFechado(true); navegar("/aluno/resultado"); }}
+            />
+          )}
+        </AnimatePresence>
+      </>
+    );
   } else {
     conteudo = (
       <div className="flex flex-1">
